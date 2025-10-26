@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara TKD | Student Portal</title>
+    <meta name="description" content="Log into the Ara TKD student portal to access belt study guides, testing checklists, and upload certificates.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="brand">
+                <a href="index.html#top" class="brand-link">
+                    <span class="brand-mark">ARA</span>
+                    <span class="brand-name">Martial Arts</span>
+                </a>
+            </div>
+            <nav class="main-nav" aria-label="Main Navigation">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+                <ul id="primary-nav">
+                    <li><a href="index.html#programs">Programs</a></li>
+                    <li><a href="index.html#instructors">Instructors</a></li>
+                    <li><a href="index.html#schedule">Schedule</a></li>
+                    <li><a href="student-portal.html" aria-current="page">Student Portal</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a href="index.html#contact" class="cta-btn">Book a Trial</a>
+        </div>
+    </header>
+
+    <main id="portal-top">
+        <section class="hero" style="padding: 4rem 0 3rem;">
+            <div class="container hero-content" style="grid-template-columns: 1fr;">
+                <div class="hero-copy">
+                    <p class="hero-badge" style="align-self:flex-start;">Private Access</p>
+                    <h1>Active Student Portal</h1>
+                    <p>Log in with your Ara TKD Student ID to review belt study guides, testing checklists, and upload certificates to unlock the next rank.</p>
+                    <div class="hero-actions">
+                        <a class="secondary-btn" href="mailto:afetkd@gmail.com">Need Help? Email Us</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section student-portal" id="students">
+            <div class="container">
+                <div class="portal-grid">
+                    <form class="portal-card login-card" id="student-login-form" novalidate>
+                        <h3>Student Login</h3>
+                        <label for="student-id">Student ID</label>
+                        <input type="text" id="student-id" name="studentId" placeholder="ARA001" autocomplete="off" required>
+
+                        <label for="student-dob">Date of Birth</label>
+                        <input type="date" id="student-dob" name="studentDob" required>
+
+                        <p class="portal-hint">You'll receive your confidential ID directly from the office. We use your birthdate to double-check access.</p>
+                        <button type="submit" class="cta-btn">Access Portal</button>
+                        <p class="form-status" id="portal-error" aria-live="polite"></p>
+                    </form>
+                    <div class="portal-card help-card">
+                        <h3>Portal Checklist</h3>
+                        <ul>
+                            <li>Each student has a unique ID + birthdate login.</li>
+                            <li>Unlocked belts show the matching study guide &amp; testing checklist.</li>
+                            <li>Upload a certificate to request the next belt unlock.</li>
+                            <li>Email <a href="mailto:afetkd@gmail.com">afetkd@gmail.com</a> if you need a reset.</li>
+                        </ul>
+                        <p class="portal-note">Uploaded certificates stay on your device until we add staff review or cloud storage.</p>
+                    </div>
+                </div>
+                <div class="portal-placeholder" id="portal-placeholder">
+                    <p>Log in above to see your personalized belt roadmap, training materials, and certificate log.</p>
+                </div>
+                <div class="portal-app" id="portal-app" hidden>
+                    <div class="portal-toolbar">
+                        <div>
+                            <p class="portal-student-name" id="portal-student-name"></p>
+                            <p class="portal-student-meta">
+                                ID: <span id="portal-student-id"></span> · Current Belt:
+                                <span id="portal-current-belt"></span> · Next Goal:
+                                <span id="portal-next-belt"></span>
+                            </p>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button type="button" class="secondary-btn" id="portal-refresh">Refresh</button>
+                            <button type="button" class="text-link-btn" id="portal-logout">Sign out</button>
+                        </div>
+                    </div>
+                    <div class="belt-grid" id="belt-grid" aria-live="polite"></div>
+                    <div class="certificate-log" id="certificate-log" aria-live="polite"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <p class="brand-mark">ARA</p>
+                <p>Committed to HONOR, COURTESY, RESPECT, INTEGRITY, and PERSEVERANCE for every student we serve.</p>
+            </div>
+            <div>
+                <h3>Connect</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
+                    <li><a href="https://www.facebook.com" target="_blank" rel="noopener">Facebook</a></li>
+                    <li><a href="https://www.youtube.com" target="_blank" rel="noopener">YouTube</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Hours</h3>
+                <ul>
+                    <li>Mon-Fri: 11:30 AM - 8:30 PM</li>
+                    <li>Sat: By appointment</li>
+                    <li>Sun: Closed</li>
+                </ul>
+            </div>
+        </div>
+        <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="assets/js/student-portal.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

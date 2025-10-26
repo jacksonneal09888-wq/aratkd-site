@@ -1,0 +1,240 @@
+﻿[
+    {
+        "id":  "ARA001",
+        "name":  "Alejandro Gonzalez",
+        "birthDate":  "2014-12-08",
+        "phone":  "9197991277",
+        "currentBelt":  "High Green Belt"
+    },
+    {
+        "id":  "ARA002",
+        "name":  "Andrew Dragon",
+        "birthDate":  "2017-02-10",
+        "phone":  "9194445161",
+        "currentBelt":  "Green Belt"
+    },
+    {
+        "id":  "ARA003",
+        "name":  "Angel Lavariega",
+        "birthDate":  "2010-09-23",
+        "phone":  "9193536828",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA004",
+        "name":  "Aurea Lavariega",
+        "birthDate":  "2012-02-27",
+        "phone":  "",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA005",
+        "name":  "Bryan Ixcoy",
+        "birthDate":  "2012-07-12",
+        "phone":  "",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA006",
+        "name":  "Cane Thomas Anders",
+        "birthDate":  "2014-01-07",
+        "phone":  "9199283425",
+        "currentBelt":  "Black Belt"
+    },
+    {
+        "id":  "ARA007",
+        "name":  "Carmenlucila Preciado Lopez",
+        "birthDate":  "2021-06-01",
+        "phone":  "9107486263",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA008",
+        "name":  "Charleigh-Grace Brown",
+        "birthDate":  "2019-08-24",
+        "phone":  "9109735674",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA009",
+        "name":  "Daniel Carbajal",
+        "birthDate":  "1995-10-31",
+        "phone":  "2523473716",
+        "currentBelt":  "High White Belt"
+    },
+    {
+        "id":  "ARA010",
+        "name":  "Ernesto Flores",
+        "birthDate":  "2011-09-12",
+        "phone":  "9109757881",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA011",
+        "name":  "Faith Foxx",
+        "birthDate":  "1991-09-01",
+        "phone":  "3362096531",
+        "currentBelt":  "High White Belt"
+    },
+    {
+        "id":  "ARA012",
+        "name":  "Fischer Pike",
+        "birthDate":  "2011-11-25",
+        "phone":  "9195484262",
+        "currentBelt":  "Black Belt 2nd Dan"
+    },
+    {
+        "id":  "ARA013",
+        "name":  "Ian Lopez",
+        "birthDate":  "2019-07-18",
+        "phone":  "9843179092",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA014",
+        "name":  "Immanuel Barrera",
+        "birthDate":  "2019-07-06",
+        "phone":  "9197990697",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA015",
+        "name":  "Isla Brown",
+        "birthDate":  "2016-06-15",
+        "phone":  "9109735660",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA016",
+        "name":  "Jackson Neal",
+        "birthDate":  "1996-09-12",
+        "phone":  "9107016100",
+        "currentBelt":  "Yellow Belt"
+    },
+    {
+        "id":  "ARA017",
+        "name":  "Jason Perla",
+        "birthDate":  "2019-12-02",
+        "phone":  "3362648841",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA018",
+        "name":  "Jasper Garner",
+        "birthDate":  "2022-06-19",
+        "phone":  "9104899296",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA019",
+        "name":  "Jaxson Flores",
+        "birthDate":  "2018-05-25",
+        "phone":  "3362148725",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA020",
+        "name":  "Jaylin Kornegay",
+        "birthDate":  "2018-11-20",
+        "phone":  "9108178420",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA021",
+        "name":  "Jehasmin Gomez",
+        "birthDate":  "2011-04-01",
+        "phone":  "9193580293",
+        "currentBelt":  "High Blue Belt"
+    },
+    {
+        "id":  "ARA022",
+        "name":  "Katioshca Gomez",
+        "birthDate":  "2017-01-31",
+        "phone":  "",
+        "currentBelt":  "High Blue Belt"
+    },
+    {
+        "id":  "ARA023",
+        "name":  "Keith Gabriel Watts",
+        "birthDate":  "2015-10-14",
+        "phone":  "3362670580",
+        "currentBelt":  "Yellow Belt"
+    },
+    {
+        "id":  "ARA024",
+        "name":  "Kylan Gaines",
+        "birthDate":  "2019-07-14",
+        "phone":  "9192003792",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA025",
+        "name":  "Mabelyn Gomez",
+        "birthDate":  "2013-06-16",
+        "phone":  "9842483879",
+        "currentBelt":  "High Blue Belt"
+    },
+    {
+        "id":  "ARA026",
+        "name":  "Mia Burcidga",
+        "birthDate":  "2020-04-23",
+        "phone":  "3362600277",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA027",
+        "name":  "Noel Marquez",
+        "birthDate":  "2014-04-26",
+        "phone":  "9195485878",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA028",
+        "name":  "Oliver Milholen",
+        "birthDate":  "2018-03-18",
+        "phone":  "9192791681",
+        "currentBelt":  "High Blue Belt"
+    },
+    {
+        "id":  "ARA029",
+        "name":  "Perla Cordero",
+        "birthDate":  "2012-01-06",
+        "phone":  "9197420696",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA030",
+        "name":  "Perla Marquez",
+        "birthDate":  "2012-01-10",
+        "phone":  "9193168704",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA031",
+        "name":  "Shiv Patel",
+        "birthDate":  "2019-06-24",
+        "phone":  "8032923444",
+        "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA032",
+        "name":  "Sofia Ixcoy",
+        "birthDate":  "2015-11-27",
+        "phone":  "9192141015",
+        "currentBelt":  "High Yellow Belt"
+    },
+    {
+        "id":  "ARA033",
+        "name":  "Teagan Volonnino",
+        "birthDate":  "2015-05-09",
+        "phone":  "6103160907",
+        "currentBelt":  "Blue Belt"
+    },
+    {
+        "id":  "ARA034",
+        "name":  "Yeshia Romero",
+        "birthDate":  "2020-04-17",
+        "phone":  "9842659835",
+        "currentBelt":  "White Belt"
+    }
+]

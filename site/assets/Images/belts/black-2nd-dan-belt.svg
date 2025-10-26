@@ -1,0 +1,24 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="360" height="120" viewBox="0 0 360 120">
+  <defs>
+    <linearGradient id="beltBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2b2b2b"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="beltKnot" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e2e2e"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="120" rx="18" fill="#010101"/>
+  <g transform="translate(20 28)">
+    <rect x="0" y="24" width="320" height="36" rx="18" fill="url(#beltBody)"/>
+    <path d="M78 40 L44 92 L116 92 Z" fill="#060606"/>
+    <rect x="268" y="20" width="34" height="82" rx="14" fill="#050505"/>
+    <rect x="138" y="0" width="84" height="64" rx="28" fill="url(#beltKnot)"/>
+    <rect x="150" y="10" width="60" height="44" rx="20" fill="#181818"/>
+    <g transform="translate(272 64)">
+      <rect x="0" y="0" width="22" height="6" rx="3" fill="#ffd44d" stroke="#cc9f1f" stroke-width="0.5"/>
+      <rect x="0" y="10" width="22" height="6" rx="3" fill="#ffd44d" stroke="#cc9f1f" stroke-width="0.5"/>
+    </g>
+  </g>
+</svg>
