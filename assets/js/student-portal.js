@@ -23,8 +23,7 @@ const BELT_SEQUENCE = [
         focus: "Foundations: attention stance, courtesy, basic blocks, and home respect goals.",
         studyGuide: `${CURRICULUM_PDF}#page=1`,
         testingChecklist: "assets/materials/white-belt-testing-checklist.md",
-        image: "assets/Images/belts/white-belt.svg",
-        curriculumPage: 1
+        image: "assets/Images/belts/white-belt.svg"
     },
     {
         name: "High White Belt",
@@ -32,80 +31,71 @@ const BELT_SEQUENCE = [
         focus: "Early footwork, loud kihaps, and sharp low/high blocks with balance checks.",
         studyGuide: `${CURRICULUM_PDF}#page=2`,
         testingChecklist: "assets/materials/high-white-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-white-belt.svg",
-        curriculumPage: 2
+        image: "assets/Images/belts/high-white-belt.svg"
     },
     {
         name: "Yellow Belt",
         slug: "yellow",
         focus: "Balance, strong front stances, and first round of one-steps.",
         studyGuide: "https://youtu.be/WhkjRruCBTo?si=E-UgOruZShgYSNeT&t=82",
-        testingChecklist: "assets/materials/yellow-belt-testing-checklist.md",
-        image: "assets/Images/belts/yellow-belt.svg",
-        curriculumPage: 3
+        testingChecklist: "assets/materials/tkd-curriculum-yellow-belt.png",
+        image: "assets/Images/belts/yellow-belt.svg"
     },
     {
         name: "High Yellow Belt",
         slug: "high-yellow",
         focus: "Confidence linking front and side kicks with self-defense combinations.",
         studyGuide: "https://youtu.be/tGlrUplKHh8?si=H6A2ThFhMwu03AQ_&t=67",
-        testingChecklist: "assets/materials/high-yellow-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-yellow-belt.svg",
-        curriculumPage: 4
+        testingChecklist: "assets/materials/tkd-curriculum-high-yellow-belt.png",
+        image: "assets/Images/belts/high-yellow-belt.svg"
     },
     {
         name: "Green Belt",
         slug: "green",
         focus: "Power generation, stronger poomsae details, sparring drills.",
         studyGuide: "https://youtu.be/ksSqKt0UkWo?si=jowU-x4mP_eGsYh4&t=70",
-        testingChecklist: "assets/materials/green-belt-testing-checklist.md",
-        image: "assets/Images/belts/green-belt.svg",
-        curriculumPage: 5
+        testingChecklist: "assets/materials/tkd-curriculum-green-belt.png",
+        image: "assets/Images/belts/green-belt.svg"
     },
     {
         name: "High Green Belt",
         slug: "high-green",
         focus: "Footwork triangles, counter-sparring, and advanced combination control.",
         studyGuide: "https://youtu.be/Lt917gacJho?si=aQT6Da0ymYxaaIfl&t=90",
-        testingChecklist: "assets/materials/high-green-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-green-belt.svg",
-        curriculumPage: 6
+        testingChecklist: "assets/materials/tkd-curriculum-high-green-belt.png",
+        image: "assets/Images/belts/high-green-belt.svg"
     },
     {
         name: "Blue Belt",
         slug: "blue",
         focus: "Ring control, board breaks, and intermediate sparring strategies.",
         studyGuide: "https://youtu.be/VdqNEAHWCBM?si=HZPlrrTmsxkAiQPV&t=75",
-        testingChecklist: "assets/materials/blue-belt-testing-checklist.md",
-        image: "assets/Images/belts/blue-belt.svg",
-        curriculumPage: 7
+        testingChecklist: "assets/materials/tkd-curriculum-blue-belt.png",
+        image: "assets/Images/belts/blue-belt.svg"
     },
     {
         name: "High Blue Belt",
         slug: "high-blue",
         focus: "Leadership reps, spin kicks, and coaching cues for junior students.",
         studyGuide: "https://youtu.be/jcBwWo4wN7c?si=1yGokYoeRXDiLY5F&t=55",
-        testingChecklist: "assets/materials/high-blue-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-blue-belt.svg",
-        curriculumPage: 8
+        testingChecklist: "assets/materials/tkd-curriculum-high-blue-belt.png",
+        image: "assets/Images/belts/high-blue-belt.svg"
     },
     {
         name: "Red Belt",
         slug: "red",
         focus: "Demo-ready power, teaching readiness, and board-break creativity.",
         studyGuide: "https://youtu.be/6FUM1p6qqhQ?si=QFCP9UYnsTvd-qcZ&t=61",
-        testingChecklist: "assets/materials/red-belt-testing-checklist.md",
-        image: "assets/Images/belts/red-belt.svg",
-        curriculumPage: 9
+        testingChecklist: "assets/materials/tkd-curriculum-red-belt.png",
+        image: "assets/Images/belts/red-belt.svg"
     },
     {
         name: "High Red Belt",
         slug: "high-red",
         focus: "Testing rehearsals, mentoring, and black-belt mindset assignments.",
         studyGuide: "https://youtu.be/Gr_Je2ZkgkI?si=bZp1cCvGdrXIRr3W&t=67",
-        testingChecklist: "assets/materials/high-red-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-red-belt.svg",
-        curriculumPage: 10
+        testingChecklist: "assets/materials/tkd-curriculum-high-red-belt.png",
+        image: "assets/Images/belts/high-red-belt.svg"
     },
     {
         name: "Black Belt",
@@ -344,17 +334,14 @@ function renderBeltGrid(student, unlockedIndex) {
             ? "Download Study Guide"
             : "Study Guide";
         const studyLink = makeResourceLink(studyLabel, belt.studyGuide, index <= unlockedIndex);
-        const checklistHref = belt.curriculumPage
-            ? `${CURRICULUM_PDF}#page=${belt.curriculumPage}`
-            : belt.testingChecklist;
         const testingLink = makeResourceLink(
             index <= unlockedIndex ? "Download Checklist" : "Testing Checklist",
-            checklistHref,
+            belt.testingChecklist,
             index <= unlockedIndex
         );
         if (index <= unlockedIndex) {
             applyDownloadFilename(studyLink, belt.studyGuide, `${belt.slug}-study-guide`);
-            applyDownloadFilename(testingLink, checklistHref, `${belt.slug}-testing-checklist`);
+            applyDownloadFilename(testingLink, belt.testingChecklist, `${belt.slug}-testing-checklist`);
         }
         resources.append(studyLink, testingLink);
         card.append(resources);
