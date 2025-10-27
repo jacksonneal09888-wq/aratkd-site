@@ -236,5 +236,19 @@
         "birthDate":  "2020-04-17",
         "phone":  "9842659835",
         "currentBelt":  "White Belt"
+    },
+    {
+        "id":  "ARA035",
+        "name":  "Eldie Ara",
+        "birthDate":  "2007-04-09",
+        "phone":  "",
+        "currentBelt":  "Black Belt 3rd Dan"
+    },
+    {
+        "id":  "ARA036",
+        "name":  "Fatima Enriquez",
+        "birthDate":  "1980-03-11",
+        "phone":  "",
+        "currentBelt":  "Black Belt"
     }
 ]
