@@ -339,17 +339,11 @@ function renderBeltGrid(student, unlockedIndex) {
             belt.studyGuide,
             index <= unlockedIndex
         );
-        if (index <= unlockedIndex) {
-            studyLink.setAttribute("download", "");
-        }
         const testingLink = makeResourceLink(
             index <= unlockedIndex ? "Download Checklist" : "Testing Checklist",
             belt.testingChecklist,
             index <= unlockedIndex
         );
-        if (index <= unlockedIndex) {
-            testingLink.setAttribute("download", "");
-        }
         const curriculumLink = CURRICULUM_PDF
             ? makeResourceLink(
                   index <= unlockedIndex ? "Curriculum PDF" : "Curriculum PDF",
