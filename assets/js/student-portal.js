@@ -14,6 +14,8 @@ const ACCEPTED_TYPES = [
     "image/heif"
 ];
 
+const CURRICULUM_PDF = "assets/materials/tkd-curriculum-aras-martial-arts.pdf";
+
 const BELT_SEQUENCE = [
     {
         name: "White Belt",
@@ -348,7 +350,23 @@ function renderBeltGrid(student, unlockedIndex) {
         if (index <= unlockedIndex) {
             testingLink.setAttribute("download", "");
         }
-        resources.append(studyLink, testingLink);
+        const curriculumLink = CURRICULUM_PDF
+            ? makeResourceLink(
+                  index <= unlockedIndex ? "Curriculum PDF" : "Curriculum PDF",
+                  CURRICULUM_PDF,
+                  index <= unlockedIndex
+              )
+            : null;
+        if (index <= unlockedIndex) {
+            studyLink.setAttribute("download", "");
+            testingLink.setAttribute("download", "");
+            curriculumLink?.setAttribute("download", "");
+        }
+        const links = [studyLink, testingLink];
+        if (curriculumLink) {
+            links.push(curriculumLink);
+        }
+        resources.append(...links);
         card.append(resources);
 
         const studyGuideContainer = document.createElement("div");
