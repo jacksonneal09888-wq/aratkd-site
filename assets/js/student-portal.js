@@ -48,7 +48,7 @@ const BELT_SEQUENCE = [
         name: "High Yellow Belt",
         slug: "high-yellow",
         focus: "Confidence linking front and side kicks with self-defense combinations.",
-        studyGuide: `${CURRICULUM_PDF}#page=4`,
+        studyGuide: "https://youtu.be/tGlrUplKHh8?si=H6A2ThFhMwu03AQ_&t=67",
         testingChecklist: "assets/materials/high-yellow-belt-testing-checklist.md",
         image: "assets/Images/belts/high-yellow-belt.svg",
         curriculumPage: 4
@@ -338,11 +338,7 @@ function renderBeltGrid(student, unlockedIndex) {
 
         const resources = document.createElement("div");
         resources.className = "resource-links";
-        const studyLink = makeResourceLink(
-            index <= unlockedIndex ? "Download Study Guide" : "Study Guide",
-            belt.studyGuide,
-            index <= unlockedIndex
-        );
+        const studyLink = makeResourceLink("Video Study Guide", belt.studyGuide, index <= unlockedIndex);
         const checklistHref = belt.curriculumPage
             ? `${CURRICULUM_PDF}#page=${belt.curriculumPage}`
             : belt.testingChecklist;
