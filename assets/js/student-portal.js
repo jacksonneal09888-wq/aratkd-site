@@ -338,7 +338,12 @@ function renderBeltGrid(student, unlockedIndex) {
 
         const resources = document.createElement("div");
         resources.className = "resource-links";
-        const studyLink = makeResourceLink("Video Study Guide", belt.studyGuide, index <= unlockedIndex);
+        const studyLabel = belt.studyGuide?.includes("youtube.com") || belt.studyGuide?.includes("youtu.be")
+            ? "Video Study Guide"
+            : index <= unlockedIndex
+            ? "Download Study Guide"
+            : "Study Guide";
+        const studyLink = makeResourceLink(studyLabel, belt.studyGuide, index <= unlockedIndex);
         const checklistHref = belt.curriculumPage
             ? `${CURRICULUM_PDF}#page=${belt.curriculumPage}`
             : belt.testingChecklist;
