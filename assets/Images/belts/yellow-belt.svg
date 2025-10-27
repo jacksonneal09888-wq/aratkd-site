@@ -4,6 +4,7 @@
     <rect x='0' y='50' width='300' height='36' rx='18' fill='#B89300'/>
     <rect x='0' y='44' width='300' height='36' rx='18' fill='#f5c400'/>
     <rect x='0' y='40' width='300' height='30' rx='15' fill='#F8D64C' opacity='0.45'/>
+    
     <rect x='112' y='18' width='76' height='86' rx='28' fill='#B89300'/>
     <rect x='118' y='12' width='64' height='82' rx='24' fill='#f5c400'/>
     <rect x='124' y='18' width='52' height='60' rx='20' fill='#F8D64C' opacity='0.45'/>
@@ -11,6 +12,5 @@
     <path d='M226 96 L258 150 L228 150 L200 96 Z' fill='#f5c400'/>
     <path d='M134 96 L132 108 L154 108 L160 96 Z' fill='#B89300'/>
     <path d='M226 96 L228 108 L206 108 L200 96 Z' fill='#B89300'/>
-    
   </g>
 </svg>
