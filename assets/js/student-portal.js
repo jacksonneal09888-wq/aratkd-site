@@ -39,7 +39,7 @@ const BELT_SEQUENCE = [
         name: "Yellow Belt",
         slug: "yellow",
         focus: "Balance, strong front stances, and first round of one-steps.",
-        studyGuide: "https://youtu.be/WhkjRruCBTo?si=2d_bSt9tqSBKV7np",
+        studyGuide: "https://youtu.be/WhkjRruCBTo?si=E-UgOruZShgYSNeT&t=82",
         testingChecklist: "assets/materials/yellow-belt-testing-checklist.md",
         image: "assets/Images/belts/yellow-belt.svg",
         curriculumPage: 3
