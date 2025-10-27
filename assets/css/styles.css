@@ -957,7 +957,7 @@ a:focus {
     margin: 0;
 }
 
-.study-guide-content {
+.resource-content {
     background: #f6f8fb;
     border: 1px solid rgba(8, 9, 10, 0.1);
     border-radius: 0.75rem;
@@ -967,50 +967,50 @@ a:focus {
     color: var(--color-body);
 }
 
-.study-guide-content h3,
-.study-guide-content h4,
-.study-guide-content h5 {
+.resource-content h3,
+.resource-content h4,
+.resource-content h5 {
     margin: 0 0 0.5rem;
     font-family: var(--font-heading);
     color: var(--color-primary-dark);
 }
 
-.study-guide-content h3 {
+.resource-content h3 {
     font-size: 1.1rem;
 }
 
-.study-guide-content h4 {
+.resource-content h4 {
     font-size: 1rem;
 }
 
-.study-guide-content h5 {
+.resource-content h5 {
     font-size: 0.95rem;
 }
 
-.study-guide-content p {
+.resource-content p {
     margin: 0.5rem 0 0;
 }
 
-.study-guide-content ul {
+.resource-content ul {
     margin: 0.5rem 0 0;
     padding-left: 1.25rem;
 }
 
-.study-guide-content li {
+.resource-content li {
     margin: 0.25rem 0;
 }
 
-.study-guide-content strong {
+.resource-content strong {
     font-weight: 700;
 }
 
-.study-guide-content.study-guide-locked {
+.resource-content.resource-locked {
     color: var(--color-muted);
     border-style: dashed;
     text-align: center;
 }
 
-.study-guide-content.study-guide-error {
+.resource-content.resource-error {
     color: #c0392b;
     border-color: rgba(192, 57, 43, 0.3);
 }

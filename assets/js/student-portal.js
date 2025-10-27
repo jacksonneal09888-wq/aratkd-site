@@ -144,7 +144,7 @@ const BELT_ALIAS_MAPPINGS = [
     }
 ];
 
-const STUDY_GUIDE_CACHE = new Map();
+const RESOURCE_CACHE = new Map();
 
 const portalEls = {
     form: document.getElementById("student-login-form"),
@@ -340,14 +340,42 @@ function renderBeltGrid(student, unlockedIndex) {
         if (index <= unlockedIndex) {
             studyLink.setAttribute("download", "");
         }
-        const testingLink = makeResourceLink("Testing Checklist", belt.testingChecklist, index <= unlockedIndex);
+        const testingLink = makeResourceLink(
+            index <= unlockedIndex ? "Download Checklist" : "Testing Checklist",
+            belt.testingChecklist,
+            index <= unlockedIndex
+        );
+        if (index <= unlockedIndex) {
+            testingLink.setAttribute("download", "");
+        }
         resources.append(studyLink, testingLink);
         card.append(resources);
 
         const studyGuideContainer = document.createElement("div");
-        studyGuideContainer.className = "study-guide-content";
+        studyGuideContainer.className = "resource-content";
+        studyGuideContainer.dataset.type = "study";
         card.append(studyGuideContainer);
-        renderStudyGuideContent(belt, studyGuideContainer, index <= unlockedIndex);
+        renderResourceContent({
+            belt,
+            container: studyGuideContainer,
+            isUnlocked: index <= unlockedIndex,
+            url: belt.studyGuide,
+            cacheKey: `${belt.slug}-study`,
+            lockedMessage: "Unlock this belt to view the study guide."
+        });
+
+        const testingContainer = document.createElement("div");
+        testingContainer.className = "resource-content";
+        testingContainer.dataset.type = "testing";
+        card.append(testingContainer);
+        renderResourceContent({
+            belt,
+            container: testingContainer,
+            isUnlocked: index <= unlockedIndex,
+            url: belt.testingChecklist,
+            cacheKey: `${belt.slug}-testing`,
+            lockedMessage: "Unlock this belt to view the testing checklist."
+        });
 
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
@@ -487,48 +515,48 @@ function handleCertificateUpload(file, belt, beltIndex) {
     reader.readAsDataURL(file);
 }
 
-async function renderStudyGuideContent(belt, container, isUnlocked) {
+async function renderResourceContent({ belt, container, isUnlocked, url, cacheKey, lockedMessage }) {
     if (!container) return;
 
-    container.classList.remove("study-guide-error", "study-guide-locked");
+    container.classList.remove("resource-error", "resource-locked");
 
     if (!isUnlocked) {
-        container.textContent = "Unlock this belt to view the study guide.";
-        container.classList.add("study-guide-locked");
+        container.textContent = lockedMessage;
+        container.classList.add("resource-locked");
         return;
     }
 
-    container.textContent = "Loading study guide...";
+    container.textContent = "Loading...";
 
     try {
-        const html = await loadStudyGuide(belt);
+        const html = await loadMarkdownResource(cacheKey, url);
         if (!container.isConnected) {
             return;
         }
         container.innerHTML = html;
     } catch (error) {
-        console.warn(`Unable to load study guide for ${belt.name}`, error);
+        console.warn(`Unable to load resource ${cacheKey} for ${belt.name}`, error);
         if (!container.isConnected) {
             return;
         }
-        container.textContent = "We couldn't load the study guide right now. Please try again later.";
-        container.classList.add("study-guide-error");
+        container.textContent = "We couldn't load this resource right now. Please try again later.";
+        container.classList.add("resource-error");
     }
 }
 
-async function loadStudyGuide(belt) {
-    if (STUDY_GUIDE_CACHE.has(belt.slug)) {
-        return STUDY_GUIDE_CACHE.get(belt.slug);
+async function loadMarkdownResource(cacheKey, url) {
+    if (RESOURCE_CACHE.has(cacheKey)) {
+        return RESOURCE_CACHE.get(cacheKey);
     }
 
-    const response = await fetch(belt.studyGuide, { cache: "no-store" });
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
     }
 
     const markdown = await response.text();
     const html = convertMarkdownToHtml(markdown);
-    STUDY_GUIDE_CACHE.set(belt.slug, html);
+    RESOURCE_CACHE.set(cacheKey, html);
     return html;
 }
 
