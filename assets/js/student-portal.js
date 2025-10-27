@@ -336,10 +336,6 @@ function renderBeltGrid(student, unlockedIndex) {
             card.append(beltImg);
         }
 
-        const focus = document.createElement("p");
-        focus.textContent = belt.focus;
-        card.append(focus);
-
         const resources = document.createElement("div");
         resources.className = "resource-links";
         const studyLink = makeResourceLink(
