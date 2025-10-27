@@ -1137,6 +1137,12 @@ a:focus {
     color: #0f172a;
 }
 
+.winter-games__register {
+    background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+    border: none;
+    color: #0f172a;
+}
+
 .winter-games__secondary {
     border-color: rgba(255, 255, 255, 0.4);
     color: #fff;
