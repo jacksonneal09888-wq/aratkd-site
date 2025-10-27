@@ -21,81 +21,91 @@ const BELT_SEQUENCE = [
         name: "White Belt",
         slug: "white",
         focus: "Foundations: attention stance, courtesy, basic blocks, and home respect goals.",
-        studyGuide: "assets/materials/white-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=1`,
         testingChecklist: "assets/materials/white-belt-testing-checklist.md",
-        image: "assets/Images/belts/white-belt.svg"
+        image: "assets/Images/belts/white-belt.svg",
+        curriculumPage: 1
     },
     {
         name: "High White Belt",
         slug: "high-white",
         focus: "Early footwork, loud kihaps, and sharp low/high blocks with balance checks.",
-        studyGuide: "assets/materials/high-white-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=2`,
         testingChecklist: "assets/materials/high-white-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-white-belt.svg"
+        image: "assets/Images/belts/high-white-belt.svg",
+        curriculumPage: 2
     },
     {
         name: "Yellow Belt",
         slug: "yellow",
         focus: "Balance, strong front stances, and first round of one-steps.",
-        studyGuide: "assets/materials/yellow-belt-study-guide.md",
+        studyGuide: "https://youtu.be/WhkjRruCBTo?si=2d_bSt9tqSBKV7np",
         testingChecklist: "assets/materials/yellow-belt-testing-checklist.md",
-        image: "assets/Images/belts/yellow-belt.svg"
+        image: "assets/Images/belts/yellow-belt.svg",
+        curriculumPage: 3
     },
     {
         name: "High Yellow Belt",
         slug: "high-yellow",
         focus: "Confidence linking front and side kicks with self-defense combinations.",
-        studyGuide: "assets/materials/high-yellow-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=4`,
         testingChecklist: "assets/materials/high-yellow-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-yellow-belt.svg"
+        image: "assets/Images/belts/high-yellow-belt.svg",
+        curriculumPage: 4
     },
     {
         name: "Green Belt",
         slug: "green",
         focus: "Power generation, stronger poomsae details, sparring drills.",
-        studyGuide: "assets/materials/green-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=5`,
         testingChecklist: "assets/materials/green-belt-testing-checklist.md",
-        image: "assets/Images/belts/green-belt.svg"
+        image: "assets/Images/belts/green-belt.svg",
+        curriculumPage: 5
     },
     {
         name: "High Green Belt",
         slug: "high-green",
         focus: "Footwork triangles, counter-sparring, and advanced combination control.",
-        studyGuide: "assets/materials/high-green-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=6`,
         testingChecklist: "assets/materials/high-green-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-green-belt.svg"
+        image: "assets/Images/belts/high-green-belt.svg",
+        curriculumPage: 6
     },
     {
         name: "Blue Belt",
         slug: "blue",
         focus: "Ring control, board breaks, and intermediate sparring strategies.",
-        studyGuide: "assets/materials/blue-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=7`,
         testingChecklist: "assets/materials/blue-belt-testing-checklist.md",
-        image: "assets/Images/belts/blue-belt.svg"
+        image: "assets/Images/belts/blue-belt.svg",
+        curriculumPage: 7
     },
     {
         name: "High Blue Belt",
         slug: "high-blue",
         focus: "Leadership reps, spin kicks, and coaching cues for junior students.",
-        studyGuide: "assets/materials/high-blue-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=8`,
         testingChecklist: "assets/materials/high-blue-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-blue-belt.svg"
+        image: "assets/Images/belts/high-blue-belt.svg",
+        curriculumPage: 8
     },
     {
         name: "Red Belt",
         slug: "red",
         focus: "Demo-ready power, teaching readiness, and board-break creativity.",
-        studyGuide: "assets/materials/red-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=9`,
         testingChecklist: "assets/materials/red-belt-testing-checklist.md",
-        image: "assets/Images/belts/red-belt.svg"
+        image: "assets/Images/belts/red-belt.svg",
+        curriculumPage: 9
     },
     {
         name: "High Red Belt",
         slug: "high-red",
         focus: "Testing rehearsals, mentoring, and black-belt mindset assignments.",
-        studyGuide: "assets/materials/high-red-belt-study-guide.md",
+        studyGuide: `${CURRICULUM_PDF}#page=10`,
         testingChecklist: "assets/materials/high-red-belt-testing-checklist.md",
-        image: "assets/Images/belts/high-red-belt.svg"
+        image: "assets/Images/belts/high-red-belt.svg",
+        curriculumPage: 10
     },
     {
         name: "Black Belt",
@@ -145,8 +155,6 @@ const BELT_ALIAS_MAPPINGS = [
         keywords: ["4th dan", "fourth dan", "4th degree"]
     }
 ];
-
-const RESOURCE_CACHE = new Map();
 
 const portalEls = {
     form: document.getElementById("student-login-form"),
@@ -339,55 +347,20 @@ function renderBeltGrid(student, unlockedIndex) {
             belt.studyGuide,
             index <= unlockedIndex
         );
+        const checklistHref = belt.curriculumPage
+            ? `${CURRICULUM_PDF}#page=${belt.curriculumPage}`
+            : belt.testingChecklist;
         const testingLink = makeResourceLink(
             index <= unlockedIndex ? "Download Checklist" : "Testing Checklist",
-            belt.testingChecklist,
+            checklistHref,
             index <= unlockedIndex
         );
-        const curriculumLink = CURRICULUM_PDF
-            ? makeResourceLink(
-                  index <= unlockedIndex ? "Curriculum PDF" : "Curriculum PDF",
-                  CURRICULUM_PDF,
-                  index <= unlockedIndex
-              )
-            : null;
         if (index <= unlockedIndex) {
-            studyLink.setAttribute("download", "");
-            testingLink.setAttribute("download", "");
-            curriculumLink?.setAttribute("download", "");
+            applyDownloadFilename(studyLink, belt.studyGuide, `${belt.slug}-study-guide`);
+            applyDownloadFilename(testingLink, checklistHref, `${belt.slug}-testing-checklist`);
         }
-        const links = [studyLink, testingLink];
-        if (curriculumLink) {
-            links.push(curriculumLink);
-        }
-        resources.append(...links);
+        resources.append(studyLink, testingLink);
         card.append(resources);
-
-        const studyGuideContainer = document.createElement("div");
-        studyGuideContainer.className = "resource-content";
-        studyGuideContainer.dataset.type = "study";
-        card.append(studyGuideContainer);
-        renderResourceContent({
-            belt,
-            container: studyGuideContainer,
-            isUnlocked: index <= unlockedIndex,
-            url: belt.studyGuide,
-            cacheKey: `${belt.slug}-study`,
-            lockedMessage: "Unlock this belt to view the study guide."
-        });
-
-        const testingContainer = document.createElement("div");
-        testingContainer.className = "resource-content";
-        testingContainer.dataset.type = "testing";
-        card.append(testingContainer);
-        renderResourceContent({
-            belt,
-            container: testingContainer,
-            isUnlocked: index <= unlockedIndex,
-            url: belt.testingChecklist,
-            cacheKey: `${belt.slug}-testing`,
-            lockedMessage: "Unlock this belt to view the testing checklist."
-        });
 
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
@@ -527,129 +500,29 @@ function handleCertificateUpload(file, belt, beltIndex) {
     reader.readAsDataURL(file);
 }
 
-async function renderResourceContent({ belt, container, isUnlocked, url, cacheKey, lockedMessage }) {
-    if (!container) return;
-
-    container.classList.remove("resource-error", "resource-locked");
-
-    if (!isUnlocked) {
-        container.textContent = lockedMessage;
-        container.classList.add("resource-locked");
-        return;
-    }
-
-    container.textContent = "Loading...";
-
+function applyDownloadFilename(link, href, baseName) {
+    if (!link || !href) return;
+    let extension = "";
     try {
-        const html = await loadMarkdownResource(cacheKey, url);
-        if (!container.isConnected) {
+        const url = new URL(href, window.location.origin);
+        const path = url.pathname || "";
+        const match = path.match(/\.([a-z0-9]+)$/i);
+        if (!match) {
             return;
         }
-        container.innerHTML = html;
+        extension = match[1];
     } catch (error) {
-        console.warn(`Unable to load resource ${cacheKey} for ${belt.name}`, error);
-        if (!container.isConnected) {
+        const cleanHref = href.split("#")[0];
+        const lastSlash = cleanHref.lastIndexOf("/");
+        const segment = lastSlash >= 0 ? cleanHref.slice(lastSlash + 1) : cleanHref;
+        const dotIndex = segment.lastIndexOf(".");
+        if (dotIndex === -1) {
             return;
         }
-        container.textContent = "We couldn't load this resource right now. Please try again later.";
-        container.classList.add("resource-error");
+        extension = segment.slice(dotIndex + 1);
     }
-}
-
-async function loadMarkdownResource(cacheKey, url) {
-    if (RESOURCE_CACHE.has(cacheKey)) {
-        return RESOURCE_CACHE.get(cacheKey);
-    }
-
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const markdown = await response.text();
-    const html = convertMarkdownToHtml(markdown);
-    RESOURCE_CACHE.set(cacheKey, html);
-    return html;
-}
-
-function convertMarkdownToHtml(markdown) {
-    const sanitized = markdown.replace(/^\uFEFF/, "");
-    const lines = sanitized.split(/\r?\n/);
-    let html = "";
-    let inList = false;
-
-    const closeList = () => {
-        if (inList) {
-            html += "</ul>";
-            inList = false;
-        }
-    };
-
-    for (const rawLine of lines) {
-        const line = rawLine.trim();
-
-        if (!line) {
-            closeList();
-            continue;
-        }
-
-        if (line.startsWith("### ")) {
-            closeList();
-            html += `<h5>${formatInlineMarkdown(line.slice(4))}</h5>`;
-            continue;
-        }
-
-        if (line.startsWith("## ")) {
-            closeList();
-            html += `<h4>${formatInlineMarkdown(line.slice(3))}</h4>`;
-            continue;
-        }
-
-        if (line.startsWith("# ")) {
-            closeList();
-            html += `<h3>${formatInlineMarkdown(line.slice(2))}</h3>`;
-            continue;
-        }
-
-        if (line.startsWith("- ")) {
-            if (!inList) {
-                html += "<ul>";
-                inList = true;
-            }
-            html += `<li>${formatInlineMarkdown(line.slice(2))}</li>`;
-            continue;
-        }
-
-        closeList();
-        html += `<p>${formatInlineMarkdown(line)}</p>`;
-    }
-
-    closeList();
-    return html;
-}
-
-function formatInlineMarkdown(text) {
-    const escaped = escapeHtml(text);
-    return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-}
-
-function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, (char) => {
-        switch (char) {
-            case "&":
-                return "&amp;";
-            case "<":
-                return "&lt;";
-            case ">":
-                return "&gt;";
-            case '"':
-                return "&quot;";
-            case "'":
-                return "&#39;";
-            default:
-                return char;
-        }
-    });
+    if (!extension) return;
+    link.setAttribute("download", `${baseName}.${extension}`);
 }
 
 function makeResourceLink(label, href, isUnlocked) {
