@@ -22,7 +22,7 @@ const BELT_SEQUENCE = [
         slug: "white",
         focus: "Foundations: attention stance, courtesy, basic blocks, and home respect goals.",
         studyGuide: `${CURRICULUM_PDF}#page=1`,
-        testingChecklist: "assets/materials/white-belt-testing-checklist.md",
+        testingChecklist: "assets/materials/tkd-curriculum-white-belt.png",
         image: "assets/Images/belts/white-belt.svg"
     },
     {
@@ -30,7 +30,7 @@ const BELT_SEQUENCE = [
         slug: "high-white",
         focus: "Early footwork, loud kihaps, and sharp low/high blocks with balance checks.",
         studyGuide: `${CURRICULUM_PDF}#page=2`,
-        testingChecklist: "assets/materials/high-white-belt-testing-checklist.md",
+        testingChecklist: "assets/materials/tkd-curriculum-high-white-belt.png",
         image: "assets/Images/belts/high-white-belt.svg"
     },
     {
