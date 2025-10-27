@@ -57,7 +57,7 @@ const BELT_SEQUENCE = [
         name: "Green Belt",
         slug: "green",
         focus: "Power generation, stronger poomsae details, sparring drills.",
-        studyGuide: `${CURRICULUM_PDF}#page=5`,
+        studyGuide: "https://youtu.be/ksSqKt0UkWo?si=jowU-x4mP_eGsYh4&t=70",
         testingChecklist: "assets/materials/green-belt-testing-checklist.md",
         image: "assets/Images/belts/green-belt.svg",
         curriculumPage: 5
@@ -66,7 +66,7 @@ const BELT_SEQUENCE = [
         name: "High Green Belt",
         slug: "high-green",
         focus: "Footwork triangles, counter-sparring, and advanced combination control.",
-        studyGuide: `${CURRICULUM_PDF}#page=6`,
+        studyGuide: "https://youtu.be/Lt917gacJho?si=aQT6Da0ymYxaaIfl&t=90",
         testingChecklist: "assets/materials/high-green-belt-testing-checklist.md",
         image: "assets/Images/belts/high-green-belt.svg",
         curriculumPage: 6
@@ -75,7 +75,7 @@ const BELT_SEQUENCE = [
         name: "Blue Belt",
         slug: "blue",
         focus: "Ring control, board breaks, and intermediate sparring strategies.",
-        studyGuide: `${CURRICULUM_PDF}#page=7`,
+        studyGuide: "https://youtu.be/VdqNEAHWCBM?si=HZPlrrTmsxkAiQPV&t=75",
         testingChecklist: "assets/materials/blue-belt-testing-checklist.md",
         image: "assets/Images/belts/blue-belt.svg",
         curriculumPage: 7
@@ -84,7 +84,7 @@ const BELT_SEQUENCE = [
         name: "High Blue Belt",
         slug: "high-blue",
         focus: "Leadership reps, spin kicks, and coaching cues for junior students.",
-        studyGuide: `${CURRICULUM_PDF}#page=8`,
+        studyGuide: "https://youtu.be/jcBwWo4wN7c?si=1yGokYoeRXDiLY5F&t=55",
         testingChecklist: "assets/materials/high-blue-belt-testing-checklist.md",
         image: "assets/Images/belts/high-blue-belt.svg",
         curriculumPage: 8
@@ -93,7 +93,7 @@ const BELT_SEQUENCE = [
         name: "Red Belt",
         slug: "red",
         focus: "Demo-ready power, teaching readiness, and board-break creativity.",
-        studyGuide: `${CURRICULUM_PDF}#page=9`,
+        studyGuide: "https://youtu.be/6FUM1p6qqhQ?si=QFCP9UYnsTvd-qcZ&t=61",
         testingChecklist: "assets/materials/red-belt-testing-checklist.md",
         image: "assets/Images/belts/red-belt.svg",
         curriculumPage: 9
@@ -102,7 +102,7 @@ const BELT_SEQUENCE = [
         name: "High Red Belt",
         slug: "high-red",
         focus: "Testing rehearsals, mentoring, and black-belt mindset assignments.",
-        studyGuide: `${CURRICULUM_PDF}#page=10`,
+        studyGuide: "https://youtu.be/Gr_Je2ZkgkI?si=bZp1cCvGdrXIRr3W&t=67",
         testingChecklist: "assets/materials/high-red-belt-testing-checklist.md",
         image: "assets/Images/belts/high-red-belt.svg",
         curriculumPage: 10
