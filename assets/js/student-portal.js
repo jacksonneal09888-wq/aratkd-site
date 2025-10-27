@@ -144,6 +144,8 @@ const BELT_ALIAS_MAPPINGS = [
     }
 ];
 
+const STUDY_GUIDE_CACHE = new Map();
+
 const portalEls = {
     form: document.getElementById("student-login-form"),
     studentId: document.getElementById("student-id"),
@@ -330,10 +332,22 @@ function renderBeltGrid(student, unlockedIndex) {
 
         const resources = document.createElement("div");
         resources.className = "resource-links";
-        const studyLink = makeResourceLink("Study Guide", belt.studyGuide, index <= unlockedIndex);
+        const studyLink = makeResourceLink(
+            index <= unlockedIndex ? "Download Study Guide" : "Study Guide",
+            belt.studyGuide,
+            index <= unlockedIndex
+        );
+        if (index <= unlockedIndex) {
+            studyLink.setAttribute("download", "");
+        }
         const testingLink = makeResourceLink("Testing Checklist", belt.testingChecklist, index <= unlockedIndex);
         resources.append(studyLink, testingLink);
         card.append(resources);
+
+        const studyGuideContainer = document.createElement("div");
+        studyGuideContainer.className = "study-guide-content";
+        card.append(studyGuideContainer);
+        renderStudyGuideContent(belt, studyGuideContainer, index <= unlockedIndex);
 
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
@@ -471,6 +485,131 @@ function handleCertificateUpload(file, belt, beltIndex) {
     };
 
     reader.readAsDataURL(file);
+}
+
+async function renderStudyGuideContent(belt, container, isUnlocked) {
+    if (!container) return;
+
+    container.classList.remove("study-guide-error", "study-guide-locked");
+
+    if (!isUnlocked) {
+        container.textContent = "Unlock this belt to view the study guide.";
+        container.classList.add("study-guide-locked");
+        return;
+    }
+
+    container.textContent = "Loading study guide...";
+
+    try {
+        const html = await loadStudyGuide(belt);
+        if (!container.isConnected) {
+            return;
+        }
+        container.innerHTML = html;
+    } catch (error) {
+        console.warn(`Unable to load study guide for ${belt.name}`, error);
+        if (!container.isConnected) {
+            return;
+        }
+        container.textContent = "We couldn't load the study guide right now. Please try again later.";
+        container.classList.add("study-guide-error");
+    }
+}
+
+async function loadStudyGuide(belt) {
+    if (STUDY_GUIDE_CACHE.has(belt.slug)) {
+        return STUDY_GUIDE_CACHE.get(belt.slug);
+    }
+
+    const response = await fetch(belt.studyGuide, { cache: "no-store" });
+    if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const markdown = await response.text();
+    const html = convertMarkdownToHtml(markdown);
+    STUDY_GUIDE_CACHE.set(belt.slug, html);
+    return html;
+}
+
+function convertMarkdownToHtml(markdown) {
+    const sanitized = markdown.replace(/^\uFEFF/, "");
+    const lines = sanitized.split(/\r?\n/);
+    let html = "";
+    let inList = false;
+
+    const closeList = () => {
+        if (inList) {
+            html += "</ul>";
+            inList = false;
+        }
+    };
+
+    for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line) {
+            closeList();
+            continue;
+        }
+
+        if (line.startsWith("### ")) {
+            closeList();
+            html += `<h5>${formatInlineMarkdown(line.slice(4))}</h5>`;
+            continue;
+        }
+
+        if (line.startsWith("## ")) {
+            closeList();
+            html += `<h4>${formatInlineMarkdown(line.slice(3))}</h4>`;
+            continue;
+        }
+
+        if (line.startsWith("# ")) {
+            closeList();
+            html += `<h3>${formatInlineMarkdown(line.slice(2))}</h3>`;
+            continue;
+        }
+
+        if (line.startsWith("- ")) {
+            if (!inList) {
+                html += "<ul>";
+                inList = true;
+            }
+            html += `<li>${formatInlineMarkdown(line.slice(2))}</li>`;
+            continue;
+        }
+
+        closeList();
+        html += `<p>${formatInlineMarkdown(line)}</p>`;
+    }
+
+    closeList();
+    return html;
+}
+
+function formatInlineMarkdown(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (char) => {
+        switch (char) {
+            case "&":
+                return "&amp;";
+            case "<":
+                return "&lt;";
+            case ">":
+                return "&gt;";
+            case '"':
+                return "&quot;";
+            case "'":
+                return "&#39;";
+            default:
+                return char;
+        }
+    });
 }
 
 function makeResourceLink(label, href, isUnlocked) {
