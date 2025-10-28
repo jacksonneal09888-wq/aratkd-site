@@ -1023,14 +1023,8 @@ a:focus {
     content: "";
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.08),
-        rgba(255, 255, 255, 0.08) 12px,
-        transparent 12px,
-        transparent 28px
-    );
-    opacity: 0.12;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 55%), linear-gradient(-135deg, rgba(148, 163, 184, 0.12), transparent 55%);
+    opacity: 0.18;
     pointer-events: none;
 }
 
@@ -1164,79 +1158,16 @@ a:focus {
     position: relative;
     aspect-ratio: 3 / 4;
     border-radius: 1.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 70%), rgba(15, 23, 42, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
     overflow: hidden;
-    isolation: isolate;
+    box-shadow: 0 24px 45px rgba(15, 23, 42, 0.5);
 }
 
-.winter-games__poster::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    background: conic-gradient(rgba(250, 204, 21, 0.1), rgba(239, 68, 68, 0.25), rgba(56, 189, 248, 0.15));
-    filter: blur(30px);
-    animation: winterGlow 12s linear infinite;
-    opacity: 0.6;
-}
-
-.winter-games__poster-core {
-    position: relative;
-    display: grid;
-    gap: 0.75rem;
-    text-align: center;
-    z-index: 1;
-}
-
-.winter-games__poster-date {
-    font-family: var(--font-heading);
-    letter-spacing: 0.25em;
-    font-weight: 700;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.winter-games__poster-callout {
-    font-size: clamp(1.75rem, 3vw, 2.4rem);
-    font-family: var(--font-heading);
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-}
-
-.winter-games__poster-city {
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: rgba(255, 255, 255, 0.72);
-}
-
-.winter-games__poster-ring {
-    position: absolute;
-    inset: auto 1.25rem 1.25rem 1.25rem;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
-    z-index: 1;
-}
-
-.winter-games__poster-ring span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.winter-games__poster-ring span::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(250, 204, 21, 0.9);
+.winter-games__poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .winter-games__mission {
