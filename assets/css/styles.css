@@ -1031,7 +1031,7 @@ a:focus {
 .winter-games__wrap {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     gap: 3.25rem;
     align-items: center;
     z-index: 1;
@@ -1162,7 +1162,7 @@ a:focus {
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.4);
     background: none;
-    width: min(100%, 720px);
+    width: min(100%, 680px);
     margin: 0 auto;
 }
 
@@ -1215,7 +1215,7 @@ a:focus {
     }
 
     .winter-games__poster {
-        max-width: 480px;
+        max-width: 440px;
         margin: 0 auto;
     }
 }
