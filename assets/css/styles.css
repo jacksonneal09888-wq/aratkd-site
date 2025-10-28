@@ -1167,7 +1167,8 @@ a:focus {
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.4);
     background: none;
-    width: min(100%, 760px);
+    width: 100%;
+    max-width: 980px;
     margin: 0 auto;
 }
 
@@ -1189,7 +1190,7 @@ a:focus {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    width: min(100%, 760px);
+    width: min(100%, 980px);
     margin: 0 auto;
 }
 
@@ -1224,7 +1225,7 @@ a:focus {
     }
 
     .winter-games__poster {
-        max-width: 420px;
+        max-width: 100%;
     }
 
     .winter-games__content {
