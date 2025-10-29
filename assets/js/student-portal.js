@@ -353,34 +353,6 @@ function renderBeltGrid(student, unlockedIndex) {
         resources.append(studyLink, testingLink);
         card.append(resources);
 
-        if (isVideoGuide && index <= unlockedIndex && belt.studyGuide) {
-            const videoWrapper = document.createElement("div");
-            videoWrapper.className = "belt-card__video";
-
-            const video = document.createElement("video");
-            video.className = "belt-card__video-player";
-            video.controls = true;
-            video.preload = "metadata";
-            video.playsInline = true;
-
-            const source = document.createElement("source");
-            source.src = belt.studyGuide;
-            source.type = "video/mp4";
-            video.append(source);
-
-            const fallback = document.createElement("p");
-            fallback.className = "belt-card__video-fallback";
-            const downloadLink = document.createElement("a");
-            downloadLink.href = belt.studyGuide;
-            downloadLink.target = "_blank";
-            downloadLink.rel = "noopener";
-            downloadLink.textContent = "Download video";
-            fallback.append("If the video does not load, ", downloadLink, ".");
-
-            videoWrapper.append(video, fallback);
-            card.append(videoWrapper);
-        }
-
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
         status.className = "certificate-status";
