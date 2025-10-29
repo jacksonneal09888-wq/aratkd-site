@@ -1,31 +1,85 @@
 const BOT_CONFIG = {
     name: "Master Ara",
     welcome:
-        "Hi, I'm Master Ara. Ask me about belts, study guides, schedules, or the student portal. I'm here to help!",
+        "Hi, I’m Master Ara 🥋. Ask me about belts, study guides, kicks, schedules, or the student portal. I’ll guide you—or email Master Ara if I can’t.",
     maxHistory: 8,
-    fallbackEmail: "afetkd@gmail.com"
+    fallbackEmail: "afetkd@gmail.com",
+    storageKey: "masterAraFallbacks"
 };
 
 const knowledgeIndex = [
-    { id: "white-study-guide-video", tags: ["white belt", "study guide"], resource: "assets/materials/white-belt-form-video.mp4", type: "video" },
-    { id: "white-checklist", tags: ["white belt", "checklist"], resource: "assets/materials/tkd-curriculum-white-belt.png", type: "image" },
-    { id: "high-white-checklist", tags: ["high white", "checklist"], resource: "assets/materials/tkd-curriculum-high-white-belt.png", type: "image" }
+    // White belt resources
+    {
+        id: "white-video",
+        tags: ["white belt", "study video", "form video", "beginner video"],
+        title: "White Belt Form Video",
+        resource: "assets/materials/white-belt-form-video.mp4",
+        type: "video"
+    },
+    {
+        id: "white-checklist",
+        tags: ["white belt", "checklist", "testing"],
+        title: "White Belt Checklist",
+        resource: "assets/materials/tkd-curriculum-white-belt.png",
+        type: "image"
+    },
+    {
+        id: "high-white-checklist",
+        tags: ["high white", "checklist", "testing"],
+        title: "High White Checklist",
+        resource: "assets/materials/tkd-curriculum-high-white-belt.png",
+        type: "image"
+    },
+    // Sample additional resources (extend as needed)
+    {
+        id: "schedule",
+        tags: ["schedule", "classes", "times"],
+        title: "Weekly Schedule",
+        resource: "#schedule",
+        type: "anchor"
+    },
+    {
+        id: "portal",
+        tags: ["login", "portal", "student id", "password"],
+        title: "Student Portal",
+        resource: "https://aratkd.com/student-portal.html",
+        type: "link"
+    },
+    {
+        id: "contact",
+        tags: ["contact", "phone", "call", "email"],
+        title: "Contact Ara’s Sportsplex",
+        resource: "#contact",
+        type: "anchor"
+    }
 ];
 
 const botState = {
     history: [],
     panelOpen: false,
-    sending: false
+    sending: false,
+    greeted: false,
+    fallbacks: (() => {
+        try {
+            return JSON.parse(localStorage.getItem(BOT_CONFIG.storageKey) ?? "[]");
+        } catch (error) {
+            console.warn("Unable to read stored fallbacks", error);
+            return [];
+        }
+    })()
 };
 
 const createBotElements = () => {
     const toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "master-ara__toggle";
-    toggle.innerHTML = `<span aria-hidden="true">🤖</span><span class="master-ara__toggle-label">${BOT_CONFIG.name}</span>`;
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-controls", "master-ara-panel");
+    toggle.innerHTML = `<span aria-hidden="true" class="master-ara__toggle-icon">🥋</span><span class="master-ara__toggle-label">${BOT_CONFIG.name}</span>`;
 
     const panel = document.createElement("section");
     panel.className = "master-ara";
+    panel.id = "master-ara-panel";
     panel.setAttribute("aria-live", "polite");
     panel.hidden = true;
 
@@ -87,14 +141,59 @@ const findResources = (query) => {
     );
 };
 
+const handleResourceMatch = (match) => {
+    switch (match.type) {
+        case "video":
+            return `Here’s the video you need: ${match.resource}`;
+        case "image":
+            return `Here’s the checklist: ${match.resource}`;
+        case "anchor": {
+            const target = document.querySelector(match.resource);
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+                return `I’ve scrolled to the ${match.title.toLowerCase()} for you.`;
+            }
+            return `You can view it here: ${window.location.origin}/${match.resource.replace(/^#/, "")}`;
+        }
+        case "link":
+            return `Open this link for more help: ${match.resource}`;
+        default:
+            return `Here’s what I found: ${match.resource}`;
+    }
+};
+
+const persistFallback = (question) => {
+    const trimmed = question.trim();
+    if (!trimmed) return;
+    const entry = { question: trimmed, ts: Date.now() };
+    botState.fallbacks.push(entry);
+    botState.fallbacks = botState.fallbacks.slice(-20);
+    try {
+        localStorage.setItem(BOT_CONFIG.storageKey, JSON.stringify(botState.fallbacks));
+    } catch (error) {
+        console.warn("Unable to persist fallback questions", error);
+    }
+};
+
 const composeResponse = (question) => {
     const matches = findResources(question);
     if (matches.length) {
-        const primary = matches[0];
-        if (primary.type === "video") {
-            return `Here’s the study video you’re looking for: ${primary.resource}`;
+        return handleResourceMatch(matches[0]);
+    }
+
+    const lower = question.toLowerCase();
+    if (lower.includes("navigate") || lower.includes("go to") || lower.includes("open")) {
+        if (lower.includes("schedule")) {
+            const target = document.querySelector("#schedule");
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+            return "Here’s the schedule section. Scroll through for each day’s class times.";
         }
-        return `I found a guide that should help: ${primary.resource}`;
+        if (lower.includes("student portal") || lower.includes("login")) {
+            window.location.href = "https://aratkd.com/student-portal.html";
+            return "Opening the student portal… if it did not open, use the top navigation Student Portal link.";
+        }
     }
 
     if (question.includes("schedule")) {
@@ -125,6 +224,7 @@ const handleSubmission = (elements) => {
             renderMessage(elements.messages, "bot", answer);
             botState.history.push({ role: "bot", message: answer });
         } else {
+            persistFallback(input);
             renderMessage(elements.messages, "bot", "I want to get this right. I’ll collect your question and email Master Ara so he can follow up.", {
                 actions: [
                     {
@@ -159,8 +259,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const isOpen = !panel.hidden;
         panel.hidden = isOpen;
         toggle.setAttribute("aria-expanded", String(!isOpen));
-        if (!isOpen) {
+        if (!isOpen && !botState.greeted) {
             renderMessage(messages, "bot", BOT_CONFIG.welcome);
+            input.focus();
+            botState.greeted = true;
+        }
+        if (!isOpen && botState.greeted) {
             input.focus();
         }
     });
@@ -168,6 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     close.addEventListener("click", () => {
         panel.hidden = true;
         toggle.setAttribute("aria-expanded", "false");
+        toggle.focus();
     });
 
     form.addEventListener("submit", (event) => {
