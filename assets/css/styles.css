@@ -957,6 +957,33 @@ a:focus {
     margin: 0;
 }
 
+.belt-card__video {
+    margin-top: 1rem;
+    background: rgba(8, 9, 10, 0.85);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 12px 24px rgba(8, 9, 10, 0.25);
+}
+
+.belt-card__video-player {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.belt-card__video-fallback {
+    margin: 0;
+    padding: 0.75rem 1rem 1rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.belt-card__video-fallback a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
 .badge {
     display: inline-flex;
     align-items: center;

@@ -16,12 +16,14 @@ const ACCEPTED_TYPES = [
 
 const CURRICULUM_PDF = "assets/materials/tkd-curriculum-aras-martial-arts.pdf";
 
+const VIDEO_EXTENSIONS = /\.(mp4|webm|ogg)$/i;
+
 const BELT_SEQUENCE = [
     {
         name: "White Belt",
         slug: "white",
         focus: "Foundations: attention stance, courtesy, basic blocks, and home respect goals.",
-        studyGuide: `${CURRICULUM_PDF}#page=1`,
+        studyGuide: "assets/materials/white-belt-form-video.mp4",
         testingChecklist: "assets/materials/tkd-curriculum-white-belt.png",
         image: "assets/Images/belts/white-belt.svg"
     },
@@ -29,7 +31,7 @@ const BELT_SEQUENCE = [
         name: "High White Belt",
         slug: "high-white",
         focus: "Early footwork, loud kihaps, and sharp low/high blocks with balance checks.",
-        studyGuide: `${CURRICULUM_PDF}#page=2`,
+        studyGuide: "assets/materials/white-belt-form-video.mp4",
         testingChecklist: "assets/materials/tkd-curriculum-high-white-belt.png",
         image: "assets/Images/belts/high-white-belt.svg"
     },
@@ -328,7 +330,12 @@ function renderBeltGrid(student, unlockedIndex) {
 
         const resources = document.createElement("div");
         resources.className = "resource-links";
-        const studyLabel = belt.studyGuide?.includes("youtube.com") || belt.studyGuide?.includes("youtu.be")
+        const isVideoGuide =
+            typeof belt.studyGuide === "string" && VIDEO_EXTENSIONS.test(belt.studyGuide);
+        const studyLabel =
+            isVideoGuide ||
+            belt.studyGuide?.includes("youtube.com") ||
+            belt.studyGuide?.includes("youtu.be")
             ? "Video Study Guide"
             : index <= unlockedIndex
             ? "Download Study Guide"
@@ -339,12 +346,40 @@ function renderBeltGrid(student, unlockedIndex) {
             belt.testingChecklist,
             index <= unlockedIndex
         );
-        if (index <= unlockedIndex) {
+        if (index <= unlockedIndex && !isVideoGuide) {
             applyDownloadFilename(studyLink, belt.studyGuide, `${belt.slug}-study-guide`);
             applyDownloadFilename(testingLink, belt.testingChecklist, `${belt.slug}-testing-checklist`);
         }
         resources.append(studyLink, testingLink);
         card.append(resources);
+
+        if (isVideoGuide && index <= unlockedIndex && belt.studyGuide) {
+            const videoWrapper = document.createElement("div");
+            videoWrapper.className = "belt-card__video";
+
+            const video = document.createElement("video");
+            video.className = "belt-card__video-player";
+            video.controls = true;
+            video.preload = "metadata";
+            video.playsInline = true;
+
+            const source = document.createElement("source");
+            source.src = belt.studyGuide;
+            source.type = "video/mp4";
+            video.append(source);
+
+            const fallback = document.createElement("p");
+            fallback.className = "belt-card__video-fallback";
+            const downloadLink = document.createElement("a");
+            downloadLink.href = belt.studyGuide;
+            downloadLink.target = "_blank";
+            downloadLink.rel = "noopener";
+            downloadLink.textContent = "Download video";
+            fallback.append("If the video does not load, ", downloadLink, ".");
+
+            videoWrapper.append(video, fallback);
+            card.append(videoWrapper);
+        }
 
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
