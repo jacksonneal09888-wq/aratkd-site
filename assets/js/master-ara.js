@@ -633,7 +633,7 @@ const handleResourceMatch = (match) => {
         case "image":
             return `Here’s the checklist: ${match.resource}`;
         case "document":
-            return `Here’s the study guide: ${match.resource}`;
+            return `Here’s the study guide: ${match.resource}\n\nContent:\n${match.content}`;
         case "anchor": {
             const target = document.querySelector(match.resource);
             if (target) {
