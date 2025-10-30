@@ -478,7 +478,7 @@ const CURRICULUM = [
                     "guide",
                     "curriculum"
                 ],
-                "content": "# Black Belt 4th Dan Study Guide\n\n**Focus:** Master-level leadership with instructor certification, program mentorship, and community impact planning.\n\n## Key Skills\n- Create strategic plans for school operations, events, and student retention.\n- Demonstrate mastery of advanced poomsae (Pyongwon, Sipjin, or instructor-designated form).\\n- Facilitate instructor training seminars that align with federation standards.\n\n## Home Practice\n- Build a yearly program roadmap that includes testing, seminars, and outreach.\\n- Meet monthly with Master Ara to review leadership milestones.\\n- Continue personal conditioning with periodized strength, cardio, and mobility sessions."
+                "content": "# Black Belt 4th Dan Study Guide\\n\\n**Focus:** Master-level leadership with instructor certification, program mentorship, and community impact planning.\\n\\n## Key Skills\\n- Create strategic plans for school operations, events, and student retention.\\n- Demonstrate mastery of advanced poomsae (Pyongwon, Sipjin, or instructor-designated form).\\n- Facilitate instructor training seminars that align with federation standards.\\n\\n## Home Practice\\n- Build a yearly program roadmap that includes testing, seminars, and outreach.\\n- Meet monthly with Master Ara to review leadership milestones.\\n- Continue personal conditioning with periodized strength, cardio, and mobility sessions."
             },
             {
                 "title": "Checklist",
@@ -488,7 +488,20 @@ const CURRICULUM = [
                     "checklist",
                     "testing"
                 ],
-                "content": "# Black Belt 4th Dan Testing Checklist\n\nUse this list with your instructor to confirm you are test-ready.\\n\\n- [ ] Present a 12-month program plan that covers curriculum, testing, marketing, and service.\\n- [ ] Perform Master-level poomsae (Pyongwon/Sipjin or assigned form) with precision.\\n- [ ] Board break: master demonstration featuring at least five techniques and a creative finale.\\n- [ ] Lead an instructor development seminar and submit attendee feedback summaries."
+                "content": "# Black Belt 4th Dan Testing Checklist\\n\\nUse this list with your instructor to confirm you are test-ready.\\n\\n- [ ] Present a 12-month program plan that covers curriculum, testing, marketing, and service.\\n- [ ] Perform Master-level poomsae (Pyongwon/Sipjin or assigned form) with precision.\\n- [ ] Board break: master demonstration featuring at least five techniques and a creative finale.\\n- [ ] Lead an instructor development seminar and submit attendee feedback summaries."
+            }
+        ]
+    },
+    {
+        "name": "Taekwondo Kicks",
+        "aliases": ["kicks", "chagi", "kukkiwon"],
+        "resources": [
+            {
+                "title": "Kukkiwon Kicks Guide",
+                "resource": "internal-kukkiwon-kicks",
+                "type": "document",
+                "tags": ["kicks", "chagi", "kukkiwon", "terminology"],
+                "content": "In Kukkiwon-style Taekwondo, kicks (Chagi) are categorized by the direction of the strike and the technique used, ranging from fundamental kicks for beginners to complex jumping and spinning maneuvers for advanced practitioners. Basic kicks (KibonChagi) These are the foundational kicks taught to all students and form the basis for more advanced techniques. Front Kick (ApChagi): A linear, snapping kick to the front using the ball of the foot. It is used for both offense and defense to create distance.Roundhouse Kick (DollyeoChagi): A turning kick delivered with the instep or ball of the foot. It is a staple of Taekwondo sparring.Side Kick (YeopChagi): A powerful kick delivered with the blade of the foot or the heel. It uses a rotation of the hips to generate piercing force.Axe Kick (NaeryeoChagi): A downward kick brought high over the target and brought down like an axe. It can be delivered from the outside-in or inside-out.Back Kick (DwiChagi): A thrusting kick to the rear, executed by turning away from the target. It is known for its power and is often used as a counter-attack.Hook Kick (HuryeoChagi): A whipping kick that strikes the target with the heel, often performed after chambering the leg like a side kick.Crescent Kick (BandalChagi): A kick that travels in a circular arc. It can be performed inward (AnChagi) or outward (BakkatChagi).Push Kick (MeereoChagi): A thrusting front kick used to push an opponent away and control distance. Intermediate and advanced kicks As practitioners progress, they learn more dynamic and complex kicks by adding jumps, spins, and combinations. Spinning Hook Kick (DwiHuryeoChagi): A hook kick performed after a spin, generating significant power. It is also known as a back hook kick.Reverse Turning Kick (BandaeDollyeoChagi): A kick executed with the back leg after turning the body.Jumping Kicks (TtwigiChagi or EedanChagi): These kicks are performed while in the air and include variations such as the Jumping Front Kick (EedanApChagi) and Jumping Side Kick (Twi-myoYeopChagi).Tornado Kick (DolgaeChagi): A flashy and powerful kick that combines a jump and a spinning roundhouse motion.540 Kick: An aerial kicking technique that involves spinning 1½ times before delivering a kick, most often a spinning hook kick. Common kicking terminology Understanding the Korean terminology is crucial for learning Kukkiwon Taekwondo. (Chagi): Kick(Ap): Front(Yeop): Side(Dwi): Back or rear(Dollyeo): Turning or roundhouse(Naeryeo): Downward(Huryeo): Hook(Bandae): Reverse(Ttwigi) / (Eedan): Jumping or flying"
             }
         ]
     }
