@@ -33,9 +33,10 @@
 
 .master-ara {
     position: fixed;
-    bottom: 6.5rem;
+    bottom: 1rem; /* Adjusted to be closer to the bottom */
     right: 1.5rem;
     width: min(360px, calc(100vw - 2rem));
+    max-height: 90vh; /* Ensure it fits within the viewport height */
     border-radius: 1.25rem;
     background: rgba(15, 23, 42, 0.96);
     color: #fff;
@@ -217,9 +218,10 @@
     }
 
     .master-ara {
-        bottom: 5.25rem;
+        bottom: 0.5rem; /* Adjusted for smaller screens */
         right: 1rem;
         width: min(320px, calc(100vw - 2rem));
+        max-height: 90vh; /* Ensure it fits within the viewport height */
     }
 
     .master-ara__messages {

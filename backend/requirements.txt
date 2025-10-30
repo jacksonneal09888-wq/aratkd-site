@@ -1,0 +1,6 @@
+Flask
+openai
+python-dotenv
+chromadb
+pypdf # For PDF parsing
+langchain

@@ -772,6 +772,19 @@ a:focus {
         align-items: stretch;
     }
 
+    .hero-highlight {
+        padding: 1.5rem; /* Reduced padding for smaller screens */
+    }
+
+    .hero-highlight h2 {
+        font-size: 1.8rem; /* Adjusted font size for smaller screens */
+    }
+
+    .hero-highlight p,
+    .hero-highlight li {
+        font-size: 0.95rem; /* Adjusted font size for smaller screens */
+    }
+
     .card,
     .profile-card {
         padding: 1.5rem;
@@ -1085,16 +1098,18 @@ a:focus {
 }
 
 .winter-games__details dt {
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: 0.85rem; /* Increased font size for better readability */
+    letter-spacing: 0.15em; /* Adjusted letter spacing */
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.75); /* Slightly brighter color */
+    font-weight: 700; /* Made bolder */
 }
 
 .winter-games__details dd {
     margin: 0.35rem 0 0;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700; /* Made bolder */
+    font-size: 1.1rem; /* Increased font size for prominence */
+    color: #fff; /* Ensured white color for strong contrast */
 }
 
 .winter-games__divisions {
