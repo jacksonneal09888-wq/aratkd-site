@@ -231,3 +231,25 @@
 [hidden] {
     display: none !important;
 }
+
+.master-ara__feedback-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: flex-end; /* Align feedback buttons to the right */
+}
+
+.master-ara__feedback-btn {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.master-ara__feedback-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
