@@ -254,10 +254,136 @@ a:focus {
     margin-top: 0.5rem;
 }
 
-.hero-highlight-btn:hover,
-.hero-highlight-btn:focus {
+    .hero-highlight-btn:hover,
+    .hero-highlight-btn:focus {
+        background-color: rgba(255, 255, 255, 0.85);
+        color: var(--color-primary-dark) !important;
+    }
+
+.hero-highlight--open-enrollment {
+    background: linear-gradient(135deg, #1e8650, #15653c);
+}
+
+.hero-highlight--open-enrollment::after {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
+}
+
+.hero-highlight--open-enrollment .hero-badge {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.hero-highlight--open-enrollment .hero-highlight-btn {
+    color: #1e8650 !important;
+}
+
+.hero-highlight--open-enrollment .hero-highlight-btn:hover,
+.hero-highlight--open-enrollment .hero-highlight-btn:focus {
+    color: #15653c !important;
+}
+
+.hero-highlight__image {
+    width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.promo-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    align-items: center;
+}
+
+.promo-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.2);
+}
+
+.promo-details {
+    padding: 2rem;
+    background: linear-gradient(135deg, #1e8650, #15653c);
+    border-radius: 1.25rem;
+    color: white;
+    box-shadow: 0 2.75rem 3.5rem rgba(8, 9, 10, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.promo-details::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
+    transform: rotate(12deg);
+    pointer-events: none;
+}
+
+.promo-details h2 {
+    margin-top: 0.5rem;
+    font-family: var(--font-heading);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.promo-details p,
+.promo-details li {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.promo-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0 2rem;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.promo-details li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+}
+
+.promo-details li::before {
+    content: "";
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.promo-details .cta-btn {
+    background-color: white;
+    color: #1e8650 !important;
+    font-weight: 700;
+    box-shadow: 0 1.5rem 3rem rgba(255, 255, 255, 0.15);
+    margin-top: 0.5rem;
+}
+
+.promo-details .cta-btn:hover,
+.promo-details .cta-btn:focus {
     background-color: rgba(255, 255, 255, 0.85);
-    color: var(--color-primary-dark) !important;
+    color: #15653c !important;
+}
+
+@media (max-width: 768px) {
+    .promo-content {
+        grid-template-columns: 1fr;
+    }
+    .promo-details {
+        padding: 1.5rem;
+    }
 }
 
 .section {
@@ -1339,4 +1465,51 @@ a:focus {
         max-height: 140px;
         padding: 0.25rem 0.5rem;
     }
+}
+
+.belt-test-form {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 0.85rem;
+    padding: 2rem;
+    background-color: var(--color-light);
+    border-radius: 1rem;
+    box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.08);
+    border: 1px solid rgba(8, 9, 10, 0.08);
+}
+
+.belt-test-form label {
+    font-weight: 600;
+}
+
+.belt-test-form input,
+.belt-test-form select,
+.belt-test-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(8, 9, 10, 0.12);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.belt-test-form input:focus,
+.belt-test-form select:focus,
+.belt-test-form textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.15);
+    outline: none;
+}
+
+.belt-test-form button {
+    margin-top: 0.5rem;
+}
+
+.belt-test-form .form-status {
+    margin: 0.75rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    min-height: 1.2rem;
 }

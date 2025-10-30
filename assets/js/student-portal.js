@@ -162,8 +162,18 @@ const portalEls = {
     beltGrid: document.getElementById("belt-grid"),
     certificateLog: document.getElementById("certificate-log"),
     logout: document.getElementById("portal-logout"),
-    refresh: document.getElementById("portal-refresh")
+    refresh: document.getElementById("portal-refresh"),
+    beltTestApplicationBtn: document.getElementById("belt-test-application-btn"),
+    beltTestForm: document.getElementById("belt-test-form"),
+    testStudentName: document.getElementById("test-student-name"),
+    testStudentId: document.getElementById("test-student-id"),
+    currentBeltForm: document.getElementById("current-belt"),
+    desiredBelt: document.getElementById("desired-belt"),
+    testDate: document.getElementById("test-date"),
+    beltTestStatus: document.getElementById("belt-test-status")
 };
+
+console.log("portalEls:", portalEls); // Debugging line
 
 const portalState = {
     students: [],
@@ -187,12 +197,14 @@ function attachHandlers() {
             setStatus("Portal refreshed.", "success");
         }
     });
+    portalEls.beltTestApplicationBtn?.addEventListener("click", toggleBeltTestForm);
+    portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
 }
 
 async function loadStudents() {
     disableForm();
     try {
-        const response = await fetch("assets/data/students.json", { cache: "no-store" });
+        const response = await fetch("/assets/data/students.json", { cache: "no-store" });
         if (!response.ok) {
             throw new Error("Could not load student roster.");
         }
@@ -211,6 +223,7 @@ async function loadStudents() {
 
 function handleLogin(event) {
     event.preventDefault();
+    console.log("handleLogin: function triggered."); // Debugging line
     if (portalState.isLoading) {
         setStatus("Still loading student roster. Please wait a moment.");
         return;
@@ -218,9 +231,11 @@ function handleLogin(event) {
 
     const idValue = portalEls.studentId?.value.trim() ?? "";
     const dobValue = portalEls.studentDob?.value.trim() ?? "";
+    console.log(`handleLogin: idValue=${idValue}, dobValue=${dobValue}`); // Debugging line
 
     if (!idValue || !dobValue) {
         setStatus("Enter both your Student ID and birthdate.");
+        console.log("handleLogin: Missing ID or DOB."); // Debugging line
         return;
     }
 
@@ -230,11 +245,13 @@ function handleLogin(event) {
 
     if (!match) {
         setStatus("We couldn't find that Student ID. Double-check with the office.");
+        console.log("handleLogin: No student match found."); // Debugging line
         return;
     }
 
     if (match.birthDate !== dobValue) {
         setStatus("That birthdate does not match our records.");
+        console.log("handleLogin: Birthdate mismatch."); // Debugging line
         return;
     }
 
@@ -242,6 +259,7 @@ function handleLogin(event) {
     persistSession(match.id);
     portalEls.form?.reset();
     setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
+    console.log("handleLogin: Calling renderPortal()");
     renderPortal();
 }
 
@@ -268,10 +286,12 @@ function attemptRestoreSession() {
 function renderPortal() {
     const student = portalState.activeStudent;
     if (!student) {
+        console.log("renderPortal: No active student, calling togglePortal(false)");
         togglePortal(false);
         return;
     }
 
+    console.log("renderPortal: Active student found, calling togglePortal(true)");
     togglePortal(true);
     portalEls.studentName.textContent = student.name;
     portalEls.studentIdDisplay.textContent = student.id;
@@ -283,6 +303,7 @@ function renderPortal() {
 
     renderBeltGrid(student, unlockedIndex);
     renderCertificateLog(student);
+    toggleBeltTestForm(false); // Hide form on portal render
 }
 
 function renderBeltGrid(student, unlockedIndex) {
@@ -579,7 +600,12 @@ function downloadCertificate(studentId, beltName) {
 }
 
 function togglePortal(show) {
-    if (!portalEls.app || !portalEls.placeholder) return;
+    if (!portalEls.app || !portalEls.placeholder) {
+        console.log("togglePortal: portalEls.app or portalEls.placeholder not found.");
+        return;
+    }
+    console.log(`togglePortal: Setting portalEls.app.hidden to ${!show} (current: ${portalEls.app.hidden})`);
+    console.log(`togglePortal: Setting portalEls.placeholder.style.display to ${show ? "none" : "block"} (current: ${portalEls.placeholder.style.display})`);
     portalEls.app.hidden = !show;
     portalEls.placeholder.style.display = show ? "none" : "block";
 }
@@ -615,6 +641,69 @@ function disableForm() {
     const button = portalEls.form?.querySelector("button[type='submit']");
     if (button) {
         button.disabled = true;
+    }
+}
+
+function toggleBeltTestForm(show) {
+    if (!portalEls.beltTestForm || !portalState.activeStudent) return;
+
+    if (show === true || (show === undefined && portalEls.beltTestForm.hidden)) {
+        portalEls.beltTestForm.hidden = false;
+        portalEls.testStudentName.value = portalState.activeStudent.name;
+        portalEls.testStudentId.value = portalState.activeStudent.id;
+        portalEls.currentBeltForm.value = portalState.activeStudent.currentBelt || "White Belt";
+        portalEls.desiredBelt.value = BELT_SEQUENCE[ensureUnlockedIndex(portalState.activeStudent)]?.name || "";
+        portalEls.beltTestStatus.textContent = "";
+    } else {
+        portalEls.beltTestForm.hidden = true;
+        portalEls.beltTestForm.reset();
+    }
+}
+
+async function handleBeltTestApplication(event) {
+    event.preventDefault();
+    if (!portalState.activeStudent) {
+        setStatus("Please log in to submit a belt test application.", "error");
+        return;
+    }
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const studentName = formData.get("studentName");
+    const studentId = formData.get("studentId");
+    const currentBelt = formData.get("currentBelt");
+    const desiredBelt = formData.get("desiredBelt");
+    const preferredTestDate = formData.get("preferredTestDate");
+    const message = formData.get("message");
+
+    if (!studentName || !studentId || !currentBelt || !desiredBelt || !preferredTestDate) {
+        portalEls.beltTestStatus.textContent = "Please fill in all required fields.";
+        portalEls.beltTestStatus.classList.remove("is-success");
+        return;
+    }
+
+    try {
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: new URLSearchParams(formData).toString(),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        });
+
+        if (response.ok) {
+            portalEls.beltTestStatus.textContent = "Belt test application submitted successfully! Master Ara will review it shortly.";
+            portalEls.beltTestStatus.classList.add("is-success");
+            form.reset();
+            toggleBeltTestForm(false);
+        } else {
+            portalEls.beltTestStatus.textContent = "There was an error submitting your application. Please try again.";
+            portalEls.beltTestStatus.classList.remove("is-success");
+        }
+    } catch (error) {
+        console.error("Belt test application submission error:", error);
+        portalEls.beltTestStatus.textContent = "Network error. Please check your connection and try again.";
+        portalEls.beltTestStatus.classList.remove("is-success");
     }
 }
 
