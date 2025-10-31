@@ -289,23 +289,31 @@ a:focus {
     box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
 }
 
+
 .promo-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2.5rem;
+    align-items: stretch;
+}
+
+.promo-image {
+    display: flex;
+    justify-content: center;
     align-items: center;
+    min-width: clamp(240px, 38vw, 380px);
 }
 
 .promo-image img {
     display: block;
-    width: 100%;
+    width: min(100%, 520px);
     height: auto;
     border-radius: 1rem;
     box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.2);
 }
 
 .promo-details {
-    padding: 2rem;
+    padding: 2.25rem;
     background: linear-gradient(135deg, #1e8650, #15653c);
     border-radius: 1.25rem;
     color: white;
@@ -318,7 +326,7 @@ a:focus {
     content: "";
     position: absolute;
     top: -30%;
-    right: -20%;
+    right: -18%;
     width: 220px;
     height: 220px;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
@@ -327,23 +335,37 @@ a:focus {
 }
 
 .promo-details h2 {
-    margin-top: 0.5rem;
+    margin: 0.35rem 0 0.4rem;
     font-family: var(--font-heading);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.promo-details p,
-.promo-details li {
+.promo-price {
+    font-family: var(--font-heading);
+    font-size: clamp(1.9rem, 3.6vw, 2.4rem);
+    letter-spacing: 0.12em;
+    margin: 0.15rem 0 0.75rem;
+    text-transform: uppercase;
+}
+
+.promo-details p {
+    margin: 0;
     color: rgba(255, 255, 255, 0.88);
+}
+
+.promo-note {
+    margin-top: 1.25rem;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.72);
 }
 
 .promo-details ul {
     list-style: none;
     padding: 0;
-    margin: 1.5rem 0 2rem;
+    margin: 1.5rem 0 2.2rem;
     display: grid;
-    gap: 0.85rem;
+    gap: 0.9rem;
 }
 
 .promo-details li {
@@ -351,6 +373,7 @@ a:focus {
     align-items: center;
     gap: 0.75rem;
     font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .promo-details li::before {
@@ -377,12 +400,34 @@ a:focus {
     color: #15653c !important;
 }
 
+@media (max-width: 900px) {
+    .promo-details {
+        padding: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .promo-content {
         grid-template-columns: 1fr;
+        justify-items: center;
     }
     .promo-details {
+        padding: 1.75rem;
+    }
+    .promo-image {
+        min-width: 220px;
+    }
+}
+
+@media (max-width: 540px) {
+    .promo-details {
         padding: 1.5rem;
+    }
+    .promo-content {
+        gap: 2rem;
+    }
+    .promo-image {
+        min-width: 0;
     }
 }
 
