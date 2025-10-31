@@ -290,85 +290,77 @@ a:focus {
 }
 
 
-.promo-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2.5rem;
-    align-items: stretch;
+.open-enrollment {
+    padding: 4.5rem 0;
+    background: radial-gradient(circle at top left, rgba(216, 31, 38, 0.12), transparent 55%),
+                linear-gradient(160deg, #0f172a 0%, #05070c 100%);
+    color: #fff;
 }
 
-.promo-image {
+.open-enrollment__wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.75rem;
+    align-items: center;
+}
+
+.open-enrollment__poster {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-width: clamp(240px, 38vw, 380px);
 }
 
-.promo-image img {
+.open-enrollment__poster img {
     display: block;
-    width: min(100%, 520px);
-    height: auto;
-    border-radius: 1rem;
-    box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.2);
+    width: min(100%, 560px);
+    border-radius: 1.5rem;
+    box-shadow: 0 2.5rem 3.5rem rgba(8, 9, 10, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.promo-details {
-    padding: 2.25rem;
-    background: linear-gradient(135deg, #1e8650, #15653c);
-    border-radius: 1.25rem;
-    color: white;
-    box-shadow: 0 2.75rem 3.5rem rgba(8, 9, 10, 0.35);
-    position: relative;
-    overflow: hidden;
+.open-enrollment__content {
+    background: rgba(15, 23, 42, 0.78);
+    padding: clamp(1.75rem, 3vw, 2.5rem);
+    border-radius: 1.5rem;
+    box-shadow: 0 2.25rem 3.25rem rgba(8, 9, 10, 0.35);
+    backdrop-filter: blur(6px);
 }
 
-.promo-details::after {
-    content: "";
-    position: absolute;
-    top: -30%;
-    right: -18%;
-    width: 220px;
-    height: 220px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
-    transform: rotate(12deg);
-    pointer-events: none;
+.open-enrollment__eyebrow {
+    display: inline-flex;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    margin: 0 0 1rem;
 }
 
-.promo-details h2 {
-    margin: 0.35rem 0 0.4rem;
+.open-enrollment__title {
+    margin: 0 0 0.75rem;
     font-family: var(--font-heading);
+    font-size: clamp(2.1rem, 3.8vw, 2.8rem);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.promo-price {
-    font-family: var(--font-heading);
-    font-size: clamp(1.9rem, 3.6vw, 2.4rem);
-    letter-spacing: 0.12em;
-    margin: 0.15rem 0 0.75rem;
-    text-transform: uppercase;
-}
-
-.promo-details p {
-    margin: 0;
+.open-enrollment__lede {
+    margin: 0 0 1.9rem;
     color: rgba(255, 255, 255, 0.88);
+    font-size: 1.05rem;
 }
 
-.promo-note {
-    margin-top: 1.25rem;
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.72);
-}
-
-.promo-details ul {
+.open-enrollment__list {
     list-style: none;
     padding: 0;
-    margin: 1.5rem 0 2.2rem;
+    margin: 0 0 2.1rem;
     display: grid;
     gap: 0.9rem;
 }
 
-.promo-details li {
+.open-enrollment__list li {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -376,60 +368,64 @@ a:focus {
     color: rgba(255, 255, 255, 0.9);
 }
 
-.promo-details li::before {
+.open-enrollment__list li::before {
     content: "";
-    display: inline-block;
-    width: 0.85rem;
-    height: 0.85rem;
-    border-radius: 999px;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
 }
 
-.promo-details .cta-btn {
-    background-color: white;
-    color: #1e8650 !important;
+.open-enrollment__cta {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.open-enrollment__cta .cta-btn {
+    justify-self: flex-start;
+    background: #fff;
+    color: #0f172a !important;
+    box-shadow: 0 1.75rem 3rem rgba(255, 255, 255, 0.15);
     font-weight: 700;
-    box-shadow: 0 1.5rem 3rem rgba(255, 255, 255, 0.15);
-    margin-top: 0.5rem;
 }
 
-.promo-details .cta-btn:hover,
-.promo-details .cta-btn:focus {
-    background-color: rgba(255, 255, 255, 0.85);
-    color: #15653c !important;
+.open-enrollment__cta .cta-btn:hover,
+.open-enrollment__cta .cta-btn:focus {
+    background: rgba(255, 255, 255, 0.88);
+    color: #0f172a !important;
+}
+
+.open-enrollment__note {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 @media (max-width: 900px) {
-    .promo-details {
-        padding: 2rem;
+    .open-enrollment__poster img {
+        width: min(100%, 500px);
     }
 }
 
 @media (max-width: 768px) {
-    .promo-content {
-        grid-template-columns: 1fr;
+    .open-enrollment__content {
+        text-align: center;
+    }
+    .open-enrollment__cta {
         justify-items: center;
-    }
-    .promo-details {
-        padding: 1.75rem;
-    }
-    .promo-image {
-        min-width: 220px;
     }
 }
 
 @media (max-width: 540px) {
-    .promo-details {
+    .open-enrollment {
+        padding: 3.75rem 0;
+    }
+    .open-enrollment__content {
         padding: 1.5rem;
     }
-    .promo-content {
-        gap: 2rem;
-    }
-    .promo-image {
-        min-width: 0;
-    }
 }
+
 
 .section {
     padding: 4.5rem 0;
