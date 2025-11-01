@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Fatima | Ara's Martial Arts Sportsplex</title>
+    <meta name="description" content="Join Coach Fatima for Yoga and Zumba classes at Ara's Martial Arts Sportsplex.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/master-ara.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="brand">
+                <a href="index.html#top" class="brand-link">
+                    <span class="brand-mark">ARA</span>
+                    <span class="brand-name">Martial Arts</span>
+                </a>
+            </div>
+            <nav class="main-nav" aria-label="Main Navigation">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+                <ul id="primary-nav">
+                    <li><a href="index.html#programs">Programs</a></li>
+                    <li><a href="index.html#instructors">Instructors</a></li>
+                    <li><a href="index.html#schedule">Schedule</a></li>
+                    <li><a href="student-portal.html">Student Portal</a></li>
+                    <li><a href="coach-fatima.html">Yoga & Zumba</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a href="index.html#contact" class="cta-btn">Book a Trial</a>
+        </div>
+    </header>
+
+    <main id="top">
+        <section class="hero">
+            <div class="container hero-content">
+                <div class="hero-copy">
+                    <h1>Coach Fatima's Fitness Classes</h1>
+                    <p>Join Coach Fatima for invigorating Yoga and high-energy Zumba sessions designed to enhance your fitness, flexibility, and overall well-being.</p>
+                    <div class="hero-actions">
+                        <a href="#yoga" class="cta-btn">Explore Yoga</a>
+                        <a href="#zumba" class="secondary-btn">Discover Zumba</a>
+                    </div>
+                </div>
+                <div class="hero-aside">
+                    <div class="hero-highlight">
+                        <span class="hero-badge">New Classes</span>
+                        <h2>Find Your Rhythm & Flow</h2>
+                        <p>Coach Fatima brings her expertise to new Yoga and Zumba programs, perfect for all fitness levels.</p>
+                        <ul>
+                            <li>Certified instructor with years of experience</li>
+                            <li>Small class sizes for personalized attention</li>
+                            <li>Boost your energy and improve your health</li>
+                        </ul>
+                        <a class="cta-btn hero-highlight-btn" href="index.html#contact">Sign Up Now</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="yoga-zumba-banners">
+            <div class="container">
+                <div class="banner-grid">
+                    <div class="banner-card">
+                        <img src="assets/materials/Yoga.jpg" alt="Yoga class" class="banner-image">
+                        <div class="banner-content">
+                            <h3>Yoga with Coach Fatima</h3>
+                            <p>Improve your flexibility, strength, and mental clarity with our calming and challenging yoga classes.</p>
+                            <a href="#contact" class="cta-btn">Join Yoga</a>
+                        </div>
+                    </div>
+                    <div class="banner-card">
+                        <img src="assets/materials/Zumba.jpg" alt="Zumba class" class="banner-image">
+                        <div class="banner-content">
+                            <h3>Zumba with Coach Fatima</h3>
+                            <p>Dance your way to fitness with high-energy, fun-filled Zumba classes that feel more like a party than a workout!</p>
+                            <a href="#contact" class="cta-btn">Join Zumba</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section contact-section" id="contact">
+            <div class="container contact-grid">
+                <div>
+                    <header class="section-header">
+                        <h2>Ready to Join?</h2>
+                        <p>Reach out to sign up for Coach Fatima's Yoga or Zumba classes!</p>
+                    </header>
+                    <ul class="contact-list">
+                        <li><strong>Address:</strong> 420 E 3rd St, Siler City, NC 27344</li>
+                        <li><strong>Phone:</strong> <a href="tel:19197997500">(919) 799-7500</a></li>
+                        <li><strong>Email:</strong> <a href="mailto:afetkd@gmail.com">afetkd@gmail.com</a></li>
+                    </ul>
+                    <p class="contact-note">Text 336-482-6623 for class inquiries or drop by during open hours.</p>
+                </div>
+                <form class="contact-form" id="trial-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com">
+                    <h3>Sign Up for a Class</h3>
+                    <input type="hidden" name="_next" value="https://aratkd.com/coach-fatima.html?submitted=true">
+                    <input type="hidden" name="_subject" value="New Coach Fatima Class Request">
+                    <input type="text" name="_honey" style="display:none">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required>
+
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" pattern="[\d\s\-\+\(\)]*" placeholder="(919) 799-7500" required>
+
+                    <label for="program">Class Interest</label>
+                    <select id="program" name="program">
+                        <option value="Yoga - Vinyasa Flow">Yoga - Vinyasa Flow</option>
+                        <option value="Yoga - Restorative">Yoga - Restorative</option>
+                        <option value="Zumba Fitness">Zumba Fitness</option>
+                        <option value="Zumba Gold">Zumba Gold</option>
+                    </select>
+
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="4" placeholder="Tell us about your fitness goals"></textarea>
+
+                    <button type="submit" class="cta-btn" id="trial-submit">Send</button>
+                    <p class="form-status" id="trial-status" aria-live="polite"></p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <p class="brand-mark">ARA</p>
+                <p>Committed to HONOR, COURTESY, RESPECT, INTEGRITY, and PERSEVERANCE for every student we serve.</p>
+            </div>
+            <div>
+                <h3>Connect</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
+                    <li><a href="https://www.facebook.com" target="_blank" rel="noopener">Facebook</a></li>
+                    <li><a href="https://www.youtube.com" target="_blank" rel="noopener">YouTube</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Hours</h3>
+                <ul>
+                    <li>Mon-Fri: 11:30 AM - 8:30 PM</li>
+                    <li>Sat: By appointment</li>
+                    <li>Sun: Closed</li>
+                </ul>
+            </div>
+        </div>
+        <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const trialForm = document.getElementById("trial-form");
+        const trialStatus = document.getElementById("trial-status");
+
+        if (trialForm) {
+            trialForm.addEventListener("submit", () => {
+                trialStatus.textContent = "Thank you! We will contact you shortly.";
+            });
+        }
+    </script>
+    <script src="assets/js/master-ara.js" defer></script>
+    <script src="assets/js/main.js" defer></script>
+</body>
+</html>
