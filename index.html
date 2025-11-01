@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="assets/css/master-ara.css?v=20241027">
 </head>
 <body>
+    <div class="parallax-bg" aria-hidden="true"></div>
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -32,13 +33,17 @@
                 </ul>
             </nav>
             <a href="#contact" class="cta-btn">Book a Trial</a>
+            <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="false">
+                <span class="sound-toggle__label">Sound FX</span>
+                <span class="sound-toggle__status" data-sound-status>Off</span>
+            </button>
         </div>
     </header>
 
     <main id="top">
         <section class="hero">
             <div class="container hero-content">
-                <div class="hero-copy">
+                <div class="hero-copy" data-reveal="slide-up">
                     <h1>Building Strong Minds & Bodies in Siler City</h1>
                     <p>Ara's Martial Arts Sportsplex welcomes students ages three and up with Taekwondo, Hapkido, and after-school enrichment that build confidence, focus, and lifelong fitness alongside Master Ara.</p>
                     <div class="hero-actions">
@@ -46,7 +51,7 @@
                         <a href="#programs" class="secondary-btn">Explore Programs</a>
                     </div>
                 </div>
-                <div class="hero-aside">
+                <div class="hero-aside" data-reveal="slide-up" data-reveal-delay="120">
                     <div class="hero-highlight" data-hide-after="2025-12-31">
                         <span class="hero-badge">Limited Spots</span>
                         <h2>Conditioning Boot Camp Is Back</h2>
@@ -64,10 +69,10 @@
 
         <section class="open-enrollment" id="open-enrollment">
             <div class="container open-enrollment__wrap">
-                <div class="open-enrollment__poster">
+                <div class="open-enrollment__poster" data-reveal="slide-up">
                     <img src="assets/Images/open-enrollment.jpg?v=20241031" alt="Open enrollment flyer showing Ara's 3-week beginner special" loading="lazy">
                 </div>
-                <div class="open-enrollment__content">
+                <div class="open-enrollment__content" data-reveal="slide-up" data-reveal-delay="120">
                     <p class="open-enrollment__eyebrow">New Student Promo</p>
                     <h2 class="open-enrollment__title">3 Weeks for $49.99</h2>
                     <p class="open-enrollment__lede">Start training with unlimited intro classes, expert coaching, and a community focused on confidence, discipline, and respect.</p>
@@ -86,10 +91,10 @@
 
         <section class="winter-games" id="winter-games" data-hide-after="2025-12-07">
             <div class="container winter-games__wrap">
-                <div class="winter-games__poster" aria-hidden="true">
+                <div class="winter-games__poster" aria-hidden="true" data-reveal="slide-up">
                     <img src="assets/Images/winter-games-poster.png" alt="Winter Games 2025 promotional poster" loading="lazy">
                 </div>
-                <div class="winter-games__content">
+                <div class="winter-games__content" data-reveal="slide-up">
                     <p class="winter-games__eyebrow">Siler City, NC</p>
                     <h2 class="winter-games__title">Taekwondo Winter Games 2025</h2>
                     <p class="winter-games__tagline">Eye Focus • Body Focus • Mind Focus</p>
@@ -121,7 +126,7 @@
                     </div>
                     <p class="winter-games__footnote">Registration closes November 25 • Event retires from the site after December 6</p>
                 </div>
-                <article class="winter-games__mission">
+                <article class="winter-games__mission" data-reveal="slide-up" data-reveal-delay="120">
                     <h3>Mission Statement</h3>
                     <p>Our mission is to empower individuals through Taekwondo, promoting discipline, respect, confidence, and focus while strengthening the Siler City community. The Winter Games celebrate not only athletic excellence but also personal growth, cultural connection, and unity through the martial arts spirit. We believe that when body, mind, and spirit work together, we create a stronger and more connected community, one kick at a time.</p>
                 </article>
@@ -130,12 +135,12 @@
 
         <section class="section" id="programs">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" data-reveal="slide-up">
                     <h2>Programs for Every Family</h2>
                     <p>From Little Ninjas to leadership training, our curriculum keeps Siler City students active, focused, and confident all year long.</p>
                 </header>
                 <div class="card-grid">
-                    <article class="card">
+                    <article class="card" data-reveal="slide-up">
                         <h3>Little Ninjas (Ages 3-5)</h3>
                         <p>Introduce early learners to Taekwondo through upbeat drills that reinforce balance, listening skills, and respect.</p>
                         <ul>
@@ -144,7 +149,7 @@
                             <li>Positive mat etiquette that carries home and to school</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal="slide-up" data-reveal-delay="120">
                         <h3>Kids & Family Taekwondo</h3>
                         <p>Train with Master Ara for heightened confidence, fitness, and perseverance using the World Taekwondo Federation curriculum.</p>
                         <ul>
@@ -153,7 +158,7 @@
                             <li>Family classes that keep siblings and parents progressing together</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal="slide-up" data-reveal-delay="180">
                         <h3>After School Success Program</h3>
                         <p>Our community-driven after-school option blends academics, martial arts, and life skills for Chatham County families.</p>
                         <ul>
@@ -162,7 +167,7 @@
                             <li>Transportation from local schools and healthy routines</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal="slide-up" data-reveal-delay="240">
                         <h3>Hapkido & Self-Defense</h3>
                         <p>Learn practical self-defense secrets that keep your family safe while elevating discipline and focus.</p>
                         <ul>
@@ -177,11 +182,11 @@
 
         <section class="section section-dark" id="instructors">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" data-reveal="slide-up">
                     <h2>Meet the Instructors</h2>
                 </header>
                 <div class="profile-grid">
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo" src="assets/materials/Master%20Ara.jpg" alt="Master Ara demonstrating Taekwondo technique">
                         </figure>
@@ -189,7 +194,7 @@
                         <p class="profile-title">Master Instructor</p>
                         <p>Founder of Ara's Martial Arts Sportsplex and World Taekwondo Federation black belt guiding students toward confidence, discipline, and championship-ready technique.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up" data-reveal-delay="80">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo" src="assets/Images/Master%20Ara.jpeg" alt="Coach Fatima Enriquez coaching students">
                         </figure>
@@ -197,7 +202,7 @@
                         <p class="profile-title">Certified Personal Trainer</p>
                         <p>Leads our boot-camp and conditioning classes with individualized form corrections, motivational coaching, and a passion for student wellness.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up" data-reveal-delay="160">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo profile-card__photo--elle" src="assets/materials/Instructor%20Eldie.jpg" alt="Instructor Eldie Ara demonstrating martial arts technique">
                         </figure>
@@ -205,7 +210,7 @@
                         <p class="profile-title">3rd Degree Black Belt</p>
                         <p>Champions advanced forms and sparring precision, mentoring competitors and leadership students to elevate performance while modeling confidence and courtesy.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up" data-reveal-delay="240">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo profile-card__photo--fisher" src="assets/Images/Jr%20Instructor%20Fisher.png" alt="Jr. Instructor Fisher guiding students through drills">
                         </figure>
@@ -213,7 +218,7 @@
                         <p class="profile-title">Junior Leadership Coach &middot; 2nd Degree Black Belt</p>
                         <p>Supports all students with targeted forms coaching, conditioning drills, and mentorship, helping the next wave of black belts lead with confidence.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up" data-reveal-delay="320">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo profile-card__photo--cain" src="assets/Images/Jr%20instructor%20Cain.png" alt="Jr. Instructor Cain demonstrating focus and balance">
                         </figure>
@@ -221,7 +226,7 @@
                         <p class="profile-title">Junior Leadership Coach &middot; 1st Degree Black Belt</p>
                         <p>Breaks down sparring concepts into clear, confidence-building drills so students master timing, control, and ring awareness in a supportive environment.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal="slide-up" data-reveal-delay="400">
                         <figure class="profile-card__media">
                             <img class="profile-card__photo profile-card__photo--jackson" src="assets/Images/Coach%20Jackson.jpg" alt="Coach Jackson leading a class">
                         </figure>
@@ -235,11 +240,11 @@
 
         <section class="section" id="student-spotlight">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" data-reveal="slide-up">
                     <h2>Student Spotlight</h2>
                     <p>Check out Jr. Instructor Fisher pushing his limits with a board break during training.</p>
                 </header>
-                <div class="media-highlight">
+                <div class="media-highlight" data-reveal="slide-up" data-reveal-delay="120">
                     <video class="media-highlight__video" controls playsinline preload="metadata">
                         <source src="assets/Images/FisherBoardBreak.mp4?v=2" type="video/mp4">
                         Your browser does not support the video tag. Watch the board break clip directly at assets/Images/FisherBoardBreak.mp4?v=2.
@@ -250,11 +255,11 @@
 
         <section class="section" id="schedule">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" data-reveal="slide-up">
                     <h2>Weekly Class Schedule</h2>
                     <p>A sample weekly flow for our current programs&mdash;call for the latest testing, tournament, and camp updates.</p>
                 </header>
-                <div class="schedule-wrapper">
+                <div class="schedule-wrapper" data-reveal="slide-up" data-reveal-delay="120">
                     <table class="schedule-table">
                         <thead>
                             <tr>
@@ -303,28 +308,28 @@
         <section class="focus-section" id="community">
             <div class="focus-section__bg"></div>
             <div class="container focus-section__content">
-                <header class="focus-section__header">
+                <header class="focus-section__header" data-reveal="slide-up">
                     <span class="focus-section__tagline">Master Ara's Focus Framework</span>
                     <h2>Why Siler City Families Trust Ara's</h2>
                     <p>We blend martial arts, academics, and community to help every student reach full potential.</p>
                 </header>
 
                 <div class="focus-section__pillars" role="list">
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal="slide-up">
                         <span class="focus-pillar__icon" aria-hidden="true">01</span>
                         <div>
                             <h3>Eye Focused</h3>
                             <p>Students lock in on instructors and goals to sharpen discipline and confidence on every drill.</p>
                         </div>
                     </article>
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal="slide-up" data-reveal-delay="120">
                         <span class="focus-pillar__icon" aria-hidden="true">02</span>
                         <div>
                             <h3>Mind Focused</h3>
                             <p>Mindset coaching keeps attitudes positive, respectful, and ready to absorb new skills.</p>
                         </div>
                     </article>
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal="slide-up" data-reveal-delay="200">
                         <span class="focus-pillar__icon" aria-hidden="true">03</span>
                         <div>
                             <h3>Body Focused</h3>
@@ -334,15 +339,15 @@
                 </div>
 
                 <div class="focus-section__benefits" role="list">
-                    <article class="focus-benefit" role="listitem">
+                    <article class="focus-benefit" role="listitem" data-reveal="slide-up">
                         <h4>Building Strong Foundations</h4>
                         <p>Our mission is to empower people of all ages to become confident, successful members of the Siler City community.</p>
                     </article>
-                    <article class="focus-benefit" role="listitem">
+                    <article class="focus-benefit" role="listitem" data-reveal="slide-up" data-reveal-delay="120">
                         <h4>After-School Peace of Mind</h4>
                         <p>Families rely on our Success Program for transportation, homework assistance, and daily Taekwondo instruction.</p>
                     </article>
-                    <article class="focus-benefit" role="listitem">
+                    <article class="focus-benefit" role="listitem" data-reveal="slide-up" data-reveal-delay="200">
                         <h4>Parent-Approved Facility</h4>
                         <p>Free WiFi, climate-controlled training rooms, and specialized air filtration keep the academy clean, comfortable, and welcoming.</p>
                     </article>
@@ -352,20 +357,20 @@
 
         <section class="section section-dark testimonials">
             <div class="container">
-                <header class="section-header">
+                <header class="section-header" data-reveal="slide-up">
                     <h2>Voices from Our Community</h2>
                     <p>Hear what families, students, and our mission say about training at Ara's Martial Arts Sportsplex.</p>
                 </header>
                 <div class="testimonial-grid">
-                    <figure>
+                    <figure data-reveal="slide-up">
                         <blockquote>"Great Instructor. Always pushing the students to be better... Master Ara is always working hard to make sure that his school and his students always receives the best instruction to make great future champions and leaders."</blockquote>
                         <figcaption>&mdash; Google Review</figcaption>
                     </figure>
-                    <figure>
+                    <figure data-reveal="slide-up" data-reveal-delay="120">
                         <blockquote>"Our After School Program is a community driven enrichment program that provides academic support, martial arts instruction, and life skill guidance."</blockquote>
                         <figcaption>&mdash; After School Success Program</figcaption>
                     </figure>
-                    <figure>
+                    <figure data-reveal="slide-up" data-reveal-delay="200">
                         <blockquote>"Taekwondo is suitable for all ages, and the ARA's membership ranges from 3 years old and older."</blockquote>
                         <figcaption>&mdash; Academy Welcome Message</figcaption>
                     </figure>
@@ -375,7 +380,7 @@
 
         <section class="section contact-section" id="contact">
             <div class="container contact-grid">
-                <div>
+                <div data-reveal="slide-up">
                     <header class="section-header">
                         <h2>Visit the Dojang</h2>
                         <p>Ready to train? Reach out and the Ara's Martial Arts team will help you get started.</p>
@@ -387,7 +392,7 @@
                     </ul>
                     <p class="contact-note">Located near downtown Siler City with convenient parking. Text 336-482-6623 for boot camp questions or drop by during open hours.</p>
                 </div>
-                <form class="contact-form" id="trial-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com">
+                <form class="contact-form" id="trial-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com" data-reveal="slide-up" data-reveal-delay="120">
                     <h3>Reserve Your Trial Class</h3>
                     <input type="hidden" name="_next" value="https://aratkd.com/?submitted=true">
                     <input type="hidden" name="_subject" value="New Trial Class Request">
@@ -418,6 +423,8 @@
             </div>
         </section>
     </main>
+
+    <a href="#contact" class="floating-cta" aria-label="Book a free class">Book Free Class</a>
 
     <footer class="site-footer">
         <div class="container footer-grid">
