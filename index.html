@@ -256,51 +256,39 @@
         <section class="section" id="schedule">
             <div class="container">
                 <header class="section-header" data-reveal="slide-up">
-                    <h2>Weekly Class Schedule</h2>
-                    <p>A sample weekly flow for our current programs&mdash;call for the latest testing, tournament, and camp updates.</p>
+                    <h2 id="schedule-heading">Weekly Class Schedule</h2>
+                    <p>A sample weekly flow for our current programs&mdash;tap dates to explore classes, special events, and testing reminders.</p>
                 </header>
-                <div class="schedule-wrapper" data-reveal="slide-up" data-reveal-delay="120">
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Monday</th>
-                                <th>Wednesday</th>
-                                <th>Friday</th>
-                                <th>Saturday</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Afternoon</td>
-                                <td>After School Success Program &middot; homework lab, snack, martial arts</td>
-                                <td>After School Success Program &middot; STEM projects & indoor sports</td>
-                                <td>After School Success Program &middot; Parent Night Out prep</td>
-                                <td>All-day camps and community events when school is out</td>
-                            </tr>
-                            <tr>
-                                <td>5:30 PM</td>
-                                <td>Kids & Family Taekwondo &middot; confidence and focus</td>
-                                <td>Forms & sparring development for color belts</td>
-                                <td>Family Taekwondo celebration & belt stripes</td>
-                                <td>Boot Camp Conditioning with Coach Fatima</td>
-                            </tr>
-                            <tr>
-                                <td>6:30 PM</td>
-                                <td>Teens & Adults Taekwondo &middot; strength and stamina</td>
-                                <td>Leadership and instructor training tracks</td>
-                                <td>Black belt prep &middot; board breaking & testing reviews</td>
-                                <td>Open mat for testing practice & sparring labs</td>
-                            </tr>
-                            <tr>
-                                <td>7:30 PM</td>
-                                <td>Hapkido self-defense essentials</td>
-                                <td>Advanced self-defense and situational drills</td>
-                                <td>Mindfulness, stretching, and recovery</td>
-                                <td>Private lessons by appointment</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="dojo-calendar" data-reveal="slide-up" data-reveal-delay="120">
+                    <div class="dojo-calendar__header">
+                        <button class="dojo-calendar__nav" type="button" data-calendar-prev aria-label="Previous month">
+                            <span aria-hidden="true">&lsaquo;</span>
+                        </button>
+                        <div class="dojo-calendar__current" data-calendar-current aria-live="polite" aria-atomic="true"></div>
+                        <button class="dojo-calendar__nav" type="button" data-calendar-next aria-label="Next month">
+                            <span aria-hidden="true">&rsaquo;</span>
+                        </button>
+                    </div>
+                    <div class="dojo-calendar__legend" aria-label="Event legend">
+                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--after-school">After School</span>
+                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--class">Classes</span>
+                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--leadership">Leadership</span>
+                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--event">Events</span>
+                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--testing">Testing</span>
+                    </div>
+                    <div class="dojo-calendar__grid" role="grid" aria-labelledby="schedule-heading" data-calendar-grid>
+                        <span class="dojo-calendar__weekday" role="columnheader">Sun</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Mon</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Tue</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Wed</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Thu</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Fri</span>
+                        <span class="dojo-calendar__weekday" role="columnheader">Sat</span>
+                        <!-- Days injected by JavaScript -->
+                    </div>
+                    <div class="dojo-calendar__details" id="dojo-calendar-events" aria-live="polite" aria-atomic="true">
+                        <p class="dojo-calendar__empty">Select a day to see what&rsquo;s happening at Ara&rsquo;s.</p>
+                    </div>
                 </div>
             </div>
         </section>

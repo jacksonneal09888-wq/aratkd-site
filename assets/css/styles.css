@@ -644,10 +644,6 @@ body.js-enabled [data-reveal].is-visible {
     margin-top: -0.25rem;
 }
 
-.schedule-wrapper {
-    overflow-x: auto;
-}
-
 .media-highlight {
     display: flex;
     justify-content: center;
@@ -662,36 +658,288 @@ body.js-enabled [data-reveal].is-visible {
     background-color: black;
 }
 
-.schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 680px;
-    background-color: white;
-    border-radius: 1rem;
-    overflow: hidden;
-    box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.1);
+.dojo-calendar {
+    padding: 2rem;
+    background: white;
+    border-radius: 1.25rem;
+    box-shadow: 0 1.5rem 3rem rgba(8, 9, 10, 0.12);
+    display: grid;
+    gap: 1.75rem;
 }
 
-.schedule-table th,
-.schedule-table td {
-    padding: 1rem;
-    text-align: left;
+.dojo-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
-.schedule-table thead {
-    background-color: var(--color-dark);
-    color: white;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+.dojo-calendar__current {
     font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-.schedule-table tbody tr:nth-child(odd) {
-    background-color: rgba(8, 9, 10, 0.02);
+.dojo-calendar__nav {
+    border: 1px solid rgba(8, 9, 10, 0.12);
+    background: transparent;
+    color: var(--color-dark);
+    border-radius: 0.75rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.75rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
 }
 
-.schedule-table tbody tr:nth-child(even) {
-    background-color: white;
+.dojo-calendar__nav:hover,
+.dojo-calendar__nav:focus-visible {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: transparent;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.dojo-calendar__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+.dojo-calendar__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.dojo-calendar__legend-item::before {
+    content: "";
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--color-muted);
+    box-shadow: 0 0 0 3px rgba(8, 9, 10, 0.04);
+}
+
+.dojo-calendar__legend-item--after-school::before {
+    background: #f97316;
+}
+
+.dojo-calendar__legend-item--class::before {
+    background: #2563eb;
+}
+
+.dojo-calendar__legend-item--leadership::before {
+    background: #7c3aed;
+}
+
+.dojo-calendar__legend-item--event::before {
+    background: #16a34a;
+}
+
+.dojo-calendar__legend-item--testing::before {
+    background: #ef4444;
+}
+
+.dojo-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.35rem;
+    text-align: center;
+}
+
+.dojo-calendar__weekday {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    padding-bottom: 0.5rem;
+    color: var(--color-muted);
+}
+
+.dojo-calendar__day {
+    position: relative;
+    min-height: 4.2rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    background: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    color: var(--color-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0.75rem;
+    gap: 0.35rem;
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition), background-color var(--transition);
+}
+
+.dojo-calendar__day:hover,
+.dojo-calendar__day:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0.5rem 1.25rem rgba(216, 31, 38, 0.12);
+    transform: translateY(-1px);
+}
+
+.dojo-calendar__day.is-muted {
+    color: rgba(8, 9, 10, 0.35);
+    background: rgba(241, 245, 249, 0.6);
+    cursor: default;
+}
+
+.dojo-calendar__day.is-muted:hover,
+.dojo-calendar__day.is-muted:focus-visible {
+    border-color: rgba(8, 9, 10, 0.08);
+    box-shadow: none;
+    transform: none;
+}
+
+.dojo-calendar__day.is-today {
+    border-color: var(--color-primary);
+}
+
+.dojo-calendar__day.is-selected {
+    background: linear-gradient(135deg, rgba(216, 31, 38, 0.1), rgba(216, 31, 38, 0.18));
+    border-color: var(--color-primary);
+    box-shadow: 0 1.25rem 2.5rem rgba(216, 31, 38, 0.12);
+}
+
+.dojo-calendar__date {
+    font-size: 1rem;
+}
+
+.dojo-calendar__markers {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: auto;
+}
+
+.dojo-calendar__marker {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+}
+
+.dojo-calendar__marker--after-school {
+    background: #f97316;
+}
+
+.dojo-calendar__marker--class {
+    background: #2563eb;
+}
+
+.dojo-calendar__marker--leadership {
+    background: #7c3aed;
+}
+
+.dojo-calendar__marker--event {
+    background: #16a34a;
+}
+
+.dojo-calendar__marker--testing {
+    background: #ef4444;
+}
+
+.dojo-calendar__details {
+    border-top: 1px solid rgba(8, 9, 10, 0.08);
+    padding-top: 1.5rem;
+}
+
+.dojo-calendar__details-heading {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-heading);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    color: var(--color-muted);
+}
+
+.dojo-calendar__events-list {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dojo-calendar__event {
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(8, 9, 10, 0.04);
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    display: grid;
+    gap: 0.4rem;
+}
+
+.dojo-calendar__event-title {
+    font-weight: 700;
+    margin: 0;
+}
+
+.dojo-calendar__event-meta {
+    font-size: 0.95rem;
+    color: var(--color-muted);
+    margin: 0;
+}
+
+.dojo-calendar__tag {
+    justify-self: start;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: rgba(8, 9, 10, 0.08);
+    color: var(--color-dark);
+}
+
+.dojo-calendar__tag--after-school {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+
+.dojo-calendar__tag--class {
+    background: rgba(37, 99, 235, 0.15);
+    color: #2563eb;
+}
+
+.dojo-calendar__tag--leadership {
+    background: rgba(124, 58, 237, 0.15);
+    color: #7c3aed;
+}
+
+.dojo-calendar__tag--event {
+    background: rgba(22, 163, 74, 0.15);
+    color: #16a34a;
+}
+
+.dojo-calendar__tag--testing {
+    background: rgba(239, 68, 68, 0.18);
+    color: #ef4444;
+}
+
+.dojo-calendar__empty {
+    margin: 0;
+    color: var(--color-muted);
+}
+
+.dojo-calendar__note {
+    margin: 1.5rem 0 0;
+    font-size: 0.9rem;
+    color: var(--color-muted);
 }
 
 .highlight-grid {
@@ -1045,6 +1293,14 @@ body.js-enabled [data-reveal].is-visible {
     .profile-card__media {
         margin: -1.5rem -1.5rem 0;
     }
+
+    .dojo-calendar {
+        padding: 1.5rem;
+    }
+
+    .dojo-calendar__legend {
+        gap: 0.5rem 1rem;
+    }
 }
 
 @media (max-width: 600px) {
@@ -1083,12 +1339,39 @@ body.js-enabled [data-reveal].is-visible {
         margin: 0;
     }
 
-    .schedule-table {
-        min-width: auto;
-    }
-
     .sound-toggle {
         margin-top: 0.5rem;
+    }
+
+    .dojo-calendar {
+        padding: 1.25rem;
+        gap: 1.25rem;
+    }
+
+    .dojo-calendar__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dojo-calendar__grid {
+        gap: 0.25rem;
+    }
+
+    .dojo-calendar__day {
+        min-height: 3.6rem;
+        padding: 0.65rem;
+    }
+
+    .dojo-calendar__legend {
+        justify-content: center;
+    }
+
+    .dojo-calendar__details {
+        padding-top: 1rem;
+    }
+
+    .dojo-calendar__events-list {
+        gap: 0.75rem;
     }
 }
 
