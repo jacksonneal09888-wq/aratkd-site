@@ -297,19 +297,33 @@ function renderPortal() {
     portalEls.studentIdDisplay.textContent = student.id;
 
     const unlockedIndex = ensureUnlockedIndex(student);
-    portalEls.currentBelt.textContent = student.currentBelt || "White Belt";
-    const nextBeltName = BELT_SEQUENCE[unlockedIndex]?.name;
+    const progress = portalState.progress[student.id] ?? {};
+    const awardedIndex =
+        typeof progress.awardedIndex === "number"
+            ? progress.awardedIndex
+            : computeAwardedIndex(student, unlockedIndex);
+
+    portalEls.currentBelt.textContent =
+        BELT_SEQUENCE[awardedIndex]?.name ?? student.currentBelt ?? "White Belt";
+
+    const hasNext =
+        unlockedIndex > awardedIndex && unlockedIndex < BELT_SEQUENCE.length;
+    const nextBeltName = hasNext ? BELT_SEQUENCE[unlockedIndex]?.name : null;
     portalEls.nextBelt.textContent = nextBeltName ?? "You're at the final belt!";
 
-    renderBeltGrid(student, unlockedIndex);
+    renderBeltGrid(student, unlockedIndex, awardedIndex);
     renderCertificateLog(student);
     toggleBeltTestForm(false); // Hide form on portal render
 }
 
-function renderBeltGrid(student, unlockedIndex) {
+function renderBeltGrid(student, unlockedIndex, awardedIndex) {
     if (!portalEls.beltGrid) return;
     portalEls.beltGrid.innerHTML = "";
     const studentCertificates = portalState.certificates[student.id] ?? {};
+    const safeAwardedIndex =
+        typeof awardedIndex === "number"
+            ? awardedIndex
+            : computeAwardedIndex(student, unlockedIndex);
 
     BELT_SEQUENCE.forEach((belt, index) => {
         const card = document.createElement("article");
@@ -317,6 +331,9 @@ function renderBeltGrid(student, unlockedIndex) {
         if (index > unlockedIndex) {
             card.classList.add("locked");
         }
+
+        const isAwarded = index <= safeAwardedIndex;
+        const isActive = index === unlockedIndex && unlockedIndex > safeAwardedIndex;
 
         const titleRow = document.createElement("div");
         titleRow.className = "belt-card__head";
@@ -326,12 +343,12 @@ function renderBeltGrid(student, unlockedIndex) {
 
         const badge = document.createElement("span");
         badge.classList.add("badge");
-        if (index < unlockedIndex) {
+        if (isAwarded) {
             badge.classList.add("badge-unlocked");
-            badge.textContent = "Completed";
-        } else if (index === unlockedIndex) {
+            badge.textContent = "Awarded";
+        } else if (isActive) {
             badge.classList.add("badge-awaiting");
-            badge.textContent = "In Progress";
+            badge.textContent = "Up Next";
         } else {
             badge.classList.add("badge-locked");
             badge.textContent = "Locked";
@@ -377,9 +394,17 @@ function renderBeltGrid(student, unlockedIndex) {
         const certificateData = studentCertificates[belt.name];
         const status = document.createElement("p");
         status.className = "certificate-status";
-        status.textContent = certificateData
-            ? `Uploaded ${formatDate(certificateData.uploadedAt)} • ${certificateData.fileName}`
-            : "No certificate uploaded yet.";
+        if (certificateData) {
+            status.textContent = `Awarded ${formatDate(certificateData.uploadedAt)} • ${certificateData.fileName}`;
+        } else if (isActive) {
+            status.textContent =
+                "Upload your certificate to award this belt and unlock the next rank instantly.";
+        } else if (isAwarded) {
+            status.textContent =
+                "Belt awarded. Upload your certificate to keep a copy in your locker.";
+        } else {
+            status.textContent = "Keep training—this belt will unlock soon.";
+        }
         card.append(status);
 
         if (certificateData) {
@@ -394,7 +419,7 @@ function renderBeltGrid(student, unlockedIndex) {
             card.append(downloadRow);
         }
 
-        if (index === unlockedIndex) {
+        if (isActive) {
             const actionRow = document.createElement("div");
             actionRow.className = "certificate-action";
             const uploadBtn = document.createElement("button");
@@ -437,7 +462,8 @@ function renderCertificateLog(student) {
     const studentCertificates = portalState.certificates[student.id];
     if (!studentCertificates || Object.keys(studentCertificates).length === 0) {
         const empty = document.createElement("p");
-        empty.textContent = "Upload your certificate after each belt test to unlock new materials.";
+        empty.textContent =
+            "Upload your certificate after each belt test to unlock the next belt instantly.";
         portalEls.certificateLog.append(empty);
         return;
     }
@@ -497,11 +523,16 @@ function handleCertificateUpload(file, belt, beltIndex) {
 
         storeCertificate(portalState.activeStudent.id, payload);
 
-        if (beltIndex < BELT_SEQUENCE.length - 1) {
-            updateProgress(portalState.activeStudent.id, beltIndex + 1);
-        }
+        const nextUnlockIndex = beltIndex + 1;
+        updateProgress(portalState.activeStudent.id, nextUnlockIndex);
 
-        setStatus(`${belt.name} certificate received. Keep training hard!`, "success");
+        const hasNext = nextUnlockIndex < BELT_SEQUENCE.length;
+        const nextBeltName = hasNext ? BELT_SEQUENCE[nextUnlockIndex].name : null;
+        const successMessage = hasNext
+            ? `${belt.name} awarded! ${nextBeltName} is now unlocked—let's go!`
+            : `${belt.name} awarded! You've reached the highest rank—outstanding work!`;
+
+        setStatus(successMessage, "success");
         renderPortal();
     };
 
@@ -559,11 +590,14 @@ function ensureUnlockedIndex(student) {
             ? Math.min(Math.max(stored, targetIndex), BELT_SEQUENCE.length - 1)
             : targetIndex;
 
+    const awardedIndex = computeAwardedIndex(student, normalized);
+
     if (
         !portalState.progress[student.id] ||
-        portalState.progress[student.id].unlockedIndex !== normalized
+        portalState.progress[student.id].unlockedIndex !== normalized ||
+        portalState.progress[student.id].awardedIndex !== awardedIndex
     ) {
-        portalState.progress[student.id] = { unlockedIndex: normalized };
+        portalState.progress[student.id] = { unlockedIndex: normalized, awardedIndex };
         persistProgress();
     }
 
@@ -571,8 +605,15 @@ function ensureUnlockedIndex(student) {
 }
 
 function updateProgress(studentId, unlockedIndex) {
+    const cappedUnlock = Math.min(unlockedIndex, BELT_SEQUENCE.length - 1);
+    const student =
+        findStudentRecord(studentId) ??
+        (portalState.activeStudent?.id === studentId ? portalState.activeStudent : null);
+    const awardedIndex = computeAwardedIndex(student, cappedUnlock);
+
     portalState.progress[studentId] = {
-        unlockedIndex: Math.min(unlockedIndex, BELT_SEQUENCE.length - 1)
+        unlockedIndex: cappedUnlock,
+        awardedIndex
     };
     persistProgress();
 }
@@ -758,6 +799,30 @@ function writeStore(key, value) {
         setStatus("Storage is full or disabled. Clear space and try again.");
     }
 }
+
+function findStudentRecord(studentId) {
+    if (!studentId) return null;
+    const normalizedId = studentId.toLowerCase();
+    return (
+        portalState.students.find(
+            (record) => record.id && record.id.toLowerCase() === normalizedId
+        ) ?? null
+    );
+}
+
+function computeAwardedIndex(student, unlockedIndex) {
+    const lastIndex = BELT_SEQUENCE.length - 1;
+    const safeUnlock = Math.min(Math.max(unlockedIndex, 0), lastIndex);
+    const baseIndex = student ? resolveBeltIndex(student.currentBelt) : 0;
+
+    if (safeUnlock >= lastIndex) {
+        return Math.max(baseIndex, lastIndex);
+    }
+
+    const previousIndex = Math.max(0, safeUnlock - 1);
+    return Math.max(baseIndex, previousIndex);
+}
+
 function resolveBeltIndex(beltName) {
     if (!beltName) return 0;
     const normalized = beltName.toLowerCase().trim();
