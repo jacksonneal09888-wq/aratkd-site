@@ -4,203 +4,195 @@ const yearTarget = document.getElementById("year");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
-const CALENDAR_WEEKDAY_LABELS = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-];
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const DOJO_RECURRING_EVENTS = {
-    1: [
-        {
-            title: "After School Success Program",
-            time: "3:00 PM",
-            category: "after-school",
-            description: "Homework lab, healthy snack, and martial arts coaching to kick off the afternoon."
-        },
-        {
-            title: "Kids & Family Taekwondo",
-            time: "5:30 PM",
-            category: "class",
-            description: "Confidence-building drills and combinations for ages 6+ and training families."
-        },
-        {
-            title: "Teens & Adults Taekwondo",
-            time: "6:30 PM",
-            category: "class",
-            description: "High-energy conditioning, poomsae refinement, and sparring foundations."
-        },
-        {
-            title: "Hapkido Self-Defense Essentials",
-            time: "7:30 PM",
-            category: "event",
-            description: "Joint locks, situational awareness, and practical self-defense strategies."
-        }
-    ],
-    3: [
-        {
-            title: "After School Success Program",
-            time: "3:00 PM",
-            category: "after-school",
-            description: "STEM challenges, indoor sports, and guided martial arts instruction."
-        },
-        {
-            title: "Forms & Sparring Development",
-            time: "5:30 PM",
-            category: "class",
-            description: "Color belt forms, sparring footwork, and focus drills for tournament prep."
-        },
-        {
-            title: "Leadership & Instructor Track",
-            time: "6:30 PM",
-            category: "leadership",
-            description: "Assistant instructors refine teaching, mat management, and leadership habits."
-        },
-        {
-            title: "Advanced Self-Defense Lab",
-            time: "7:30 PM",
-            category: "event",
-            description: "Scenario-based Hapkido combinations and controlled partner drilling."
-        }
-    ],
-    5: [
-        {
-            title: "After School Success Program",
-            time: "3:00 PM",
-            category: "after-school",
-            description: "Parent Night Out preparation, goal check-ins, and positive habit coaching."
-        },
-        {
-            title: "Family Taekwondo Celebration",
-            time: "5:30 PM",
-            category: "class",
-            description: "Families train side-by-side with stripe checks and teamwork challenges."
-        },
-        {
-            title: "Black Belt Prep",
-            time: "6:30 PM",
-            category: "leadership",
-            description: "Board breaking combos, sparring tactics, and testing simulations."
-        },
-        {
-            title: "Recovery & Mindfulness",
-            time: "7:30 PM",
-            category: "event",
-            description: "Mobility work, mindset resets, and guided breathing for the weekend."
-        }
-    ],
-    6: [
-        {
-            title: "Community Camps & Events",
-            time: "10:00 AM",
-            category: "event",
-            description: "Open mat sessions, guest seminars, or camps when school is out."
-        },
-        {
-            title: "Boot Camp Conditioning",
-            time: "5:30 PM",
-            category: "class",
-            description: "Coach Fatima leads endurance, agility, and strength training circuits."
-        },
-        {
-            title: "Open Mat & Sparring Labs",
-            time: "6:30 PM",
-            category: "class",
-            description: "Focus on sparring strategies, target drills, and poomsae polishing."
-        },
-        {
-            title: "Private Lessons",
-            time: "7:30 PM",
-            category: "event",
-            description: "By appointment—belt exam prep, competition coaching, or focused training."
-        }
-    ]
+const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
+const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
+const EVENT_WHITE_YELLOW = createEvent("Kids & Family Taekwondo", "5:00 - 5:45 PM", "class", "White and yellow belts sharpen basics with family training partners welcome.");
+const EVENT_GREEN_BLACK = createEvent("Green & Black Belt Training", "5:45 - 6:30/7:00 PM", "class", "Intermediate and advanced poomsae, sparring, and leadership reps.");
+const EVENT_TEENS_ADULTS = createEvent("Teens & Adults Taekwondo", "6:30 PM", "class", "High-energy conditioning plus sparring combinations for teens and adults.");
+const EVENT_HAPKIDO = createEvent("Hapkido Self-Defense Essentials", "7:30 PM", "event", "Joint locks, situational awareness, and practical defense applications.");
+const EVENT_FORMS_SPAR = createEvent("Forms & Sparring Development", "6:00 PM", "class", "Color belts polish poomsae timing, footwork, and ring strategies.");
+const EVENT_LEADERSHIP = createEvent("Leadership & Instructor Track", "6:30 PM", "leadership", "Assistant instructors practice mat management and coaching cues.");
+const EVENT_ADVANCED_SELF_DEFENSE = createEvent("Advanced Self-Defense Lab", "7:30 PM", "event", "Scenario-based Hapkido combinations with partner drills.");
+const EVENT_SPARRING_LAB = createEvent("Sparring Lab & Kickboxing", "6:15 PM", "class", "Footwork, timing, and pad rounds - bring full sparring gear.");
+const EVENT_FAMILY_TKD = createEvent("Family Taekwondo Celebration", "5:30 PM", "class", "Families train together with belt stripe reviews and goal setting.");
+const EVENT_BLACK_BELT_PREP = createEvent("Black Belt Prep & Board Breaking", "6:30 PM", "leadership", "Testing simulations, board breaks, and mindset coaching.");
+const EVENT_RECOVERY = createEvent("Recovery & Mindfulness", "7:30 PM", "event", "Mobility, breathwork, and reflection to end the week strong.");
+const EVENT_SATURDAY_CLOSED = createEvent("No Saturday Classes Scheduled", "All Day", "closure", "Check announcements for pop-up seminars or tournament travel days.");
+const EVENT_SUNDAY_CLOSED = createEvent("Dojang Closed", "All Day", "closure", "See you on the mat Monday!");
+const EVENT_BOARD_BREAK = createEvent("Board Breaking for All Students", "During scheduled classes", "event", "Bring boards and sparring gloves - stripes awarded at the end of class.");
+
+const EVENT_DISPLAY_PRIORITY = {
+    focus: 0,
+    testing: 1,
+    event: 2,
+    leadership: 3,
+    class: 4,
+    "after-school": 5,
+    closure: 6
 };
-const DOJO_SINGLE_EVENTS = {
-    "2024-11-16": [
-        {
-            title: "Board Break Workshop",
-            time: "11:00 AM",
-            category: "testing",
-            description: "Dial in foot positioning, power generation, and confidence ahead of testing."
-        }
-    ],
-    "2024-11-25": [
-        {
-            title: "Winter Games Registration Closes",
-            time: "All Day",
-            category: "event",
-            description: "Last call to join Ara's team roster. Email afetkd@gmail.com to secure your spot."
-        }
-    ],
-    "2024-11-28": [
-        {
-            title: "Dojang Closed · Thanksgiving",
-            time: "All Day",
-            category: "event",
-            description: "Rest, refuel, and enjoy the holiday. Classes resume on Friday."
-        }
-    ],
-    "2024-12-06": [
-        {
-            title: "Taekwondo Winter Games 2025",
-            time: "7:00 AM – 4:00 PM",
-            category: "event",
-            description: "Sparring, poomsae, and board breaking showdown hosted at Ara's Sportsplex."
-        }
-    ],
-    "2024-12-14": [
-        {
-            title: "Color Belt Testing Saturday",
-            time: "10:00 AM",
-            category: "testing",
-            description: "Stripe checks and advancement evaluations for Little Ninjas through brown belts."
-        }
-    ],
-    "2024-12-20": [
-        {
-            title: "Holiday Parent Night Out",
-            time: "6:00 PM",
-            category: "event",
-            description: "Games, pizza, and martial arts fun so parents can finish their holiday checklist."
-        }
-    ],
-    "2025-01-06": [
-        {
-            title: "Winter Session Kickoff",
-            time: "4:00 PM",
-            category: "event",
-            description: "Welcome back mat talk, goal setting for the new year, and schedule updates."
-        }
-    ],
-    "2025-01-18": [
-        {
-            title: "Sparring Round Robin",
-            time: "1:00 PM",
-            category: "event",
-            description: "Controlled rounds for color belts—gear required, partners assigned on arrival."
-        }
-    ],
-    "2025-02-01": [
-        {
-            title: "Open House & Buddy Class",
-            time: "10:30 AM",
-            category: "event",
-            description: "Bring a friend for intro drills, pad work, and membership Q&A with Master Ara."
-        }
-    ]
+
+const DOJO_CALENDAR_WEEKLY = {
+    0: [EVENT_SUNDAY_CLOSED],
+    1: [EVENT_AFTER_SCHOOL, EVENT_LITTLE_NINJAS, EVENT_WHITE_YELLOW, EVENT_GREEN_BLACK, EVENT_TEENS_ADULTS, EVENT_HAPKIDO],
+    2: [EVENT_AFTER_SCHOOL, EVENT_LITTLE_NINJAS, EVENT_WHITE_YELLOW, EVENT_GREEN_BLACK, EVENT_FORMS_SPAR],
+    3: [EVENT_AFTER_SCHOOL, EVENT_LITTLE_NINJAS, EVENT_WHITE_YELLOW, EVENT_GREEN_BLACK, EVENT_LEADERSHIP, EVENT_ADVANCED_SELF_DEFENSE],
+    4: [EVENT_AFTER_SCHOOL, EVENT_LITTLE_NINJAS, EVENT_WHITE_YELLOW, EVENT_GREEN_BLACK, EVENT_SPARRING_LAB],
+    5: [EVENT_AFTER_SCHOOL, EVENT_LITTLE_NINJAS, EVENT_WHITE_YELLOW, EVENT_GREEN_BLACK, EVENT_FAMILY_TKD, EVENT_BLACK_BELT_PREP, EVENT_RECOVERY],
+    6: [EVENT_SATURDAY_CLOSED]
 };
+
+
+const CALENDAR_RANGE_START = parseIsoDate("2025-09-01");
+const CALENDAR_RANGE_END = parseIsoDate("2026-12-31");
+
+const CALENDAR_FOCUS_TEMPLATE = [
+    {
+        title: "Focus Week: Poomsae Foundations",
+        description: "Sharpen stances, kihaps, and form details to launch the training month."
+    },
+    {
+        title: "Focus Week: Breaking Practice & Poomsae",
+        description: "Board breaking mechanics plus form refinement to build precision and power."
+    },
+    {
+        title: "Focus Week: Sparring - Bring Gear",
+        description: "Footwork, ring strategies, and controlled sparring rounds. Full sparring gear required."
+    },
+    {
+        title: "Focus Week: Sparring & Self-Defense",
+        description: "Blend sparring combinations with practical self-defense scenarios."
+    },
+    {
+        title: "Focus Week: Poomsae Spotlight & Testing Prep",
+        description: "Dial in patterns, kihaps, and testing etiquette ahead of evaluations."
+    }
+];
+
+const BASE_CALENDAR_RANGES = [];
+const GENERATED_CALENDAR_RANGES = generateFocusRanges(CALENDAR_RANGE_START, CALENDAR_RANGE_END, CALENDAR_FOCUS_TEMPLATE);
+const DOJO_CALENDAR_RANGES = [...BASE_CALENDAR_RANGES, ...GENERATED_CALENDAR_RANGES];
+
+const BASE_CALENDAR_DAY_OVERRIDES = {
+    "2024-11-16": {
+        events: [
+            createEvent(
+                "Board Break Workshop",
+                "11:00 AM",
+                "testing",
+                "Dial in foot positioning, power generation, and confidence ahead of testing."
+            )
+        ]
+    },
+    "2024-11-25": {
+        events: [
+            createEvent(
+                "Winter Games Registration Closes",
+                "All Day",
+                "event",
+                "Last call to join Ara's team roster. Email afetkd@gmail.com to secure your spot."
+            )
+        ]
+    },
+    "2024-11-28": {
+        replace: true,
+        events: [
+            createEvent(
+                "Dojang Closed · Thanksgiving",
+                "All Day",
+                "closure",
+                "Rest, refuel, and enjoy the holiday. Classes resume on Friday."
+            )
+        ]
+    },
+    "2024-12-06": {
+        events: [
+            createEvent(
+                "Taekwondo Winter Games 2025",
+                "7:00 AM - 4:00 PM",
+                "event",
+                "Sparring, poomsae, and board breaking showdown hosted at Ara's Sportsplex."
+            )
+        ]
+    },
+    "2024-12-14": {
+        replace: true,
+        events: [
+            createEvent(
+                "Color Belt Testing Saturday",
+                "10:00 AM",
+                "testing",
+                "Stripe checks and advancement evaluations for Little Ninjas through brown belts."
+            )
+        ]
+    },
+    "2024-12-20": {
+        events: [
+            createEvent(
+                "Holiday Parent Night Out",
+                "6:00 PM",
+                "event",
+                "Games, pizza, and martial arts fun so parents can finish their holiday checklist."
+            )
+        ]
+    },
+    "2025-01-06": {
+        events: [
+            createEvent(
+                "Winter Session Kickoff",
+                "4:00 PM",
+                "event",
+                "Welcome back mat talk, goal setting for the new year, and schedule updates."
+            )
+        ]
+    },
+    "2025-01-18": {
+        replace: true,
+        events: [
+            createEvent(
+                "Sparring Round Robin",
+                "1:00 PM",
+                "event",
+                "Controlled rounds for color belts - gear required, partners assigned on arrival."
+            )
+        ]
+    },
+    "2025-02-01": {
+        replace: true,
+        events: [
+            createEvent(
+                "Open House & Buddy Class",
+                "10:30 AM",
+                "event",
+                "Bring a friend for intro drills, pad work, and membership Q&A with Master Ara."
+            )
+        ]
+    },
+    "2025-09-01": {
+        replace: true,
+        events: [
+            createEvent(
+                "No Classes · Labor Day",
+                "All Day",
+                "closure",
+                "Dojang closed for the holiday. Enjoy the long weekend!"
+            )
+        ]
+    }
+};
+
+const GENERATED_CALENDAR_DAY_OVERRIDES = generateMonthlyOverrides(CALENDAR_RANGE_START, CALENDAR_RANGE_END, EVENT_BOARD_BREAK);
+const DOJO_CALENDAR_DAY_OVERRIDES = mergeOverrides(BASE_CALENDAR_DAY_OVERRIDES, GENERATED_CALENDAR_DAY_OVERRIDES);
+
 const EVENT_CATEGORY_LABELS = {
     "after-school": "After School",
     class: "Class",
     leadership: "Leadership",
     event: "Event",
-    testing: "Testing"
+    testing: "Testing",
+    focus: "Focus Week",
+    closure: "Closed"
 };
 
 if (document.body) {
@@ -578,9 +570,16 @@ function initDojoCalendar() {
             button.classList.add("has-events");
             const markers = document.createElement("span");
             markers.className = "dojo-calendar__markers";
-            events.slice(0, 3).forEach((event) => {
+            const categories = [];
+            events.forEach((event) => {
+                const category = event.category || "event";
+                if (!categories.includes(category)) {
+                    categories.push(category);
+                }
+            });
+            categories.slice(0, 4).forEach((category) => {
                 const marker = document.createElement("span");
-                marker.className = `dojo-calendar__marker dojo-calendar__marker--${event.category || "event"}`;
+                marker.className = `dojo-calendar__marker dojo-calendar__marker--${category}`;
                 markers.appendChild(marker);
             });
             button.appendChild(markers);
@@ -599,10 +598,14 @@ function initDojoCalendar() {
             if (events.length > 0) {
                 const countLabel = `${events.length} ${events.length === 1 ? "event" : "events"}`;
                 labelParts.push(countLabel);
+                const primaryEvent = events[0];
+                if (primaryEvent && primaryEvent.title) {
+                    labelParts.push(primaryEvent.title);
+                }
             } else {
                 labelParts.push("No scheduled events");
             }
-            button.setAttribute("aria-label", labelParts.join(" — "));
+            button.setAttribute("aria-label", labelParts.join(" - "));
 
             button.addEventListener("click", () => {
                 state.selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -629,7 +632,7 @@ function initDojoCalendar() {
         if (!events.length) {
             const empty = document.createElement("p");
             empty.className = "dojo-calendar__empty";
-            empty.textContent = "No scheduled programs today—call or text to set up a private lesson or intro visit.";
+            empty.textContent = "No scheduled programs today - call or text to set up a private lesson or intro visit.";
             eventsContainer.appendChild(empty);
             eventsContainer.appendChild(createCalendarNote());
             return;
@@ -674,7 +677,7 @@ function initDojoCalendar() {
     const createCalendarNote = () => {
         const note = document.createElement("p");
         note.className = "dojo-calendar__note";
-        note.textContent = "Need another time or have a question? Call (919) 799-7500 or email afetkd@gmail.com.";
+        note.textContent = "Green belts and up are welcome to reinforce forms in the White Belt class. Schedule is subject to change depending on attendance - call (919) 799-7500 or email afetkd@gmail.com.";
         return note;
     };
 
@@ -701,25 +704,191 @@ function initDojoCalendar() {
     render();
 }
 
+function generateFocusRanges(startDate, endDate, template) {
+    const ranges = [];
+    let year = startDate.getFullYear();
+    let month = startDate.getMonth();
+    const endYear = endDate.getFullYear();
+    const endMonth = endDate.getMonth();
+
+    while (year < endYear || (year === endYear && month <= endMonth)) {
+        const daysInMonth = getDaysInMonth(year, month);
+        for (let weekIndex = 0, day = 1; day <= daysInMonth; weekIndex += 1, day += 7) {
+            const templateIndex = Math.min(weekIndex, template.length - 1);
+            const focus = template[templateIndex];
+            ranges.push({
+                start: new Date(year, month, day),
+                end: new Date(year, month, Math.min(day + 6, daysInMonth)),
+                events: [
+                    createEvent(focus.title, "During all classes", "focus", focus.description)
+                ]
+            });
+        }
+
+        month += 1;
+        if (month > 11) {
+            month = 0;
+            year += 1;
+        }
+    }
+
+    return ranges;
+}
+
+function generateMonthlyOverrides(startDate, endDate, recurringEvent) {
+    const overrides = {};
+    let year = startDate.getFullYear();
+    let month = startDate.getMonth();
+    const endYear = endDate.getFullYear();
+    const endMonth = endDate.getMonth();
+
+    while (year < endYear || (year === endYear && month <= endMonth)) {
+        const secondFriday = getNthWeekdayOfMonth(year, month, 5, 2);
+        if (secondFriday) {
+            addOverrideEvent(overrides, secondFriday, recurringEvent);
+        }
+
+        month += 1;
+        if (month > 11) {
+            month = 0;
+            year += 1;
+        }
+    }
+
+    return overrides;
+}
+
+function getNthWeekdayOfMonth(year, month, weekday, occurrence) {
+    const date = new Date(year, month, 1);
+    let count = 0;
+    while (date.getMonth() === month) {
+        if (date.getDay() === weekday) {
+            count += 1;
+            if (count === occurrence) {
+                return new Date(date);
+            }
+        }
+        date.setDate(date.getDate() + 1);
+    }
+    return null;
+}
+
+function addOverrideEvent(map, date, event, replace = false) {
+    const iso = toIsoDate(date);
+    if (!map[iso] || replace) {
+        map[iso] = { events: [], replace: Boolean(replace) };
+    }
+
+    if (replace) {
+        map[iso].events = [];
+    }
+
+    map[iso].events.push({ ...event });
+}
+
+function mergeOverrides(base, extra) {
+    const merged = {};
+
+    Object.entries(base).forEach(([iso, override]) => {
+        merged[iso] = {
+            replace: Boolean(override.replace),
+            events: Array.isArray(override.events) ? override.events.map((event) => ({ ...event })) : []
+        };
+    });
+
+    Object.entries(extra).forEach(([iso, override]) => {
+        if (!merged[iso]) {
+            merged[iso] = { replace: false, events: [] };
+        }
+
+        if (override.replace) {
+            merged[iso].replace = true;
+            merged[iso].events = [];
+        }
+
+        if (Array.isArray(override.events)) {
+            override.events.forEach((event) => {
+                merged[iso].events.push({ ...event });
+            });
+        }
+    });
+
+    return merged;
+}
+
 function getEventsForDate(date) {
     const events = [];
-    const weekdayEvents = DOJO_RECURRING_EVENTS[date.getDay()];
+    const weekdayEvents = DOJO_CALENDAR_WEEKLY[date.getDay()];
     if (Array.isArray(weekdayEvents)) {
         weekdayEvents.forEach((event) => {
             events.push({ ...event });
         });
     }
 
-    const singleDayEvents = DOJO_SINGLE_EVENTS[toIsoDate(date)];
-    if (Array.isArray(singleDayEvents)) {
-        singleDayEvents.forEach((event) => {
-            events.push({ ...event });
-        });
+    DOJO_CALENDAR_RANGES.forEach((range) => {
+        if (date >= range.start && date <= range.end && Array.isArray(range.events)) {
+            range.events.forEach((event) => {
+                events.push({ ...event });
+            });
+        }
+    });
+
+    if (date.getDay() === 0 || date.getDay() === 6) {
+        for (let index = events.length - 1; index >= 0; index -= 1) {
+            if (events[index].category === "focus") {
+                events.splice(index, 1);
+            }
+        }
     }
 
-    return events;
+    const override = DOJO_CALENDAR_DAY_OVERRIDES[toIsoDate(date)];
+    if (override) {
+        if (override.replace) {
+            events.length = 0;
+        }
+
+        if (Array.isArray(override.events)) {
+            override.events.forEach((event) => {
+                events.push({ ...event });
+            });
+        }
+    }
+
+    const deduped = dedupeEvents(events);
+    deduped.sort((a, b) => (EVENT_DISPLAY_PRIORITY[a.category] ?? 99) - (EVENT_DISPLAY_PRIORITY[b.category] ?? 99));
+    return deduped;
 }
 
 function toIsoDate(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+function createEvent(title, time, category, description) {
+    return {
+        title,
+        time,
+        category,
+        description
+    };
+}
+
+function parseIsoDate(isoDate) {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function dedupeEvents(events) {
+    const seen = new Set();
+    return events.filter((event) => {
+        const key = `${event.title}|${event.time}|${event.category}`;
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
 }

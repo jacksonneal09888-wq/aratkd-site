@@ -751,6 +751,14 @@ body.js-enabled [data-reveal].is-visible {
     background: #ef4444;
 }
 
+.dojo-calendar__legend-item--focus::before {
+    background: #0ea5e9;
+}
+
+.dojo-calendar__legend-item--closure::before {
+    background: #475569;
+}
+
 .dojo-calendar__grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -852,6 +860,14 @@ body.js-enabled [data-reveal].is-visible {
     background: #ef4444;
 }
 
+.dojo-calendar__marker--focus {
+    background: #0ea5e9;
+}
+
+.dojo-calendar__marker--closure {
+    background: #475569;
+}
+
 .dojo-calendar__details {
     border-top: 1px solid rgba(8, 9, 10, 0.08);
     padding-top: 1.5rem;
@@ -929,6 +945,16 @@ body.js-enabled [data-reveal].is-visible {
 .dojo-calendar__tag--testing {
     background: rgba(239, 68, 68, 0.18);
     color: #ef4444;
+}
+
+.dojo-calendar__tag--focus {
+    background: rgba(14, 165, 233, 0.18);
+    color: #0ea5e9;
+}
+
+.dojo-calendar__tag--closure {
+    background: rgba(71, 85, 105, 0.18);
+    color: #334155;
 }
 
 .dojo-calendar__empty {
