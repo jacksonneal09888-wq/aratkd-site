@@ -6,6 +6,8 @@ const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
+const GOOGLE_CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=csv&gid=0";
+const GOOGLE_CALENDAR_DOWNLOAD_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=0";
 const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
 const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
 const EVENT_WHITE_YELLOW = createEvent("Kids & Family Taekwondo", "5:00 - 5:45 PM", "class", "White and yellow belts sharpen basics with family training partners welcome.");
@@ -227,6 +229,7 @@ initRevealAnimations();
 initParallaxBackground();
 initHoverSoundEffects();
 initDojoCalendar();
+initSheetCalendar();
 
 function initRevealAnimations() {
     const revealElements = document.querySelectorAll("[data-reveal]");
@@ -702,6 +705,348 @@ function initDojoCalendar() {
     });
 
     render();
+}
+
+function initSheetCalendar() {
+    const roots = Array.from(document.querySelectorAll("[data-calendar-root]"));
+    if (!roots.length) {
+        return;
+    }
+
+    roots.forEach((root) => {
+        root.querySelectorAll("[data-calendar-download]").forEach((link) => {
+            link.href = GOOGLE_CALENDAR_DOWNLOAD_URL;
+            link.setAttribute("download", "");
+        });
+    });
+
+    fetch(GOOGLE_CALENDAR_CSV_URL, { cache: "no-store", redirect: "follow" })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Failed to load calendar CSV: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then((text) => {
+            const calendar = parseSheetCalendar(text);
+            roots.forEach((root) => {
+                renderSheetCalendar(root, calendar);
+            });
+        })
+        .catch((error) => {
+            console.error("Calendar sync error:", error);
+            roots.forEach((root) => {
+                showSheetCalendarError(root);
+            });
+        });
+}
+
+function parseSheetCalendar(csvText) {
+    const lines = csvText.split(/\r?\n/).map((line) => line.trim());
+    let index = 0;
+
+    const calendar = {
+        monthLabel: "",
+        note: "",
+        year: null,
+        month: null,
+        weeks: [],
+        footnotes: []
+    };
+
+    const advance = () => {
+        while (index < lines.length && !lines[index]) {
+            index += 1;
+        }
+    };
+
+    advance();
+
+    if (index < lines.length) {
+        const headerCells = splitCsvLine(lines[index]);
+        calendar.monthLabel = headerCells[0] || "";
+        const noteCell = headerCells.find((cell, cellIndex) => cellIndex > 0 && cell);
+        if (noteCell) {
+            calendar.note = noteCell;
+        }
+        index += 1;
+    }
+
+    const monthParts = calendar.monthLabel.split(/\s+/);
+    if (monthParts.length >= 2) {
+        const possibleYear = Number.parseInt(monthParts[monthParts.length - 1], 10);
+        const monthName = monthParts.slice(0, -1).join(" ");
+        if (!Number.isNaN(possibleYear)) {
+            const parsedDate = new Date(`${monthName} 1, ${possibleYear}`);
+            if (!Number.isNaN(parsedDate.getTime())) {
+                calendar.year = parsedDate.getFullYear();
+                calendar.month = parsedDate.getMonth();
+            }
+        }
+    }
+
+    if (calendar.year === null || calendar.month === null) {
+        const today = new Date();
+        calendar.year = today.getFullYear();
+        calendar.month = today.getMonth();
+        if (!calendar.monthLabel) {
+            calendar.monthLabel = today.toLocaleDateString("en-US", CALENDAR_MONTH_OPTIONS);
+        }
+    }
+
+    advance();
+
+    if (index < lines.length && /monday/i.test(lines[index])) {
+        index += 1;
+    }
+
+    let fallbackWeekNumber = 1;
+    while (index < lines.length) {
+        advance();
+        if (index >= lines.length) {
+            break;
+        }
+
+        const line = lines[index];
+        if (!line) {
+            index += 1;
+            continue;
+        }
+
+        if (line.startsWith("*")) {
+            break;
+        }
+
+        const weekCells = splitCsvLine(line);
+        const firstCell = weekCells[0] || "";
+        const match = firstCell.match(/week\s*(\d+)?\s*(.*)/i);
+        let weekNumber = fallbackWeekNumber;
+        let focus = firstCell;
+
+        if (match) {
+            if (match[1]) {
+                const parsed = Number.parseInt(match[1], 10);
+                if (!Number.isNaN(parsed)) {
+                    weekNumber = parsed;
+                    fallbackWeekNumber = parsed + 1;
+                }
+            } else {
+                fallbackWeekNumber += 1;
+            }
+            focus = match[2]?.trim() || focus;
+        } else {
+            fallbackWeekNumber += 1;
+        }
+
+        const dayNumbers = splitCsvLine(lines[index + 1] || "");
+        const eventLabels = splitCsvLine(lines[index + 2] || "");
+        index += 3;
+
+        const days = [];
+        for (let column = 0; column < 7; column += 1) {
+            days.push({
+                number: dayNumbers[column] ?? "",
+                label: eventLabels[column] ?? ""
+            });
+        }
+
+        calendar.weeks.push({
+            number: weekNumber,
+            focus,
+            days
+        });
+    }
+
+    for (; index < lines.length; index += 1) {
+        const line = lines[index];
+        if (!line) {
+            continue;
+        }
+        if (line.startsWith("*")) {
+            const note = splitCsvLine(line)[0] || "";
+            if (note) {
+                calendar.footnotes.push(note);
+            }
+        }
+    }
+
+    if (!calendar.monthLabel) {
+        const firstOfMonth = new Date(calendar.year, calendar.month, 1);
+        calendar.monthLabel = firstOfMonth.toLocaleDateString("en-US", CALENDAR_MONTH_OPTIONS);
+    }
+
+    return calendar;
+}
+
+function renderSheetCalendar(root, calendar) {
+    if (!root) {
+        return;
+    }
+
+    const monthTargets = root.querySelectorAll("[data-calendar-month]");
+    monthTargets.forEach((element) => {
+        element.textContent = calendar.monthLabel;
+    });
+
+    const noteElement = root.querySelector("[data-calendar-note]");
+    if (noteElement) {
+        noteElement.textContent =
+            calendar.note ||
+            "Private lessons are available on Tuesdays & Thursdays. Stop by the front desk for details.";
+    }
+
+    const tbody = root.querySelector("[data-calendar-body]");
+    if (!tbody) {
+        return;
+    }
+
+    tbody.innerHTML = "";
+
+    if (!calendar.weeks.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 8;
+        cell.textContent = "Calendar data is currently unavailable. Please check back soon.";
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
+
+    const daysInMonth = getDaysInMonth(calendar.year, calendar.month);
+    let seenStart = false;
+    let rolledOver = false;
+    let previousValue = null;
+
+    calendar.weeks.forEach((week, weekIndex) => {
+        const row = document.createElement("tr");
+
+        const weekCell = document.createElement("th");
+        weekCell.scope = "row";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "week-label";
+        const safeWeekNumber = Number.isFinite(week.number) ? week.number : weekIndex + 1;
+        labelSpan.textContent = `Week ${safeWeekNumber}`;
+
+        const focusSpan = document.createElement("span");
+        focusSpan.className = "week-focus";
+        focusSpan.textContent = week.focus || "";
+
+        weekCell.append(labelSpan, focusSpan);
+        row.appendChild(weekCell);
+
+        week.days.forEach((day) => {
+            const cell = document.createElement("td");
+
+            const numberSpan = document.createElement("span");
+            numberSpan.className = "day-number";
+            const eventSpan = document.createElement("span");
+            eventSpan.className = "day-event";
+
+            const rawNumber = (day.number || "").trim();
+            const parsedNumber = Number.parseInt(rawNumber, 10);
+            const hasNumber = !Number.isNaN(parsedNumber);
+            let isMuted = false;
+
+            if (!hasNumber) {
+                numberSpan.textContent = "";
+                isMuted = true;
+            } else {
+                if (!seenStart) {
+                    if (parsedNumber === 1) {
+                        seenStart = true;
+                    } else {
+                        isMuted = true;
+                    }
+                } else if (!rolledOver && previousValue !== null && parsedNumber < previousValue) {
+                    rolledOver = true;
+                }
+
+                if (rolledOver || parsedNumber > daysInMonth) {
+                    isMuted = true;
+                }
+
+                numberSpan.textContent = String(parsedNumber);
+                previousValue = parsedNumber;
+            }
+
+            if (isMuted) {
+                numberSpan.classList.add("is-muted");
+            }
+
+            const formatted = formatCalendarLabel(day.label);
+            eventSpan.textContent = formatted.text;
+            if (formatted.className) {
+                eventSpan.classList.add(formatted.className);
+            }
+
+            cell.append(numberSpan, eventSpan);
+            row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+    });
+
+    const footnoteList = root.querySelector("[data-calendar-footnotes]");
+    if (footnoteList) {
+        footnoteList.innerHTML = "";
+        const notes =
+            calendar.footnotes.length > 0
+                ? calendar.footnotes
+                : ["* Schedule is subject to change.", "** Attendance is important to be eligible to test the next rank."];
+
+        notes.forEach((note) => {
+            const li = document.createElement("li");
+            li.textContent = note.replace(/^(\*+)/, (match) => `${match} `).trim();
+            footnoteList.appendChild(li);
+        });
+    }
+
+    const table = root.querySelector(".portal-calendar__table");
+    if (table) {
+        table.setAttribute("aria-label", `${calendar.monthLabel} class calendar`);
+    }
+}
+
+function formatCalendarLabel(rawLabel) {
+    const label = (rawLabel || "").trim();
+    if (!label) {
+        return { text: "—", className: "day-event--empty" };
+    }
+    if (/^x$/i.test(label)) {
+        return { text: "No Class", className: "day-event--closed" };
+    }
+    return { text: label, className: "" };
+}
+
+function showSheetCalendarError(root) {
+    if (!root) {
+        return;
+    }
+
+    const tbody = root.querySelector("[data-calendar-body]");
+    if (tbody) {
+        tbody.innerHTML = "";
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 8;
+        cell.textContent = "Calendar data is temporarily unavailable. Please check back soon.";
+        row.appendChild(cell);
+        tbody.appendChild(row);
+    }
+
+    const noteElement = root.querySelector("[data-calendar-note]");
+    if (noteElement) {
+        noteElement.textContent =
+            "Calendar data is temporarily unavailable. Contact the front desk for the latest schedule.";
+    }
+}
+
+function splitCsvLine(line) {
+    if (!line) {
+        return [];
+    }
+    return line.split(",").map((cell) => cell.trim());
 }
 
 function generateFocusRanges(startDate, endDate, template) {
