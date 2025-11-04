@@ -38,6 +38,22 @@ def init_db():
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS belt_progress (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id TEXT NOT NULL,
+                belt_slug TEXT NOT NULL,
+                file_name TEXT,
+                uploaded_at TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(student_id, belt_slug)
+            )
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_belt_progress_student ON belt_progress(student_id)"
+        )
         conn.commit()
 
 
@@ -103,6 +119,82 @@ def record_portal_event():
     return jsonify({"ok": True, "recordedAt": timestamp})
 
 
+@app.route("/portal/progress/<student_id>", methods=["GET"])
+def get_portal_progress(student_id):
+    sanitized_id = (student_id or "").strip()
+    if not sanitized_id:
+        return jsonify({"error": "Invalid student ID"}), 400
+
+    try:
+        with get_db_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT belt_slug, file_name, uploaded_at
+                FROM belt_progress
+                WHERE student_id = ?
+                ORDER BY datetime(uploaded_at) ASC
+                """,
+                (sanitized_id,)
+            ).fetchall()
+    except sqlite3.Error as error:
+        return jsonify({"error": f"Failed to load progress: {error}"}), 500
+
+    records = [
+        {
+            "beltSlug": row["belt_slug"],
+            "fileName": row["file_name"],
+            "uploadedAt": row["uploaded_at"]
+        }
+        for row in rows
+    ]
+
+    return jsonify(
+        {
+            "records": records,
+            "generatedAt": datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        }
+    )
+
+
+@app.route("/portal/progress", methods=["POST"])
+def save_portal_progress():
+    payload = request.get_json(silent=True) or {}
+    student_id = (payload.get("studentId") or "").strip()
+    belt_slug = (payload.get("beltSlug") or "").strip().lower()
+    file_name = (payload.get("fileName") or "").strip() or None
+    uploaded_at = (payload.get("uploadedAt") or "").strip()
+
+    if not student_id or not belt_slug:
+        return jsonify({"error": "studentId and beltSlug are required"}), 400
+
+    try:
+        timestamp = datetime.fromisoformat(uploaded_at.replace("Z", "+00:00")) if uploaded_at else datetime.utcnow()
+    except ValueError:
+        timestamp = datetime.utcnow()
+
+    iso_timestamp = timestamp.isoformat(timespec="seconds") + "Z"
+    created_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+
+    try:
+        with get_db_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO belt_progress (student_id, belt_slug, file_name, uploaded_at, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(student_id, belt_slug) DO UPDATE SET
+                    file_name = excluded.file_name,
+                    uploaded_at = excluded.uploaded_at,
+                    created_at = excluded.created_at
+                """,
+                (student_id, belt_slug, file_name, iso_timestamp, created_at)
+            )
+            conn.commit()
+    except sqlite3.Error as error:
+        return jsonify({"error": f"Failed to save progress: {error}"}), 500
+
+    return jsonify({"ok": True, "beltSlug": belt_slug, "uploadedAt": iso_timestamp})
+
+
 @app.route("/portal/admin/activity", methods=["GET"])
 def portal_activity():
     if not is_authorized_admin(request):
@@ -128,12 +220,27 @@ def portal_activity():
 
             summaries = conn.execute(
                 """
-                SELECT student_id,
-                       COUNT(*) AS total_events,
-                       SUM(CASE WHEN action = 'login' THEN 1 ELSE 0 END) AS login_events,
-                       MAX(created_at) AS last_event
-                FROM login_events
-                GROUP BY student_id
+                SELECT
+                    le.student_id,
+                    COUNT(*) AS total_events,
+                    SUM(CASE WHEN le.action = 'login' THEN 1 ELSE 0 END) AS login_events,
+                    MAX(le.created_at) AS last_event,
+                    (
+                        SELECT bp.belt_slug
+                        FROM belt_progress bp
+                        WHERE bp.student_id = le.student_id
+                        ORDER BY datetime(bp.uploaded_at) DESC
+                        LIMIT 1
+                    ) AS latest_belt,
+                    (
+                        SELECT bp.uploaded_at
+                        FROM belt_progress bp
+                        WHERE bp.student_id = le.student_id
+                        ORDER BY datetime(bp.uploaded_at) DESC
+                        LIMIT 1
+                    ) AS latest_belt_uploaded
+                FROM login_events le
+                GROUP BY le.student_id
                 ORDER BY datetime(last_event) DESC
                 """
             ).fetchall()
@@ -155,7 +262,9 @@ def portal_activity():
             "studentId": row["student_id"],
             "totalEvents": row["total_events"],
             "loginEvents": row["login_events"],
-            "lastEventAt": row["last_event"]
+            "lastEventAt": row["last_event"],
+            "latestBelt": row["latest_belt"],
+            "latestBeltUploadedAt": row["latest_belt_uploaded"]
         }
         for row in summaries
     ]

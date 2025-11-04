@@ -15,6 +15,16 @@ const API_BASE_URL = (() => {
     return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
 })();
 
+function buildApiUrl(path) {
+    if (!path.startsWith("/")) {
+        path = `/${path}`;
+    }
+    if (!API_BASE_URL) {
+        return path;
+    }
+    return `${API_BASE_URL}${path}`;
+}
+
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB cap to avoid blowing up localStorage
 const ACCEPTED_TYPES = [
     "application/pdf",
@@ -287,7 +297,7 @@ function handleLogin(event) {
     setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
     console.log("handleLogin: Calling renderPortal()");
     recordPortalActivity(match.id, "login");
-    renderPortal();
+    syncStudentProgress(match.id).finally(() => renderPortal());
 }
 
 function handleLogout() {
@@ -305,8 +315,8 @@ function attemptRestoreSession() {
     );
     if (match) {
         portalState.activeStudent = match;
-        renderPortal();
         setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
+        syncStudentProgress(match.id, { silent: true }).finally(() => renderPortal());
     }
 }
 
@@ -345,7 +355,7 @@ function renderPortal() {
 
 function recordPortalActivity(studentId, action = "login") {
     if (!studentId) return Promise.resolve();
-    const url = `${API_BASE_URL}/portal/login-event`;
+    const url = buildApiUrl("/portal/login-event");
     const payload = {
         studentId,
         action,
@@ -368,6 +378,116 @@ function recordPortalActivity(studentId, action = "login") {
     }).catch((error) => {
         console.warn("recordPortalActivity error:", error);
     });
+}
+
+function recordCertificateProgress(studentId, belt, certificate) {
+    if (!studentId || !belt) return Promise.resolve();
+    const url = buildApiUrl("/portal/progress");
+    const payload = {
+        studentId,
+        beltSlug: belt.slug,
+        fileName: certificate.fileName || "",
+        uploadedAt: certificate.uploadedAt
+    };
+
+    return fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Failed to store progress (${response.status})`);
+            }
+            return response.json();
+        })
+        .catch((error) => {
+            console.warn("recordCertificateProgress error:", error);
+        });
+}
+
+function syncStudentProgress(studentId, options = {}) {
+    if (!studentId) return Promise.resolve();
+    const { silent = false } = options;
+    const url = buildApiUrl(`/portal/progress/${encodeURIComponent(studentId)}`);
+
+    return fetch(url, {
+        method: "GET",
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((response) => {
+            if (response.status === 404) {
+                return { records: [] };
+            }
+            if (!response.ok) {
+                throw new Error(`Progress sync failed (${response.status})`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            const records = Array.isArray(data.records) ? data.records : [];
+            const student = portalState.activeStudent;
+            if (!student) return;
+
+            const baseIndex = resolveBeltIndex(student.currentBelt);
+            const defaultUnlocked = baseIndex >= BELT_SEQUENCE.length - 1 ? baseIndex : baseIndex + 1;
+            const lastIndex = BELT_SEQUENCE.length - 1;
+
+            let serverAwarded = baseIndex;
+            let serverUnlocked = defaultUnlocked;
+
+            const certificateMap = portalState.certificates[student.id] ?? {};
+
+            records.forEach((record) => {
+                const belt = resolveBeltDataBySlug(record.beltSlug);
+                if (!belt) return;
+                const beltIndex = resolveBeltIndex(belt.name);
+                serverAwarded = Math.max(serverAwarded, beltIndex);
+                serverUnlocked = Math.max(serverUnlocked, Math.min(beltIndex + 1, lastIndex));
+
+                const existing = certificateMap[belt.name] ?? {};
+                certificateMap[belt.name] = {
+                    belt: belt.name,
+                    beltSlug: belt.slug,
+                    uploadedAt: record.uploadedAt,
+                    fileName: record.fileName || existing.fileName || "Certificate uploaded",
+                    dataUrl: existing.dataUrl || null,
+                    source: existing.dataUrl ? "local" : "server"
+                };
+            });
+
+            portalState.certificates[student.id] = certificateMap;
+            persistCertificates();
+
+            const existingProgress = portalState.progress[student.id] ?? {};
+            const mergedUnlocked = Math.max(
+                defaultUnlocked,
+                existingProgress.unlockedIndex ?? defaultUnlocked,
+                serverUnlocked
+            );
+            const mergedAwarded = Math.max(existingProgress.awardedIndex ?? baseIndex, serverAwarded);
+
+            portalState.progress[student.id] = {
+                unlockedIndex: mergedUnlocked,
+                awardedIndex: mergedAwarded
+            };
+            persistProgress();
+
+            if (!silent && records.length) {
+                setStatus("Progress synced with the studio.", "success");
+            }
+        })
+        .catch((error) => {
+            if (!silent) {
+                setStatus("Could not sync progress right now.");
+            }
+            console.warn("syncStudentProgress error:", error);
+        });
 }
 
 function handleAdminAuth(event) {
@@ -401,7 +521,7 @@ function attemptRestoreAdminSession() {
 function loadAdminActivity(adminKey, options = {}) {
     if (!adminKey) return;
     portalState.admin.isLoading = true;
-    const url = `${API_BASE_URL}/portal/admin/activity`;
+    const url = buildApiUrl("/portal/admin/activity");
 
     fetch(url, {
         method: "GET",
@@ -422,8 +542,20 @@ function loadAdminActivity(adminKey, options = {}) {
         })
         .then((data) => {
             portalState.admin.key = adminKey;
-            portalState.admin.summary = Array.isArray(data.summary) ? data.summary : [];
-            portalState.admin.events = Array.isArray(data.events) ? data.events : [];
+            portalState.admin.summary = (Array.isArray(data.summary) ? data.summary : []).map((entry) => ({
+                studentId: entry.studentId ?? entry.student_id,
+                totalEvents: entry.totalEvents ?? entry.total_events ?? 0,
+                loginEvents: entry.loginEvents ?? entry.login_events ?? 0,
+                lastEventAt: entry.lastEventAt ?? entry.last_event ?? null,
+                latestBelt: entry.latestBelt ?? entry.latest_belt ?? null,
+                latestBeltUploadedAt: entry.latestBeltUploadedAt ?? entry.latest_belt_uploaded ?? null
+            }));
+            portalState.admin.events = (Array.isArray(data.events) ? data.events : []).map((event) => ({
+                studentId: event.studentId ?? event.student_id,
+                action: event.action,
+                actor: event.actor,
+                recordedAt: event.recordedAt ?? event.created_at ?? null
+            }));
             portalState.admin.generatedAt = data.generatedAt ?? null;
             try {
                 sessionStorage.setItem(ADMIN_STORAGE_KEY, adminKey);
@@ -431,16 +563,20 @@ function loadAdminActivity(adminKey, options = {}) {
                 console.warn("Unable to persist admin key:", error);
             }
             renderAdminDashboard();
-            setAdminStatus(
-                portalState.admin.summary.length
-                    ? "Dashboard updated."
-                    : "No activity logged yet.",
-                "success"
-            );
+            if (!silent) {
+                setAdminStatus(
+                    portalState.admin.summary.length
+                        ? "Dashboard updated."
+                        : "No activity logged yet.",
+                    "success"
+                );
+            }
         })
         .catch((error) => {
             console.error("Admin activity error:", error);
-            setAdminStatus(error.message || "Unable to load activity right now.");
+            if (!silent) {
+                setAdminStatus(error.message || "Unable to load activity right now.");
+            }
             portalState.admin.key = null;
             portalState.admin.summary = [];
             portalState.admin.events = [];
@@ -472,7 +608,7 @@ function renderAdminDashboard() {
     if (!portalState.admin.summary.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 4;
+        cell.colSpan = 5;
         cell.textContent = "No student activity has been recorded yet.";
         row.appendChild(cell);
         summaryBody.appendChild(row);
@@ -488,10 +624,25 @@ function renderAdminDashboard() {
             const loginCell = document.createElement("td");
             loginCell.textContent = String(entry.loginEvents ?? 0);
 
+            const latestCell = document.createElement("td");
+            if (entry.latestBelt) {
+                const beltData = resolveBeltDataBySlug(entry.latestBelt);
+                const beltName = beltData ? beltData.name : entry.latestBelt;
+                latestCell.innerHTML = `<strong>${beltName}</strong>`;
+                if (entry.latestBeltUploadedAt) {
+                    const note = document.createElement("div");
+                    note.className = "certificate-meta";
+                    note.textContent = `Updated ${formatDateTime(entry.latestBeltUploadedAt)}`;
+                    latestCell.appendChild(note);
+                }
+            } else {
+                latestCell.textContent = "—";
+            }
+
             const lastCell = document.createElement("td");
             lastCell.textContent = entry.lastEventAt ? formatDateTime(entry.lastEventAt) : "—";
 
-            row.append(studentCell, totalCell, loginCell, lastCell);
+            row.append(studentCell, totalCell, loginCell, latestCell, lastCell);
             summaryBody.appendChild(row);
         });
     }
@@ -616,7 +767,7 @@ function renderBeltGrid(student, unlockedIndex, awardedIndex) {
         }
         card.append(status);
 
-        if (certificateData) {
+        if (certificateData?.dataUrl) {
             const downloadRow = document.createElement("div");
             downloadRow.className = "certificate-action";
             const downloadBtn = document.createElement("button");
@@ -688,14 +839,17 @@ function renderCertificateLog(student) {
                 certificate.uploadedAt
             )} • ${certificate.fileName}</span>`;
 
-            const downloadBtn = document.createElement("button");
-            downloadBtn.type = "button";
-            downloadBtn.textContent = "Download";
-            downloadBtn.addEventListener("click", () =>
-                downloadCertificate(student.id, certificate.belt)
-            );
+            item.append(meta);
 
-            item.append(meta, downloadBtn);
+            if (certificate.dataUrl) {
+                const downloadBtn = document.createElement("button");
+                downloadBtn.type = "button";
+                downloadBtn.textContent = "Download";
+                downloadBtn.addEventListener("click", () =>
+                    downloadCertificate(student.id, certificate.belt)
+                );
+                item.append(downloadBtn);
+            }
             list.append(item);
         });
 
@@ -725,15 +879,19 @@ function handleCertificateUpload(file, belt, beltIndex) {
 
         const payload = {
             belt: belt.name,
+            beltSlug: belt.slug,
             fileName: file.name,
             uploadedAt: new Date().toISOString(),
-            dataUrl
+            dataUrl,
+            source: "local"
         };
 
         storeCertificate(portalState.activeStudent.id, payload);
 
         const nextUnlockIndex = beltIndex + 1;
         updateProgress(portalState.activeStudent.id, nextUnlockIndex);
+        recordCertificateProgress(portalState.activeStudent.id, belt, payload);
+        recordPortalActivity(portalState.activeStudent.id, `certificate:${belt.slug}`);
 
         const hasNext = nextUnlockIndex < BELT_SEQUENCE.length;
         const nextBeltName = hasNext ? BELT_SEQUENCE[nextUnlockIndex].name : null;
@@ -743,6 +901,7 @@ function handleCertificateUpload(file, belt, beltIndex) {
 
         setStatus(successMessage, "success");
         renderPortal();
+        syncStudentProgress(portalState.activeStudent.id, { silent: true });
     };
 
     reader.onerror = () => {
@@ -831,7 +990,10 @@ function storeCertificate(studentId, certificate) {
     if (!portalState.certificates[studentId]) {
         portalState.certificates[studentId] = {};
     }
-    portalState.certificates[studentId][certificate.belt] = certificate;
+    portalState.certificates[studentId][certificate.belt] = {
+        ...certificate,
+        source: certificate.source || "local"
+    };
     persistCertificates();
 }
 
@@ -895,8 +1057,17 @@ function formatDateTime(isoString) {
 function formatActionLabel(action) {
     const normalized = (action || "").toString().trim();
     if (!normalized) return "Activity";
+
+    const lower = normalized.toLowerCase();
+    if (lower.startsWith("certificate")) {
+        const [, slug] = lower.split(":");
+        const beltData = slug ? resolveBeltDataBySlug(slug) : null;
+        const beltName = beltData ? beltData.name : slug || "belt";
+        return `Certificate · ${beltName}`;
+    }
+
     return normalized
-        .split(/[\s_-]+/)
+        .split(/[\s:_-]+/)
         .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join(" ");
 }
@@ -1085,4 +1256,13 @@ function resolveBeltIndex(beltName) {
     }
 
     return 0;
+}
+
+function resolveBeltDataBySlug(slug) {
+    if (!slug) return null;
+    const normalized = slug.toLowerCase();
+    return (
+        BELT_SEQUENCE.find((belt) => belt.slug === normalized) ||
+        BELT_SEQUENCE.find((belt) => belt.slug === slug)
+    ) || null;
 }
