@@ -14,13 +14,14 @@ const API_BASE_URL = (() => {
     }
     return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
 })();
+const HAS_REMOTE_API = Boolean(API_BASE_URL);
 
 function buildApiUrl(path) {
+    if (!HAS_REMOTE_API) {
+        return null;
+    }
     if (!path.startsWith("/")) {
         path = `/${path}`;
-    }
-    if (!API_BASE_URL) {
-        return path;
     }
     return `${API_BASE_URL}${path}`;
 }
@@ -220,7 +221,18 @@ const portalState = {
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
     loadStudents();
-    attemptRestoreAdminSession();
+
+    if (HAS_REMOTE_API) {
+        attemptRestoreAdminSession();
+    } else {
+        if (portalEls.adminDashboard) {
+            portalEls.adminDashboard.hidden = true;
+        }
+        setAdminStatus(
+            "Admin analytics will appear once the portal API is connected.",
+            "progress"
+        );
+    }
 });
 
 function attachHandlers() {
@@ -358,8 +370,9 @@ function renderPortal() {
 }
 
 function recordPortalActivity(studentId, action = "login") {
-    if (!studentId) return Promise.resolve();
+    if (!studentId || !HAS_REMOTE_API) return Promise.resolve();
     const url = buildApiUrl("/portal/login-event");
+    if (!url) return Promise.resolve();
     const payload = {
         studentId,
         action,
@@ -385,8 +398,9 @@ function recordPortalActivity(studentId, action = "login") {
 }
 
 function recordCertificateProgress(studentId, belt, certificate) {
-    if (!studentId || !belt) return Promise.resolve();
+    if (!studentId || !belt || !HAS_REMOTE_API) return Promise.resolve();
     const url = buildApiUrl("/portal/progress");
+    if (!url) return Promise.resolve();
     const payload = {
         studentId,
         beltSlug: belt.slug,
@@ -415,9 +429,10 @@ function recordCertificateProgress(studentId, belt, certificate) {
 }
 
 function syncStudentProgress(studentId, options = {}) {
-    if (!studentId) return Promise.resolve();
+    if (!studentId || !HAS_REMOTE_API) return Promise.resolve();
     const { silent = false } = options;
     const url = buildApiUrl(`/portal/progress/${encodeURIComponent(studentId)}`);
+    if (!url) return Promise.resolve();
 
     return fetch(url, {
         method: "GET",
@@ -497,6 +512,11 @@ function syncStudentProgress(studentId, options = {}) {
 function handleAdminAuth(event) {
     event.preventDefault();
     if (!portalEls.adminKeyInput) return;
+
+    if (!HAS_REMOTE_API) {
+        setAdminStatus("Connect the portal API before using admin tools.");
+        return;
+    }
     const key = portalEls.adminKeyInput.value.trim();
 
     if (!key) {
@@ -509,6 +529,9 @@ function handleAdminAuth(event) {
 }
 
 function attemptRestoreAdminSession() {
+    if (!HAS_REMOTE_API) {
+        return;
+    }
     try {
         const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
         if (stored) {
@@ -523,9 +546,14 @@ function attemptRestoreAdminSession() {
 }
 
 function loadAdminActivity(adminKey, options = {}) {
+    if (!HAS_REMOTE_API) {
+        setAdminStatus("Admin dashboard is disabled until the portal API is connected.");
+        return;
+    }
     if (!adminKey) return;
     portalState.admin.isLoading = true;
     const url = buildApiUrl("/portal/admin/activity");
+    if (!url) return;
 
     fetch(url, {
         method: "GET",
@@ -604,6 +632,11 @@ function renderAdminDashboard() {
         return;
     }
 
+    if (!HAS_REMOTE_API) {
+        portalEls.adminDashboard.hidden = true;
+        return;
+    }
+
     portalEls.adminDashboard.hidden = false;
 
     const summaryBody = portalEls.adminSummaryBody;
@@ -675,6 +708,12 @@ function renderAdminDashboard() {
 
 function setAdminStatus(message, variant = "error") {
     if (!portalEls.adminStatus) return;
+    if (!HAS_REMOTE_API && variant !== "error") {
+        portalEls.adminStatus.textContent = message;
+        portalEls.adminStatus.classList.remove("is-success", "is-progress");
+        portalEls.adminStatus.classList.add("is-progress");
+        return;
+    }
     portalEls.adminStatus.textContent = message;
     portalEls.adminStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminStatus.classList.toggle("is-progress", variant === "progress");
