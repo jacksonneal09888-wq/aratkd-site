@@ -1,6 +1,4 @@
 import { Hono } from 'hono';
-import { drizzle } from 'drizzle-orm/d1';
-import { and, desc, eq, sql } from 'drizzle-orm';
 
 interface Env {
   PORTAL_DB: D1Database;
@@ -8,27 +6,6 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
-
-const loginTable = {
-  table: 'login_events',
-  studentId: 'student_id',
-  action: 'action',
-  actor: 'actor',
-  createdAt: 'created_at'
-} as const;
-
-const progressTable = {
-  table: 'belt_progress',
-  studentId: 'student_id',
-  beltSlug: 'belt_slug',
-  fileName: 'file_name',
-  uploadedAt: 'uploaded_at',
-  createdAt: 'created_at'
-} as const;
-
-function getDb(env: Env) {
-  return drizzle(env.PORTAL_DB);
-}
 
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
 
@@ -43,15 +20,11 @@ app.post('/portal/login-event', async (c) => {
   }
 
   const timestamp = new Date().toISOString();
-  const db = getDb(c.env);
-  await db
-    .insert(loginTable.table)
-    .values({
-      [loginTable.studentId]: studentId,
-      [loginTable.action]: action,
-      [loginTable.actor]: actor,
-      [loginTable.createdAt]: timestamp
-    })
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO login_events (student_id, action, actor, created_at)
+     VALUES (?1, ?2, ?3, ?4)`
+  )
+    .bind(studentId, action, actor, timestamp)
     .run();
 
   return c.json({ ok: true, recordedAt: timestamp });
@@ -79,24 +52,15 @@ app.post('/portal/progress', async (c) => {
   const uploadedIso = uploadedAt.toISOString();
   const createdIso = new Date().toISOString();
 
-  const db = getDb(c.env);
-  await db
-    .insert(progressTable.table)
-    .values({
-      [progressTable.studentId]: studentId,
-      [progressTable.beltSlug]: beltSlug,
-      [progressTable.fileName]: fileName,
-      [progressTable.uploadedAt]: uploadedIso,
-      [progressTable.createdAt]: createdIso
-    })
-    .onConflictDoUpdate({
-      target: [progressTable.studentId, progressTable.beltSlug],
-      set: {
-        [progressTable.fileName]: fileName,
-        [progressTable.uploadedAt]: uploadedIso,
-        [progressTable.createdAt]: createdIso
-      }
-    })
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO belt_progress (student_id, belt_slug, file_name, uploaded_at, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5)
+     ON CONFLICT(student_id, belt_slug)
+     DO UPDATE SET file_name = excluded.file_name,
+                   uploaded_at = excluded.uploaded_at,
+                   created_at = excluded.created_at`
+  )
+    .bind(studentId, beltSlug, fileName, uploadedIso, createdIso)
     .run();
 
   return c.json({ ok: true, beltSlug, uploadedAt: uploadedIso });
@@ -108,23 +72,24 @@ app.get('/portal/progress/:studentId', async (c) => {
     return c.json({ error: 'Invalid student id' }, 400);
   }
 
-  const db = getDb(c.env);
-  const rows = await db
-    .select()
-    .from(progressTable.table)
-    .where(eq(progressTable.studentId, studentId))
-    .orderBy(progressTable.uploadedAt)
-    .run();
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT belt_slug, file_name, uploaded_at
+     FROM belt_progress
+     WHERE student_id = ?1
+     ORDER BY datetime(uploaded_at)`
+  )
+    .bind(studentId)
+    .all();
 
-  const records = rows.map((row: any) => ({
-    beltSlug: row[progressTable.beltSlug],
-    fileName: row[progressTable.fileName],
-    uploadedAt: row[progressTable.uploadedAt]
-  }));
-
-  if (!records.length) {
+  if (!results?.length) {
     return c.json({ error: 'Not found' }, 404);
   }
+
+  const records = results.map((row: any) => ({
+    beltSlug: row.belt_slug,
+    fileName: row.file_name,
+    uploadedAt: row.uploaded_at
+  }));
 
   return c.json({
     records,
@@ -150,50 +115,48 @@ app.get('/portal/admin/activity', async (c) => {
     }
   }
 
-  const db = getDb(c.env);
-
-  const events = await db
-    .select()
-    .from(loginTable.table)
-    .orderBy(desc(loginTable.createdAt))
-    .limit(limit)
-    .run();
-
-  const summaries = await db
-    .prepare(
-      `SELECT
-         le.student_id,
-         COUNT(*) AS total_events,
-         SUM(CASE WHEN le.action = 'login' THEN 1 ELSE 0 END) AS login_events,
-         MAX(le.created_at) AS last_event,
-         (
-           SELECT bp.belt_slug
-           FROM belt_progress bp
-           WHERE bp.student_id = le.student_id
-           ORDER BY datetime(bp.uploaded_at) DESC
-           LIMIT 1
-         ) AS latest_belt,
-         (
-           SELECT bp.uploaded_at
-           FROM belt_progress bp
-           WHERE bp.student_id = le.student_id
-           ORDER BY datetime(bp.uploaded_at) DESC
-           LIMIT 1
-         ) AS latest_belt_uploaded
-       FROM login_events le
-       GROUP BY le.student_id
-       ORDER BY datetime(last_event) DESC`
-    )
+  const eventsQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT student_id, action, actor, created_at
+     FROM login_events
+     ORDER BY datetime(created_at) DESC
+     LIMIT ?1`
+  )
+    .bind(limit)
     .all();
 
-  const eventPayload = events.map((row: any) => ({
-    studentId: row[loginTable.studentId],
-    action: row[loginTable.action],
-    actor: row[loginTable.actor],
-    recordedAt: row[loginTable.createdAt]
+  const summaryQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT
+       le.student_id,
+       COUNT(*) AS total_events,
+       SUM(CASE WHEN le.action = 'login' THEN 1 ELSE 0 END) AS login_events,
+       MAX(le.created_at) AS last_event,
+       (
+         SELECT bp.belt_slug
+         FROM belt_progress bp
+         WHERE bp.student_id = le.student_id
+         ORDER BY datetime(bp.uploaded_at) DESC
+         LIMIT 1
+       ) AS latest_belt,
+       (
+         SELECT bp.uploaded_at
+         FROM belt_progress bp
+         WHERE bp.student_id = le.student_id
+         ORDER BY datetime(bp.uploaded_at) DESC
+         LIMIT 1
+       ) AS latest_belt_uploaded
+     FROM login_events le
+     GROUP BY le.student_id
+     ORDER BY datetime(last_event) DESC`
+  ).all();
+
+  const events = (eventsQuery.results || []).map((row: any) => ({
+    studentId: row.student_id,
+    action: row.action,
+    actor: row.actor,
+    recordedAt: row.created_at
   }));
 
-  const summaryPayload = summaries.map((row: any) => ({
+  const summary = (summaryQuery.results || []).map((row: any) => ({
     studentId: row.student_id,
     totalEvents: row.total_events,
     loginEvents: row.login_events,
@@ -203,8 +166,8 @@ app.get('/portal/admin/activity', async (c) => {
   }));
 
   return c.json({
-    events: eventPayload,
-    summary: summaryPayload,
+    events,
+    summary,
     generatedAt: new Date().toISOString()
   });
 });
