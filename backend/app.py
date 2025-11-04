@@ -41,10 +41,9 @@ def init_db():
         conn.commit()
 
 
-@app.before_first_request
-def bootstrap():
-    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    init_db()
+# Initialize database immediately on module load
+DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+init_db()
 
 
 @app.route('/')
