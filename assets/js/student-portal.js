@@ -940,8 +940,11 @@ function handleCertificateUpload(file, belt, beltIndex) {
 
         const nextUnlockIndex = beltIndex + 1;
         updateProgress(portalState.activeStudent.id, nextUnlockIndex);
-        recordCertificateProgress(portalState.activeStudent.id, belt, payload);
         recordPortalActivity(portalState.activeStudent.id, `certificate:${belt.slug}`);
+
+        const syncPromise = HAS_REMOTE_API
+            ? recordCertificateProgress(portalState.activeStudent.id, belt, payload)
+            : Promise.resolve();
 
         const hasNext = nextUnlockIndex < BELT_SEQUENCE.length;
         const nextBeltName = hasNext ? BELT_SEQUENCE[nextUnlockIndex].name : null;
@@ -951,7 +954,10 @@ function handleCertificateUpload(file, belt, beltIndex) {
 
         setStatus(successMessage, "success");
         renderPortal();
-        syncStudentProgress(portalState.activeStudent.id, { silent: true });
+
+        syncPromise.finally(() => {
+            syncStudentProgress(portalState.activeStudent.id, { silent: true });
+        });
     };
 
     reader.onerror = () => {
