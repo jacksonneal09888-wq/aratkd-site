@@ -4,6 +4,17 @@ const STORAGE_KEYS = {
     session: "araStudentSession"
 };
 
+const ADMIN_STORAGE_KEY = "araPortalAdminKey";
+const API_BASE_URL = (() => {
+    const globalValue = typeof window !== "undefined" ? window.PORTAL_API_BASE : "";
+    const bodyValue = typeof document !== "undefined" && document.body ? document.body.dataset.apiBase : "";
+    const chosen = globalValue || bodyValue || "";
+    if (!chosen) {
+        return "";
+    }
+    return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
+})();
+
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB cap to avoid blowing up localStorage
 const ACCEPTED_TYPES = [
     "application/pdf",
@@ -170,7 +181,13 @@ const portalEls = {
     currentBeltForm: document.getElementById("current-belt"),
     desiredBelt: document.getElementById("desired-belt"),
     testDate: document.getElementById("test-date"),
-    beltTestStatus: document.getElementById("belt-test-status")
+    beltTestStatus: document.getElementById("belt-test-status"),
+    adminForm: document.getElementById("admin-auth-form"),
+    adminKeyInput: document.getElementById("admin-key"),
+    adminStatus: document.getElementById("admin-status"),
+    adminDashboard: document.getElementById("admin-dashboard"),
+    adminSummaryBody: document.getElementById("admin-summary-body"),
+    adminEventsList: document.getElementById("admin-events-list")
 };
 
 console.log("portalEls:", portalEls); // Debugging line
@@ -180,12 +197,20 @@ const portalState = {
     activeStudent: null,
     isLoading: true,
     progress: readStore(STORAGE_KEYS.progress),
-    certificates: readStore(STORAGE_KEYS.certificates)
+    certificates: readStore(STORAGE_KEYS.certificates),
+    admin: {
+        key: null,
+        isLoading: false,
+        summary: [],
+        events: [],
+        generatedAt: null
+    }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
     loadStudents();
+    attemptRestoreAdminSession();
 });
 
 function attachHandlers() {
@@ -199,6 +224,7 @@ function attachHandlers() {
     });
     portalEls.beltTestApplicationBtn?.addEventListener("click", toggleBeltTestForm);
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
+    portalEls.adminForm?.addEventListener("submit", handleAdminAuth);
 }
 
 async function loadStudents() {
@@ -260,6 +286,7 @@ function handleLogin(event) {
     portalEls.form?.reset();
     setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
     console.log("handleLogin: Calling renderPortal()");
+    recordPortalActivity(match.id, "login");
     renderPortal();
 }
 
@@ -314,6 +341,188 @@ function renderPortal() {
     renderBeltGrid(student, unlockedIndex, awardedIndex);
     renderCertificateLog(student);
     toggleBeltTestForm(false); // Hide form on portal render
+}
+
+function recordPortalActivity(studentId, action = "login") {
+    if (!studentId) return Promise.resolve();
+    const url = `${API_BASE_URL}/portal/login-event`;
+    const payload = {
+        studentId,
+        action,
+        actor: "student"
+    };
+
+    return fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        mode: "cors",
+        credentials: "omit"
+    }).then((response) => {
+        if (!response.ok) {
+            throw new Error(`Failed to record activity (${response.status})`);
+        }
+        return response.json();
+    }).catch((error) => {
+        console.warn("recordPortalActivity error:", error);
+    });
+}
+
+function handleAdminAuth(event) {
+    event.preventDefault();
+    if (!portalEls.adminKeyInput) return;
+    const key = portalEls.adminKeyInput.value.trim();
+
+    if (!key) {
+        setAdminStatus("Enter the admin key to continue.");
+        return;
+    }
+
+    setAdminStatus("Loading activity...", "progress");
+    loadAdminActivity(key);
+}
+
+function attemptRestoreAdminSession() {
+    try {
+        const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
+        if (stored) {
+            if (portalEls.adminKeyInput) {
+                portalEls.adminKeyInput.value = stored;
+            }
+            loadAdminActivity(stored, { silent: true });
+        }
+    } catch (error) {
+        console.warn("Unable to restore admin session:", error);
+    }
+}
+
+function loadAdminActivity(adminKey, options = {}) {
+    if (!adminKey) return;
+    portalState.admin.isLoading = true;
+    const url = `${API_BASE_URL}/portal/admin/activity`;
+
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "X-Admin-Key": adminKey
+        },
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((response) => {
+            if (response.status === 401) {
+                throw new Error("Invalid admin key.");
+            }
+            if (!response.ok) {
+                throw new Error(`Failed to load activity (${response.status})`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            portalState.admin.key = adminKey;
+            portalState.admin.summary = Array.isArray(data.summary) ? data.summary : [];
+            portalState.admin.events = Array.isArray(data.events) ? data.events : [];
+            portalState.admin.generatedAt = data.generatedAt ?? null;
+            try {
+                sessionStorage.setItem(ADMIN_STORAGE_KEY, adminKey);
+            } catch (error) {
+                console.warn("Unable to persist admin key:", error);
+            }
+            renderAdminDashboard();
+            setAdminStatus(
+                portalState.admin.summary.length
+                    ? "Dashboard updated."
+                    : "No activity logged yet.",
+                "success"
+            );
+        })
+        .catch((error) => {
+            console.error("Admin activity error:", error);
+            setAdminStatus(error.message || "Unable to load activity right now.");
+            portalState.admin.key = null;
+            portalState.admin.summary = [];
+            portalState.admin.events = [];
+            portalState.admin.generatedAt = null;
+            if (portalEls.adminDashboard) {
+                portalEls.adminDashboard.hidden = true;
+            }
+            try {
+                sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+            } catch (err) {
+                console.warn(err);
+            }
+        })
+        .finally(() => {
+            portalState.admin.isLoading = false;
+        });
+}
+
+function renderAdminDashboard() {
+    if (!portalEls.adminDashboard || !portalEls.adminSummaryBody || !portalEls.adminEventsList) {
+        return;
+    }
+
+    portalEls.adminDashboard.hidden = false;
+
+    const summaryBody = portalEls.adminSummaryBody;
+    summaryBody.innerHTML = "";
+
+    if (!portalState.admin.summary.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.textContent = "No student activity has been recorded yet.";
+        row.appendChild(cell);
+        summaryBody.appendChild(row);
+    } else {
+        portalState.admin.summary.forEach((entry) => {
+            const row = document.createElement("tr");
+            const studentCell = document.createElement("td");
+            studentCell.textContent = entry.studentId;
+
+            const totalCell = document.createElement("td");
+            totalCell.textContent = String(entry.totalEvents ?? 0);
+
+            const loginCell = document.createElement("td");
+            loginCell.textContent = String(entry.loginEvents ?? 0);
+
+            const lastCell = document.createElement("td");
+            lastCell.textContent = entry.lastEventAt ? formatDateTime(entry.lastEventAt) : "—";
+
+            row.append(studentCell, totalCell, loginCell, lastCell);
+            summaryBody.appendChild(row);
+        });
+    }
+
+    const eventsList = portalEls.adminEventsList;
+    eventsList.innerHTML = "";
+    if (!portalState.admin.events.length) {
+        const item = document.createElement("li");
+        item.textContent = "No recent events logged.";
+        eventsList.appendChild(item);
+    } else {
+        portalState.admin.events.forEach((event) => {
+            const item = document.createElement("li");
+            const meta = document.createElement("span");
+            meta.className = "admin-event-meta";
+            meta.textContent = formatDateTime(event.recordedAt);
+
+            const details = document.createElement("span");
+            details.innerHTML = `<strong>${event.studentId}</strong> · ${formatActionLabel(event.action)}`;
+
+            item.append(meta, details);
+            eventsList.appendChild(item);
+        });
+    }
+}
+
+function setAdminStatus(message, variant = "error") {
+    if (!portalEls.adminStatus) return;
+    portalEls.adminStatus.textContent = message;
+    portalEls.adminStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminStatus.classList.toggle("is-progress", variant === "progress");
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {
@@ -669,6 +878,27 @@ function formatDate(isoString) {
         month: "short",
         day: "numeric"
     });
+}
+
+function formatDateTime(isoString) {
+    const date = new Date(isoString);
+    if (Number.isNaN(date.getTime())) return isoString;
+    return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function formatActionLabel(action) {
+    const normalized = (action || "").toString().trim();
+    if (!normalized) return "Activity";
+    return normalized
+        .split(/[\s_-]+/)
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(" ");
 }
 
 function enableForm() {

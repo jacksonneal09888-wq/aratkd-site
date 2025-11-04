@@ -169,7 +169,7 @@
                 </div>
                 <div class="portal-calendar">
                     <div class="portal-calendar__actions">
-                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=0" target="_blank" rel="noopener" download>Download Latest Calendar</a>
+                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1471011839" target="_blank" rel="noopener" download>Download Latest Calendar</a>
                     </div>
                     <p class="portal-calendar__note" data-calendar-note>We offer 1-on-1 private lessons on Tuesdays &amp; Thursdays. Visit the front desk for details and scheduling.</p>
                     <div class="portal-calendar__table-wrap">
@@ -197,6 +197,48 @@
                     <ul class="portal-calendar__footnotes" data-calendar-footnotes>
                         <li>Schedule is subject to change.</li>
                     </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section portal-admin" aria-labelledby="portal-admin-dashboard">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Master Ara Access</p>
+                    <h2 id="portal-admin-dashboard">Admin Activity Dashboard</h2>
+                    <p>Sign in with the admin key to track student logins and practice check-ins.</p>
+                </div>
+                <form class="admin-auth" id="admin-auth-form" novalidate>
+                    <label for="admin-key">Admin Key</label>
+                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter admin key" autocomplete="current-password" required>
+                    <button type="submit" class="cta-btn">View Activity</button>
+                    <p class="form-status" id="admin-status" aria-live="polite"></p>
+                </form>
+                <div class="admin-dashboard" id="admin-dashboard" hidden>
+                    <div class="admin-summary">
+                        <h3>Student Summary</h3>
+                        <table class="admin-table" aria-label="Student engagement summary">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Student ID</th>
+                                    <th scope="col">Total Events</th>
+                                    <th scope="col">Logins</th>
+                                    <th scope="col">Last Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-summary-body">
+                                <tr>
+                                    <td colspan="4">No data yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="admin-events">
+                        <h3>Recent Activity</h3>
+                        <ul class="admin-event-list" id="admin-events-list" aria-live="polite">
+                            <li>No recent events.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
