@@ -1032,6 +1032,11 @@ function togglePortal(show) {
     console.log(`togglePortal: Setting portalEls.placeholder.style.display to ${show ? "none" : "block"} (current: ${portalEls.placeholder.style.display})`);
     portalEls.app.hidden = !show;
     portalEls.placeholder.style.display = show ? "none" : "block";
+
+    if (show) {
+        // Scroll to the portal-app section after successful login
+        portalEls.app?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 }
 
 function setStatus(message, variant = "error") {
