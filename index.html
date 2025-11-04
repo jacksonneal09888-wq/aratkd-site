@@ -256,41 +256,204 @@
         <section class="section" id="schedule">
             <div class="container">
                 <header class="section-header" data-reveal="slide-up">
-                    <h2 id="schedule-heading">Weekly Class Schedule</h2>
-                    <p>A sample weekly flow for our current programs&mdash;tap dates to explore classes, special events, and testing reminders.</p>
+                    <h2 id="schedule-heading">Monthly Training Calendar</h2>
+                    <p>This is the exact calendar shared with families—easy to read on mobile and ready for quick reference before class.</p>
                 </header>
-                <div class="dojo-calendar" id="dojo-calendar" data-reveal="slide-up" data-reveal-delay="120">
-                    <div class="dojo-calendar__header">
-                        <button class="dojo-calendar__nav" type="button" data-calendar-prev aria-label="Previous month">
-                            <span aria-hidden="true">&lsaquo;</span>
-                        </button>
-                        <div class="dojo-calendar__current" data-calendar-current aria-live="polite" aria-atomic="true"></div>
-                        <button class="dojo-calendar__nav" type="button" data-calendar-next aria-label="Next month">
-                            <span aria-hidden="true">&rsaquo;</span>
-                        </button>
+                <div class="portal-calendar" data-reveal="slide-up" data-reveal-delay="120">
+                    <p class="portal-calendar__note">Private lessons are available on Tuesdays &amp; Thursdays. Stop by the front desk for details.</p>
+                    <div class="portal-calendar__table-wrap">
+                        <table class="portal-calendar__table" aria-label="November 2023 class calendar">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Week</th>
+                                    <th scope="col">Mon</th>
+                                    <th scope="col">Tue</th>
+                                    <th scope="col">Wed</th>
+                                    <th scope="col">Thu</th>
+                                    <th scope="col">Fri</th>
+                                    <th scope="col">Sat</th>
+                                    <th scope="col">Sun</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">
+                                        <span class="week-label">Week 1</span>
+                                        <span class="week-focus">Poomsae</span>
+                                    </th>
+                                    <td>
+                                        <span class="day-number is-muted">30</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number is-muted">31</span>
+                                        <span class="day-event day-event--empty">&mdash;</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">1</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">2</span>
+                                        <span class="day-event">BR</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">3</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">4</span>
+                                        <span class="day-event">PP</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">5</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <span class="week-label">Week 2</span>
+                                        <span class="week-focus">Sparring</span>
+                                    </th>
+                                    <td>
+                                        <span class="day-number">6</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">7</span>
+                                        <span class="day-event day-event--empty">&mdash;</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">8</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">9</span>
+                                        <span class="day-event">BR</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">10</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">11</span>
+                                        <span class="day-event">PP</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">12</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <span class="week-label">Week 3</span>
+                                        <span class="week-focus">Sparring &amp; Self Defense</span>
+                                    </th>
+                                    <td>
+                                        <span class="day-number">13</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">14</span>
+                                        <span class="day-event day-event--empty">&mdash;</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">15</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">16</span>
+                                        <span class="day-event">BR</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">17</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">18</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">19</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <span class="week-label">Week 4</span>
+                                        <span class="week-focus">Breaking Practice &amp; Poomsae</span>
+                                    </th>
+                                    <td>
+                                        <span class="day-number">20</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">21</span>
+                                        <span class="day-event day-event--empty">&mdash;</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">22</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">23</span>
+                                        <span class="day-event day-event--closed">Thanksgiving</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">24</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">25</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">26</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <span class="week-label">Week 5</span>
+                                        <span class="week-focus">Poomsae</span>
+                                    </th>
+                                    <td>
+                                        <span class="day-number">27</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">28</span>
+                                        <span class="day-event day-event--empty">&mdash;</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">29</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number">30</span>
+                                        <span class="day-event">BR</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number is-muted">1</span>
+                                        <span class="day-event">Regular Class</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number is-muted">2</span>
+                                        <span class="day-event">Sparfest Tournament</span>
+                                    </td>
+                                    <td>
+                                        <span class="day-number is-muted">3</span>
+                                        <span class="day-event day-event--closed">No Class</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="dojo-calendar__legend" aria-label="Event legend">
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--after-school">After School</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--class">Classes</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--leadership">Leadership</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--event">Events</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--testing">Testing</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--focus">Focus Week</span>
-                        <span class="dojo-calendar__legend-item dojo-calendar__legend-item--closure">Closed</span>
-                    </div>
-                    <div class="dojo-calendar__grid" role="grid" aria-labelledby="schedule-heading" data-calendar-grid>
-                        <span class="dojo-calendar__weekday" role="columnheader">Sun</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Mon</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Tue</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Wed</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Thu</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Fri</span>
-                        <span class="dojo-calendar__weekday" role="columnheader">Sat</span>
-                        <!-- Days injected by JavaScript -->
-                    </div>
-                    <div class="dojo-calendar__details" id="dojo-calendar-events" aria-live="polite" aria-atomic="true">
-                        <p class="dojo-calendar__empty">Select a day to see what&rsquo;s happening at Ara&rsquo;s.</p>
-                    </div>
+                    <ul class="portal-calendar__footnotes">
+                        <li><strong>*</strong> Schedule is subject to change.</li>
+                        <li><strong>**</strong> Attendance is important to be eligible to test the next rank.</li>
+                        <li><strong>***</strong> No class November 23 &amp; 24. <span class="abbr-note">BR and PP abbreviations match the parent calendar.</span></li>
+                    </ul>
                 </div>
             </div>
         </section>
