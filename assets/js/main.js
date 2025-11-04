@@ -6,8 +6,8 @@ const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=csv&gid=0";
-const GOOGLE_CALENDAR_DOWNLOAD_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=0";
+const GOOGLE_CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=csv&gid=1471011839";
+const GOOGLE_CALENDAR_DOWNLOAD_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1471011839";
 const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
 const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
 const EVENT_WHITE_YELLOW = createEvent("Kids & Family Taekwondo", "5:00 - 5:45 PM", "class", "White and yellow belts sharpen basics with family training partners welcome.");
@@ -754,8 +754,13 @@ function parseSheetCalendar(csvText) {
         footnotes: []
     };
 
+    const isSkippableLine = (line) => {
+        if (!line) return true;
+        return !line.replace(/,/g, "").trim();
+    };
+
     const advance = () => {
-        while (index < lines.length && !lines[index]) {
+        while (index < lines.length && isSkippableLine(lines[index])) {
             index += 1;
         }
     };
@@ -764,10 +769,10 @@ function parseSheetCalendar(csvText) {
 
     if (index < lines.length) {
         const headerCells = splitCsvLine(lines[index]);
-        calendar.monthLabel = headerCells[0] || "";
+        calendar.monthLabel = (headerCells[0] || "").replace(/^"+|"+$/g, "").trim();
         const noteCell = headerCells.find((cell, cellIndex) => cellIndex > 0 && cell);
         if (noteCell) {
-            calendar.note = noteCell;
+            calendar.note = noteCell.replace(/^"+|"+$/g, "").replace(/^\*+\s*/, "").trim();
         }
         index += 1;
     }
@@ -821,7 +826,7 @@ function parseSheetCalendar(csvText) {
         const firstCell = weekCells[0] || "";
         const match = firstCell.match(/week\s*(\d+)?\s*(.*)/i);
         let weekNumber = fallbackWeekNumber;
-        let focus = firstCell;
+        let focus = firstCell.replace(/^"+|"+$/g, "").trim();
 
         if (match) {
             if (match[1]) {
@@ -838,22 +843,36 @@ function parseSheetCalendar(csvText) {
             fallbackWeekNumber += 1;
         }
 
+        if (index + 2 >= lines.length) {
+            break;
+        }
+
         const dayNumbers = splitCsvLine(lines[index + 1] || "");
         const eventLabels = splitCsvLine(lines[index + 2] || "");
+        const sanitizedNumbers = dayNumbers.slice(0, 7);
+        const hasDateNumbers = sanitizedNumbers.some((value) => /^\d{1,2}$/.test(value));
+        if (!hasDateNumbers) {
+            break;
+        }
+        const sanitizedEvents = eventLabels.slice(0, 7);
+        const sideNote =
+            eventLabels.slice(7).find((value) => value && value.trim())?.replace(/^"+|"+$/g, "").trim() || "";
         index += 3;
 
         const days = [];
         for (let column = 0; column < 7; column += 1) {
             days.push({
-                number: dayNumbers[column] ?? "",
-                label: eventLabels[column] ?? ""
+                number: sanitizedNumbers[column] ?? "",
+                label: sanitizedEvents[column] ?? ""
             });
         }
 
         calendar.weeks.push({
             number: weekNumber,
             focus,
-            days
+            days,
+            note: sideNote,
+            theme: deriveFocusTheme(focus)
         });
     }
 
@@ -862,12 +881,20 @@ function parseSheetCalendar(csvText) {
         if (!line) {
             continue;
         }
-        if (line.startsWith("*")) {
-            const note = splitCsvLine(line)[0] || "";
-            if (note) {
-                calendar.footnotes.push(note);
-            }
+        if (isSkippableLine(line)) {
+            continue;
         }
+
+        const pieces = splitCsvLine(line);
+        let noteText = pieces.filter(Boolean).join(" • ");
+        if (!noteText) {
+            continue;
+        }
+        noteText = noteText.replace(/^"+|"+$/g, "");
+        if (noteText.startsWith("*")) {
+            noteText = noteText.replace(/^\*+\s*/, (match) => `${match.trim()} `).trim();
+        }
+        calendar.footnotes.push(noteText);
     }
 
     if (!calendar.monthLabel) {
@@ -905,7 +932,7 @@ function renderSheetCalendar(root, calendar) {
     if (!calendar.weeks.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 8;
+        cell.colSpan = 9;
         cell.textContent = "Calendar data is currently unavailable. Please check back soon.";
         row.appendChild(cell);
         tbody.appendChild(row);
@@ -914,14 +941,18 @@ function renderSheetCalendar(root, calendar) {
 
     const daysInMonth = getDaysInMonth(calendar.year, calendar.month);
     let seenStart = false;
-    let rolledOver = false;
+   let rolledOver = false;
     let previousValue = null;
 
     calendar.weeks.forEach((week, weekIndex) => {
-        const row = document.createElement("tr");
+        const focusRow = document.createElement("tr");
+        focusRow.className = "calendar-week-row calendar-week-row--focus";
+        const themeClass = `calendar-week-row--theme-${week.theme || deriveFocusTheme(week.focus)}`;
+        focusRow.classList.add(themeClass);
 
         const weekCell = document.createElement("th");
         weekCell.scope = "row";
+        weekCell.rowSpan = 2;
 
         const labelSpan = document.createElement("span");
         labelSpan.className = "week-label";
@@ -933,10 +964,34 @@ function renderSheetCalendar(root, calendar) {
         focusSpan.textContent = week.focus || "";
 
         weekCell.append(labelSpan, focusSpan);
-        row.appendChild(weekCell);
+        focusRow.appendChild(weekCell);
+
+        const focusCell = document.createElement("td");
+        focusCell.className = "calendar-week-focus";
+        focusCell.colSpan = 7;
+        focusCell.textContent = week.focus || "Training Focus";
+        focusRow.appendChild(focusCell);
+
+        const noteCell = document.createElement("td");
+        noteCell.className = "calendar-week-note";
+        noteCell.rowSpan = 2;
+        if (week.note) {
+            noteCell.textContent = week.note;
+        } else {
+            noteCell.textContent = "—";
+            noteCell.classList.add("is-empty");
+        }
+        focusRow.appendChild(noteCell);
+
+        tbody.appendChild(focusRow);
+
+        const daysRow = document.createElement("tr");
+        daysRow.className = "calendar-week-row calendar-week-row--days";
 
         week.days.forEach((day) => {
             const cell = document.createElement("td");
+            const dayContainer = document.createElement("div");
+            dayContainer.className = "calendar-day";
 
             const numberSpan = document.createElement("span");
             numberSpan.className = "day-number";
@@ -980,11 +1035,12 @@ function renderSheetCalendar(root, calendar) {
                 eventSpan.classList.add(formatted.className);
             }
 
-            cell.append(numberSpan, eventSpan);
-            row.appendChild(cell);
+            dayContainer.append(numberSpan, eventSpan);
+            cell.appendChild(dayContainer);
+            daysRow.appendChild(cell);
         });
 
-        tbody.appendChild(row);
+        tbody.appendChild(daysRow);
     });
 
     const footnoteList = root.querySelector("[data-calendar-footnotes]");
@@ -1008,15 +1064,51 @@ function renderSheetCalendar(root, calendar) {
     }
 }
 
+function deriveFocusTheme(focusText) {
+    const normalized = (focusText || "").toLowerCase();
+    if (normalized.includes("sparring") || normalized.includes("self defense")) {
+        return "sparring";
+    }
+    if (normalized.includes("break")) {
+        return "breaking";
+    }
+    if (normalized.includes("poomsae")) {
+        return "poomsae";
+    }
+    return "default";
+}
+
 function formatCalendarLabel(rawLabel) {
     const label = (rawLabel || "").trim();
     if (!label) {
         return { text: "—", className: "day-event--empty" };
     }
-    if (/^x$/i.test(label)) {
+
+    const normalized = label.toLowerCase();
+
+    if (normalized === "x" || normalized === "closed" || normalized.includes("no class")) {
         return { text: "No Class", className: "day-event--closed" };
     }
-    return { text: label, className: "" };
+    if (normalized.includes("thank")) {
+        return { text: "Thanksgiving - Closed", className: "day-event--closed" };
+    }
+    if (normalized.includes("test")) {
+        return { text: label, className: "day-event--test" };
+    }
+    if (normalized.includes("gear")) {
+        return { text: label, className: "day-event--gear" };
+    }
+    if (
+        normalized.includes("board") ||
+        normalized.includes("breaking") ||
+        normalized.includes("review") ||
+        normalized === "br" ||
+        normalized === "pp"
+    ) {
+        return { text: label, className: "day-event--highlight" };
+    }
+
+    return { text: label.replace(/\s+/g, " "), className: "" };
 }
 
 function showSheetCalendarError(root) {
@@ -1029,7 +1121,7 @@ function showSheetCalendarError(root) {
         tbody.innerHTML = "";
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 8;
+        cell.colSpan = 9;
         cell.textContent = "Calendar data is temporarily unavailable. Please check back soon.";
         row.appendChild(cell);
         tbody.appendChild(row);
@@ -1046,7 +1138,30 @@ function splitCsvLine(line) {
     if (!line) {
         return [];
     }
-    return line.split(",").map((cell) => cell.trim());
+    const cells = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let index = 0; index < line.length; index += 1) {
+        const char = line[index];
+
+        if (char === "\"") {
+            if (insideQuotes && line[index + 1] === "\"") {
+                current += "\"";
+                index += 1;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === "," && !insideQuotes) {
+            cells.push(current.trim());
+            current = "";
+        } else {
+            current += char;
+        }
+    }
+
+    cells.push(current.trim());
+    return cells.map((cell) => cell.replace(/^"+|"+$/g, "").trim());
 }
 
 function generateFocusRanges(startDate, endDate, template) {
