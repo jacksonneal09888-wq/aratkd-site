@@ -772,7 +772,8 @@ function parseSheetCalendar(csvText) {
         calendar.monthLabel = (headerCells[0] || "").replace(/^"+|"+$/g, "").trim();
         const noteCell = headerCells.find((cell, cellIndex) => cellIndex > 0 && cell);
         if (noteCell) {
-            calendar.note = noteCell.replace(/^"+|"+$/g, "").replace(/^\*+\s*/, "").trim();
+            const rawNote = noteCell.replace(/^"+|"+$/g, "").replace(/^\*+\s*/, "").trim();
+            calendar.note = rewriteCalendarNote(rawNote);
         }
         index += 1;
     }
@@ -1076,6 +1077,18 @@ function deriveFocusTheme(focusText) {
         return "poomsae";
     }
     return "default";
+}
+
+function rewriteCalendarNote(noteText) {
+    const normalized = noteText.toLowerCase();
+    if (
+        normalized.includes("sparring weeks") &&
+        normalized.includes("chest gear") &&
+        normalized.includes("wasting class time")
+    ) {
+        return "Friendly reminder: During sparring weeks please arrive with chest gear so we can jump right into training together.";
+    }
+    return noteText;
 }
 
 function formatCalendarLabel(rawLabel) {
