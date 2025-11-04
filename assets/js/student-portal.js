@@ -254,6 +254,9 @@ async function loadStudents() {
         disableForm();
         console.error(error);
         setStatus("Student roster is unavailable. Please try again later.");
+    } finally {
+        portalState.isLoading = false; // Ensure isLoading is always set to false
+        enableForm(); // Ensure form is enabled even if loading fails
     }
 }
 
@@ -262,6 +265,7 @@ function handleLogin(event) {
     console.log("handleLogin: function triggered."); // Debugging line
     if (portalState.isLoading) {
         setStatus("Still loading student roster. Please wait a moment.");
+        console.log("handleLogin: portalState.isLoading is true, returning.");
         return;
     }
 
@@ -791,7 +795,14 @@ function renderBeltGrid(student, unlockedIndex, awardedIndex) {
             const fileInput = document.createElement("input");
             fileInput.type = "file";
             fileInput.accept = ACCEPTED_TYPES.join(",");
-            fileInput.style.display = "none";
+            // Use absolute positioning and opacity to hide it, but keep it interactive for programmatic clicks
+            fileInput.style.position = "absolute";
+            fileInput.style.left = "-9999px"; // Move off-screen
+            fileInput.style.opacity = "0";
+            fileInput.style.width = "1px";
+            fileInput.style.height = "1px";
+            fileInput.style.overflow = "hidden";
+            fileInput.style.zIndex = "-1";
 
             uploadBtn.addEventListener("click", () => fileInput.click());
             fileInput.addEventListener("change", (event) => {
@@ -908,6 +919,7 @@ function handleCertificateUpload(file, belt, beltIndex) {
         setStatus("Something went wrong while reading that file.");
     };
 
+    setStatus("Processing certificate...", "progress");
     reader.readAsDataURL(file);
 }
 
@@ -1024,11 +1036,20 @@ function togglePortal(show) {
 
 function setStatus(message, variant = "error") {
     if (!portalEls.status) return;
+    console.log(`setStatus: Message: "${message}", Variant: "${variant}"`); // Debugging line
     portalEls.status.textContent = message;
     if (variant === "success") {
         portalEls.status.classList.add("is-success");
-    } else {
+        portalEls.status.classList.remove("is-error");
+        portalEls.status.classList.remove("is-progress");
+    } else if (variant === "progress") {
+        portalEls.status.classList.add("is-progress");
         portalEls.status.classList.remove("is-success");
+        portalEls.status.classList.remove("is-error");
+    } else { // default to error
+        portalEls.status.classList.add("is-error");
+        portalEls.status.classList.remove("is-success");
+        portalEls.status.classList.remove("is-progress");
     }
 }
 
