@@ -26,7 +26,7 @@ function buildApiUrl(path) {
     return `${API_BASE_URL}${path}`;
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB cap to avoid blowing up localStorage
+const MAX_FILE_SIZE = 12 * 1024 * 1024; // 12MB cap balances quality and storage safety
 const ACCEPTED_TYPES = [
     "application/pdf",
     "image/png",
@@ -525,6 +525,7 @@ function handleAdminAuth(event) {
     }
 
     setAdminStatus("Loading activity...", "progress");
+    setAdminLoadingState(true);
     loadAdminActivity(key);
 }
 
@@ -548,6 +549,7 @@ function attemptRestoreAdminSession() {
 function loadAdminActivity(adminKey, options = {}) {
     if (!HAS_REMOTE_API) {
         setAdminStatus("Admin dashboard is disabled until the portal API is connected.");
+        setAdminLoadingState(false);
         return;
     }
     if (!adminKey) return;
@@ -624,6 +626,7 @@ function loadAdminActivity(adminKey, options = {}) {
         })
         .finally(() => {
             portalState.admin.isLoading = false;
+            setAdminLoadingState(false);
         });
 }
 
@@ -717,6 +720,13 @@ function setAdminStatus(message, variant = "error") {
     portalEls.adminStatus.textContent = message;
     portalEls.adminStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function setAdminLoadingState(isLoading) {
+    const submitBtn = portalEls.adminForm?.querySelector("button[type='submit']");
+    if (submitBtn) {
+        submitBtn.disabled = Boolean(isLoading);
+    }
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {
@@ -910,7 +920,7 @@ function handleCertificateUpload(file, belt, beltIndex) {
     if (!portalState.activeStudent) return;
 
     if (file.size > MAX_FILE_SIZE) {
-        setStatus("Files up to 3MB please. Compress large photos or PDFs.", "error");
+        setStatus("Files up to 12MB please. Compress large photos or PDFs if needed.", "error");
         return;
     }
 
