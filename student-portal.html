@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
 </head>
-<body data-api-base="https://portal-api.jacksonneal09888.workers.dev">
+<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -196,49 +196,6 @@
             </div>
         </section>
 
-        <section class="section portal-admin" aria-labelledby="portal-admin-dashboard">
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow">Master Ara Access</p>
-                    <h2 id="portal-admin-dashboard">Admin Activity Dashboard</h2>
-                    <p>Sign in with the admin key to track student logins and practice check-ins.</p>
-                </div>
-                <form class="admin-auth" id="admin-auth-form" novalidate>
-                    <label for="admin-key">Admin Key</label>
-                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter admin key" autocomplete="current-password" required>
-                    <button type="submit" class="cta-btn">View Activity</button>
-                    <p class="form-status" id="admin-status" aria-live="polite"></p>
-                </form>
-                <div class="admin-dashboard" id="admin-dashboard" hidden>
-                    <div class="admin-summary">
-                        <h3>Student Summary</h3>
-                        <table class="admin-table" aria-label="Student engagement summary">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Student ID</th>
-                                    <th scope="col">Total Events</th>
-                                    <th scope="col">Logins</th>
-                                    <th scope="col">Latest Belt</th>
-                                    <th scope="col">Last Activity</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-summary-body">
-                                <tr>
-                                    <td colspan="5">No data yet.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="admin-events">
-                        <h3>Recent Activity</h3>
-                        <ul class="admin-event-list" id="admin-events-list" aria-live="polite">
-                            <li>No recent events.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="section portal-resources" aria-labelledby="portal-resources-title">
             <div class="container">
                 <div class="section-heading">
@@ -288,7 +245,7 @@
                     </details>
                     <details class="faq-item">
                         <summary>What file types can I upload?</summary>
-                        <p>PDFs, PNG, JPG, HEIC, and HEIF files up to 3MB are accepted. For videos, paste a share link in the certificate notes section.</p>
+                        <p>PDFs, PNG, JPG, HEIC, and HEIF files up to 10MB are accepted. For videos, paste a share link in the certificate notes section.</p>
                     </details>
                     <details class="faq-item">
                         <summary>What happens after I submit a belt test request?</summary>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara TKD | Staff Activity Dashboard</title>
+    <meta name="description" content="Admin-only dashboard for Ara TKD staff to review student portal activity.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
+</head>
+<body data-portal-mode="admin" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
+    <header class="site-header">
+        <div class="container">
+            <div class="brand">
+                <a href="index.html#top" class="brand-link">
+                    <span class="brand-mark">ARA</span>
+                    <span class="brand-name">Martial Arts</span>
+                </a>
+            </div>
+            <nav class="main-nav" aria-label="Staff Navigation">
+                <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+                <ul id="primary-nav">
+                    <li><a href="index.html#programs">Programs</a></li>
+                    <li><a href="student-portal.html">Student Portal</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a href="index.html#contact" class="cta-btn">Book a Trial</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" style="padding: 4rem 0 3rem;">
+            <div class="container hero-content" style="grid-template-columns: 1fr;">
+                <div class="hero-copy">
+                    <p class="hero-badge" style="align-self:flex-start;">Internal Dashboard</p>
+                    <h1>Master Ara Activity Center</h1>
+                    <p>Review who is logging into the student portal, track recent certificate uploads, and monitor overall engagement. This page is private to Ara staff.</p>
+                    <div class="hero-actions">
+                        <a class="secondary-btn" href="mailto:afetkd@gmail.com?subject=Reset%20admin%20key">Need a key reset?</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section portal-admin" aria-labelledby="portal-admin-dashboard">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Master Ara Access</p>
+                    <h2 id="portal-admin-dashboard">Admin Activity Dashboard</h2>
+                    <p>Sign in with the admin key to track student logins and practice check-ins.</p>
+                </div>
+                <form class="admin-auth" id="admin-auth-form" novalidate>
+                    <label for="admin-key">Admin Key</label>
+                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter admin key" autocomplete="current-password" required>
+                    <button type="submit" class="cta-btn">View Activity</button>
+                    <p class="form-status" id="admin-status" aria-live="polite"></p>
+                </form>
+                <div class="admin-dashboard" id="admin-dashboard" hidden>
+                    <div class="admin-summary">
+                        <h3>Student Summary</h3>
+                        <button type="button" class="text-link-btn" id="admin-refresh">Refresh Data</button>
+                        <table class="admin-table" aria-label="Student engagement summary">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Student ID</th>
+                                    <th scope="col">Total Events</th>
+                                    <th scope="col">Logins</th>
+                                    <th scope="col">Latest Belt</th>
+                                    <th scope="col">Last Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-summary-body">
+                                <tr>
+                                    <td colspan="5">Sign in with the admin key to see data.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="admin-events">
+                        <h3>Recent Activity</h3>
+                        <ul class="admin-event-list" id="admin-events-list" aria-live="polite">
+                            <li>Activity will appear here after sign-in.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <p class="brand-mark">ARA</p>
+                <p>Committed to HONOR, COURTESY, RESPECT, INTEGRITY, and PERSEVERANCE for every student we serve.</p>
+            </div>
+            <div>
+                <h3>Connect</h3>
+                <ul>
+                    <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
+                    <li><a href="https://www.facebook.com" target="_blank" rel="noopener">Facebook</a></li>
+                    <li><a href="https://www.youtube.com" target="_blank" rel="noopener">YouTube</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Hours</h3>
+                <ul>
+                    <li>Mon-Fri: 11:30 AM - 8:30 PM</li>
+                    <li>Sat: By appointment</li>
+                    <li>Sun: Closed</li>
+                </ul>
+            </div>
+        </div>
+        <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="assets/js/student-portal.js?v=20241027" defer></script>
+    <script src="assets/js/main.js?v=20241027" defer></script>
+</body>
+</html>

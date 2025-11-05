@@ -26,7 +26,13 @@ function buildApiUrl(path) {
     return `${API_BASE_URL}${path}`;
 }
 
-const MAX_FILE_SIZE = 12 * 1024 * 1024; // 12MB cap balances quality and storage safety
+const PORTAL_MODE =
+    typeof document !== "undefined" && document.body
+        ? document.body.dataset.portalMode || "student"
+        : "student";
+const IS_ADMIN_MODE = PORTAL_MODE === "admin";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // Allow certificate uploads up to 10MB
 const ACCEPTED_TYPES = [
     "application/pdf",
     "image/png",
@@ -35,6 +41,93 @@ const ACCEPTED_TYPES = [
     "image/heic",
     "image/heif"
 ];
+
+const CERTIFICATE_DB_NAME = "araPortalCertificates";
+const CERTIFICATE_STORE_NAME = "certificates";
+
+const certificateStorage = (() => {
+    const hasIndexedDB = typeof indexedDB !== "undefined";
+    if (!hasIndexedDB) {
+        return {
+            isAvailable: false,
+            save: () => Promise.reject(new Error("IndexedDB is unavailable")),
+            load: () => Promise.resolve(null),
+            remove: () => Promise.resolve()
+        };
+    }
+
+    let dbPromise = null;
+
+    function openDb() {
+        if (!dbPromise) {
+            dbPromise = new Promise((resolve, reject) => {
+                const request = indexedDB.open(CERTIFICATE_DB_NAME, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(CERTIFICATE_STORE_NAME)) {
+                        db.createObjectStore(CERTIFICATE_STORE_NAME);
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () =>
+                    reject(request.error || new Error("Failed to open certificate storage"));
+            });
+        }
+        return dbPromise;
+    }
+
+    function save(key, file) {
+        return openDb().then(
+            (db) =>
+                new Promise((resolve, reject) => {
+                    const tx = db.transaction(CERTIFICATE_STORE_NAME, "readwrite");
+                    tx.onerror = () => reject(tx.error || new Error("Certificate save failed"));
+                    const store = tx.objectStore(CERTIFICATE_STORE_NAME);
+                    const request = store.put(file, key);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () =>
+                        reject(request.error || new Error("Certificate save request failed"));
+                })
+        );
+    }
+
+    function load(key) {
+        return openDb().then(
+            (db) =>
+                new Promise((resolve, reject) => {
+                    const tx = db.transaction(CERTIFICATE_STORE_NAME, "readonly");
+                    tx.onerror = () => reject(tx.error || new Error("Certificate load failed"));
+                    const store = tx.objectStore(CERTIFICATE_STORE_NAME);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () =>
+                        reject(request.error || new Error("Certificate load request failed"));
+                })
+        );
+    }
+
+    function remove(key) {
+        return openDb().then(
+            (db) =>
+                new Promise((resolve, reject) => {
+                    const tx = db.transaction(CERTIFICATE_STORE_NAME, "readwrite");
+                    tx.onerror = () => reject(tx.error || new Error("Certificate delete failed"));
+                    const store = tx.objectStore(CERTIFICATE_STORE_NAME);
+                    const request = store.delete(key);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () =>
+                        reject(request.error || new Error("Certificate delete request failed"));
+                })
+        );
+    }
+
+    return {
+        isAvailable: true,
+        save,
+        load,
+        remove
+    };
+})();
 
 const CURRICULUM_PDF = "assets/materials/tkd-curriculum-aras-martial-arts.pdf";
 
@@ -198,7 +291,8 @@ const portalEls = {
     adminStatus: document.getElementById("admin-status"),
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
-    adminEventsList: document.getElementById("admin-events-list")
+    adminEventsList: document.getElementById("admin-events-list"),
+    adminRefresh: document.getElementById("admin-refresh")
 };
 
 console.log("portalEls:", portalEls); // Debugging line
@@ -218,9 +312,16 @@ const portalState = {
     }
 };
 
+normalizeStoredCertificates();
+migrateLegacyCertificates();
+
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
-    loadStudents();
+    if (!IS_ADMIN_MODE) {
+        loadStudents();
+    } else {
+        portalState.isLoading = false;
+    }
 
     if (HAS_REMOTE_API) {
         attemptRestoreAdminSession();
@@ -247,9 +348,14 @@ function attachHandlers() {
     portalEls.beltTestApplicationBtn?.addEventListener("click", toggleBeltTestForm);
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminAuth);
+    portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
 }
 
 async function loadStudents() {
+    if (IS_ADMIN_MODE) {
+        portalState.isLoading = false;
+        return;
+    }
     disableForm();
     try {
         const response = await fetch("/assets/data/students.json", { cache: "no-store" });
@@ -470,13 +576,23 @@ function syncStudentProgress(studentId, options = {}) {
                 serverUnlocked = Math.max(serverUnlocked, Math.min(beltIndex + 1, lastIndex));
 
                 const existing = certificateMap[belt.name] ?? {};
+                const hasLocalFile = Boolean(
+                    existing.storageKey || existing.dataUrl || existing.hasFile
+                );
                 certificateMap[belt.name] = {
                     belt: belt.name,
                     beltSlug: belt.slug,
                     uploadedAt: record.uploadedAt,
                     fileName: record.fileName || existing.fileName || "Certificate uploaded",
-                    dataUrl: existing.dataUrl || null,
-                    source: existing.dataUrl ? "local" : "server"
+                    fileType: existing.fileType || "",
+                    fileSize:
+                        typeof existing.fileSize === "number" && !Number.isNaN(existing.fileSize)
+                            ? existing.fileSize
+                            : null,
+                    storageKey: existing.storageKey || null,
+                    dataUrl: hasLocalFile && !existing.storageKey ? existing.dataUrl || null : null,
+                    hasFile: hasLocalFile,
+                    source: hasLocalFile ? existing.source || "local" : "server"
                 };
             });
 
@@ -502,10 +618,15 @@ function syncStudentProgress(studentId, options = {}) {
             }
         })
         .catch((error) => {
-            if (!silent) {
-                setStatus("Could not sync progress right now.");
-            }
             console.warn("syncStudentProgress error:", error);
+            if (!silent) {
+                const offline =
+                    typeof navigator !== "undefined" && navigator.onLine === false;
+                const message = offline
+                    ? "You're offline—progress stays saved on this device."
+                    : "Progress saved locally. We'll sync with the studio once the connection is stable.";
+                setStatus(message, "success");
+            }
         });
 }
 
@@ -529,6 +650,23 @@ function handleAdminAuth(event) {
     loadAdminActivity(key);
 }
 
+function handleAdminRefresh() {
+    if (!HAS_REMOTE_API) {
+        setAdminStatus("Connect the portal API before using admin tools.");
+        return;
+    }
+    if (!portalState.admin.key) {
+        setAdminStatus("Enter the admin key to refresh data.");
+        return;
+    }
+    if (portalState.admin.isLoading) {
+        return;
+    }
+    setAdminStatus("Refreshing activity...", "progress");
+    setAdminLoadingState(true);
+    loadAdminActivity(portalState.admin.key);
+}
+
 function attemptRestoreAdminSession() {
     if (!HAS_REMOTE_API) {
         return;
@@ -547,12 +685,16 @@ function attemptRestoreAdminSession() {
 }
 
 function loadAdminActivity(adminKey, options = {}) {
+    const { silent = false } = options;
     if (!HAS_REMOTE_API) {
         setAdminStatus("Admin dashboard is disabled until the portal API is connected.");
         setAdminLoadingState(false);
         return;
     }
-    if (!adminKey) return;
+    if (!adminKey) {
+        setAdminLoadingState(false);
+        return;
+    }
     portalState.admin.isLoading = true;
     const url = buildApiUrl("/portal/admin/activity");
     if (!url) return;
@@ -727,6 +869,9 @@ function setAdminLoadingState(isLoading) {
     if (submitBtn) {
         submitBtn.disabled = Boolean(isLoading);
     }
+    if (portalEls.adminRefresh) {
+        portalEls.adminRefresh.disabled = Boolean(isLoading);
+    }
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {
@@ -820,7 +965,7 @@ function renderBeltGrid(student, unlockedIndex, awardedIndex) {
         }
         card.append(status);
 
-        if (certificateData?.dataUrl) {
+        if (certificateHasDownload(certificateData)) {
             const downloadRow = document.createElement("div");
             downloadRow.className = "certificate-action";
             const downloadBtn = document.createElement("button");
@@ -901,7 +1046,7 @@ function renderCertificateLog(student) {
 
             item.append(meta);
 
-            if (certificate.dataUrl) {
+            if (certificateHasDownload(certificate)) {
                 const downloadBtn = document.createElement("button");
                 downloadBtn.type = "button";
                 downloadBtn.textContent = "Download";
@@ -916,11 +1061,11 @@ function renderCertificateLog(student) {
     portalEls.certificateLog.append(list);
 }
 
-function handleCertificateUpload(file, belt, beltIndex) {
+async function handleCertificateUpload(file, belt, beltIndex) {
     if (!portalState.activeStudent) return;
 
     if (file.size > MAX_FILE_SIZE) {
-        setStatus("Files up to 12MB please. Compress large photos or PDFs if needed.", "error");
+        setStatus("Files up to 10MB please. Compress large photos or PDFs if needed.", "error");
         return;
     }
 
@@ -929,31 +1074,29 @@ function handleCertificateUpload(file, belt, beltIndex) {
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-        const dataUrl = typeof reader.result === "string" ? reader.result : "";
-        if (!dataUrl) {
-            setStatus("We couldn't read that file. Please try again.");
+    setStatus("Processing certificate...", "progress");
+    try {
+        const studentId = portalState.activeStudent.id;
+        const payload = await prepareCertificatePayload(
+            studentId,
+            belt,
+            file,
+            new Date().toISOString()
+        );
+
+        if (!payload) {
+            setStatus("We couldn't store that file. Please try again.", "error");
             return;
         }
 
-        const payload = {
-            belt: belt.name,
-            beltSlug: belt.slug,
-            fileName: file.name,
-            uploadedAt: new Date().toISOString(),
-            dataUrl,
-            source: "local"
-        };
-
-        storeCertificate(portalState.activeStudent.id, payload);
+        storeCertificate(studentId, payload);
 
         const nextUnlockIndex = beltIndex + 1;
-        updateProgress(portalState.activeStudent.id, nextUnlockIndex);
-        recordPortalActivity(portalState.activeStudent.id, `certificate:${belt.slug}`);
+        updateProgress(studentId, nextUnlockIndex);
+        recordPortalActivity(studentId, `certificate:${belt.slug}`);
 
         const syncPromise = HAS_REMOTE_API
-            ? recordCertificateProgress(portalState.activeStudent.id, belt, payload)
+            ? recordCertificateProgress(studentId, belt, payload)
             : Promise.resolve();
 
         const hasNext = nextUnlockIndex < BELT_SEQUENCE.length;
@@ -966,16 +1109,12 @@ function handleCertificateUpload(file, belt, beltIndex) {
         renderPortal();
 
         syncPromise.finally(() => {
-            syncStudentProgress(portalState.activeStudent.id, { silent: true });
+            syncStudentProgress(studentId, { silent: true });
         });
-    };
-
-    reader.onerror = () => {
-        setStatus("Something went wrong while reading that file.");
-    };
-
-    setStatus("Processing certificate...", "progress");
-    reader.readAsDataURL(file);
+    } catch (error) {
+        console.warn("handleCertificateUpload error:", error);
+        setStatus("We couldn't process that file. Please try again.", "error");
+    }
 }
 
 function applyDownloadFilename(link, href, baseName) {
@@ -1054,28 +1193,89 @@ function updateProgress(studentId, unlockedIndex) {
 }
 
 function storeCertificate(studentId, certificate) {
+    if (!studentId || !certificate) return;
+
     if (!portalState.certificates[studentId]) {
         portalState.certificates[studentId] = {};
     }
-    portalState.certificates[studentId][certificate.belt] = {
-        ...certificate,
-        source: certificate.source || "local"
+
+    const beltName =
+        certificate.belt ||
+        resolveBeltDataBySlug(certificate.beltSlug)?.name ||
+        certificate.beltSlug ||
+        "";
+    if (!beltName) {
+        console.warn("storeCertificate: missing belt identifier", certificate);
+        return;
+    }
+
+    const existing = portalState.certificates[studentId][beltName] || {};
+    const beltSlug =
+        certificate.beltSlug ||
+        existing.beltSlug ||
+        resolveBeltDataByName(beltName)?.slug ||
+        slugifyBeltName(beltName);
+
+    const merged = {
+        belt: beltName,
+        beltSlug,
+        uploadedAt: certificate.uploadedAt || existing.uploadedAt || new Date().toISOString(),
+        fileName: certificate.fileName || existing.fileName || "",
+        fileType: certificate.fileType || existing.fileType || "",
+        fileSize:
+            typeof certificate.fileSize === "number"
+                ? certificate.fileSize
+                : existing.fileSize ?? null,
+        storageKey: certificate.storageKey || existing.storageKey || null,
+        dataUrl: certificate.dataUrl || (!certificate.storageKey ? existing.dataUrl : null) || null,
+        hasFile: Boolean(
+            certificate.hasFile ||
+            certificate.storageKey ||
+            certificate.dataUrl ||
+            existing.hasFile ||
+            existing.storageKey ||
+            existing.dataUrl
+        ),
+        source: certificate.source || existing.source || "local"
     };
+
+    portalState.certificates[studentId][beltName] = merged;
     persistCertificates();
 }
 
-function downloadCertificate(studentId, beltName) {
+async function downloadCertificate(studentId, beltName) {
     const studentCertificates = portalState.certificates[studentId];
     if (!studentCertificates) return;
     const certificate = studentCertificates[beltName];
     if (!certificate) return;
 
-    const link = document.createElement("a");
-    link.href = certificate.dataUrl;
-    link.download = certificate.fileName || `${beltName}-certificate`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+        let blob = null;
+        if (certificate.storageKey && certificateStorage.isAvailable) {
+            blob = await certificateStorage.load(certificate.storageKey);
+        }
+
+        if (!blob && certificate.dataUrl) {
+            blob = dataUrlToBlob(certificate.dataUrl);
+        }
+
+        if (!blob) {
+            setStatus("We couldn't find that certificate file. Try uploading again.", "error");
+            return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = certificate.fileName || `${beltName}-certificate`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+        console.warn("downloadCertificate error:", error);
+        setStatus("We couldn't download that certificate. Please try again.", "error");
+    }
 }
 
 function togglePortal(show) {
@@ -1270,7 +1470,33 @@ function persistProgress() {
 }
 
 function persistCertificates() {
-    writeStore(STORAGE_KEYS.certificates, portalState.certificates);
+    const certificates = portalState.certificates || {};
+    const snapshot = {};
+
+    Object.entries(certificates).forEach(([studentId, records]) => {
+        if (!records || typeof records !== "object") {
+            return;
+        }
+
+        const sanitizedRecords = {};
+        Object.entries(records).forEach(([beltName, record]) => {
+            if (!record || typeof record !== "object") {
+                return;
+            }
+            const sanitized = sanitizeCertificateRecord(record);
+            sanitizedRecords[beltName] = sanitized;
+            portalState.certificates[studentId][beltName] = {
+                ...record,
+                ...sanitized
+            };
+        });
+
+        if (Object.keys(sanitizedRecords).length) {
+            snapshot[studentId] = sanitizedRecords;
+        }
+    });
+
+    writeStore(STORAGE_KEYS.certificates, snapshot);
 }
 
 function writeStore(key, value) {
@@ -1346,4 +1572,213 @@ function resolveBeltDataBySlug(slug) {
         BELT_SEQUENCE.find((belt) => belt.slug === normalized) ||
         BELT_SEQUENCE.find((belt) => belt.slug === slug)
     ) || null;
+}
+
+function certificateHasDownload(certificate) {
+    if (!certificate) return false;
+    const hasStoredBlob = Boolean(certificate.storageKey && certificateStorage.isAvailable);
+    const hasInlineData = Boolean(certificate.dataUrl);
+    return hasStoredBlob || hasInlineData;
+}
+
+function buildCertificateStorageKey(studentId, beltSlug) {
+    const normalizedId = (studentId || "").toLowerCase().trim();
+    const normalizedSlug = (beltSlug || "").toLowerCase().trim();
+    return `${normalizedId}::${normalizedSlug || "unknown"}`;
+}
+
+function slugifyBeltName(name) {
+    return (name || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || null;
+}
+
+function resolveBeltDataByName(name) {
+    if (!name) return null;
+    const normalized = name.toLowerCase().trim();
+    return (
+        BELT_SEQUENCE.find((belt) => belt.name.toLowerCase() === normalized) ||
+        BELT_SEQUENCE.find((belt) => normalized.includes(belt.slug))
+    ) || null;
+}
+
+function sanitizeCertificateRecord(record) {
+    const sanitized = {
+        belt: record.belt || "",
+        beltSlug: record.beltSlug || null,
+        uploadedAt: record.uploadedAt || null,
+        fileName: record.fileName || "",
+        fileType: record.fileType || "",
+        fileSize:
+            typeof record.fileSize === "number" && !Number.isNaN(record.fileSize)
+                ? record.fileSize
+                : null,
+        storageKey: record.storageKey || null,
+        hasFile: Boolean(record.hasFile || record.storageKey || record.dataUrl),
+        source: record.source || "local"
+    };
+
+    if (!sanitized.storageKey && record.dataUrl) {
+        sanitized.dataUrl = record.dataUrl;
+    }
+
+    return sanitized;
+}
+
+function normalizeStoredCertificates() {
+    const certificates = portalState.certificates || {};
+    Object.entries(certificates).forEach(([studentId, records]) => {
+        if (!records || typeof records !== "object") {
+            portalState.certificates[studentId] = {};
+            return;
+        }
+
+        Object.entries(records).forEach(([beltName, record]) => {
+            if (!record || typeof record !== "object") {
+                delete records[beltName];
+                return;
+            }
+            record.belt = record.belt || beltName;
+            record.beltSlug =
+                record.beltSlug ||
+                resolveBeltDataByName(record.belt)?.slug ||
+                slugifyBeltName(record.belt);
+            record.hasFile = Boolean(record.hasFile || record.storageKey || record.dataUrl);
+            record.fileSize =
+                typeof record.fileSize === "number" && !Number.isNaN(record.fileSize)
+                    ? record.fileSize
+                    : null;
+        });
+    });
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const dataUrl = typeof reader.result === "string" ? reader.result : "";
+            if (!dataUrl) {
+                reject(new Error("Empty file result."));
+                return;
+            }
+            resolve(dataUrl);
+        };
+        reader.onerror = () => reject(reader.error || new Error("Failed to read file."));
+        reader.readAsDataURL(file);
+    });
+}
+
+function dataUrlToBlob(dataUrl) {
+    if (!dataUrl) {
+        throw new Error("Missing data URL");
+    }
+    const segments = dataUrl.split(",");
+    if (segments.length < 2) {
+        throw new Error("Invalid data URL");
+    }
+    const meta = segments[0];
+    const base64 = segments.slice(1).join(",");
+    const match = meta.match(/^data:(.*?);base64$/i);
+    const mimeType = match ? match[1] : "application/octet-stream";
+    const binary = atob(base64);
+    const buffer = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+        buffer[index] = binary.charCodeAt(index);
+    }
+    return new Blob([buffer], { type: mimeType });
+}
+
+async function prepareCertificatePayload(studentId, belt, file, uploadedAt) {
+    const beltSlug = belt.slug || slugifyBeltName(belt.name);
+    if (!beltSlug) {
+        throw new Error("Unable to resolve belt slug");
+    }
+
+    const payload = {
+        belt: belt.name,
+        beltSlug,
+        fileName: file.name,
+        fileType: file.type || "",
+        fileSize: file.size,
+        uploadedAt,
+        source: "local"
+    };
+
+    if (certificateStorage.isAvailable) {
+        const storageKey = buildCertificateStorageKey(studentId, beltSlug);
+        try {
+            await certificateStorage.save(storageKey, file);
+            return {
+                ...payload,
+                storageKey,
+                hasFile: true
+            };
+        } catch (error) {
+            console.warn(
+                "prepareCertificatePayload: IndexedDB save failed, falling back to inline storage.",
+                error
+            );
+        }
+    }
+
+    const dataUrl = await readFileAsDataUrl(file);
+    return {
+        ...payload,
+        dataUrl,
+        hasFile: Boolean(dataUrl),
+        storageKey: null
+    };
+}
+
+function migrateLegacyCertificates() {
+    if (!certificateStorage.isAvailable) {
+        return;
+    }
+
+    const certificates = portalState.certificates || {};
+    const tasks = [];
+
+    Object.entries(certificates).forEach(([studentId, records]) => {
+        Object.entries(records || {}).forEach(([beltName, record]) => {
+            if (!record || typeof record !== "object") {
+                return;
+            }
+            if (record.storageKey || !record.dataUrl) {
+                record.hasFile = Boolean(record.storageKey || record.dataUrl || record.hasFile);
+                return;
+            }
+
+            const beltSlug =
+                record.beltSlug ||
+                resolveBeltDataByName(record.belt || beltName)?.slug ||
+                slugifyBeltName(record.belt || beltName);
+            if (!beltSlug) return;
+
+            const storageKey = buildCertificateStorageKey(studentId, beltSlug);
+            const migrationTask = Promise.resolve()
+                .then(() => dataUrlToBlob(record.dataUrl))
+                .then((blob) => certificateStorage.save(storageKey, blob))
+                .then(() => {
+                    record.storageKey = storageKey;
+                    record.beltSlug = beltSlug;
+                    record.hasFile = true;
+                    delete record.dataUrl;
+                })
+                .catch((error) => {
+                    console.warn("migrateLegacyCertificates error:", error);
+                });
+
+            tasks.push(migrationTask);
+        });
+    });
+
+    if (!tasks.length) {
+        persistCertificates();
+        return;
+    }
+
+    Promise.allSettled(tasks).finally(() => {
+        persistCertificates();
+    });
 }
