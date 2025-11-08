@@ -266,6 +266,16 @@ body.js-enabled [data-reveal].is-visible {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+@media (max-width: 768px) {
+    .hero-aside {
+        grid-row: 1;
+    }
+
+    .hero-copy {
+        grid-row: 2;
+    }
+}
+
 .hero-copy h1 {
     margin: 0 0 1rem;
     font-family: var(--font-heading);
