@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "echo \"Static site build complete.\""
+    "build": "bash scripts/build.sh"
   },
   "devDependencies": {
     "wrangler": "^4.45.3"
