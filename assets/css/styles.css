@@ -320,59 +320,6 @@ body.js-enabled [data-reveal].is-visible {
     color: rgba(255, 255, 255, 0.88);
 }
 
-.promo-spotlight {
-    padding: 0 0 2rem;
-}
-
-.promo-card {
-    background: #fff;
-    border-radius: 1.5rem;
-    box-shadow: 0 2rem 3rem rgba(8, 9, 10, 0.08);
-    padding: 2.5rem 3rem;
-}
-
-.promo-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.75rem;
-    color: var(--color-primary);
-}
-
-.promo-card h2 {
-    margin: 0.75rem 0;
-    font-family: var(--font-heading);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.promo-card ul {
-    list-style: none;
-    margin: 1rem 0 0;
-    padding: 0;
-}
-
-.promo-card li {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.35rem;
-}
-
-.promo-card li::before {
-    content: "•";
-    color: var(--color-primary);
-    font-size: 1.5rem;
-    line-height: 1;
-}
-
-.promo-actions {
-    margin-top: 1.5rem;
-}
-
 .hero-badge {
     display: inline-flex;
     align-items: center;
