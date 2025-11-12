@@ -1,4 +1,3 @@
-import json
 import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
@@ -20,12 +19,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 DATABASE_PATH = Path(os.getenv("PORTAL_DB_PATH", Path(__file__).resolve().parent / "portal.db"))
 ADMIN_PORTAL_KEY = os.getenv("ADMIN_PORTAL_KEY")
-STUDENTS_DATA_PATH = Path(
-    os.getenv(
-        "PORTAL_STUDENTS_PATH",
-        Path(__file__).resolve().parent / "data" / "students.json"
-    )
-)
 JWT_SECRET = os.getenv("PORTAL_JWT_SECRET") or ADMIN_PORTAL_KEY or "change-me"
 try:
     JWT_EXP_MINUTES = int(os.getenv("PORTAL_JWT_EXP_MINUTES", "1440"))
@@ -69,43 +62,46 @@ def init_db():
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_belt_progress_student ON belt_progress(student_id)"
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS students (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                birth_date TEXT NOT NULL,
+                phone TEXT,
+                current_belt TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_students_id ON students(id)")
         conn.commit()
-
-
-_student_cache = {"data": [], "mtime": None}
-
-
-def load_student_roster():
-    try:
-        current_mtime = STUDENTS_DATA_PATH.stat().st_mtime
-    except (FileNotFoundError, OSError):
-        return []
-
-    cache_mtime = _student_cache.get("mtime")
-    if cache_mtime == current_mtime and _student_cache.get("data") is not None:
-        return _student_cache["data"]
-
-    try:
-        with STUDENTS_DATA_PATH.open("r", encoding="utf-8-sig") as handle:
-            data = json.load(handle)
-            roster = data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        roster = []
-
-    _student_cache["data"] = roster
-    _student_cache["mtime"] = current_mtime
-    return roster
 
 
 def find_student_record(student_id):
     if not student_id:
         return None
-    roster = load_student_roster()
     lookup = student_id.strip().lower()
-    for entry in roster:
-        if (entry.get("id") or "").strip().lower() == lookup:
-            return entry
-    return None
+    with get_db_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT id, name, birth_date, phone, current_belt
+            FROM students
+            WHERE LOWER(id) = ?
+            LIMIT 1
+            """,
+            (lookup,)
+        ).fetchone()
+        if not row:
+            return None
+        return {
+            "id": row["id"],
+            "name": row["name"],
+            "birthDate": row["birth_date"],
+            "phone": row["phone"],
+            "currentBelt": row["current_belt"]
+        }
 
 
 def sanitize_student_record(student):
