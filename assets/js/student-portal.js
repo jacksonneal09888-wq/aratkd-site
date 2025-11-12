@@ -1,7 +1,8 @@
 const STORAGE_KEYS = {
     progress: "araStudentProgress",
     certificates: "araStudentCertificates",
-    session: "araStudentSession"
+    session: "araStudentSession",
+    sessionToken: "araStudentSessionToken"
 };
 
 const ADMIN_STORAGE_KEY = "araPortalAdminKey";
@@ -303,6 +304,7 @@ const portalState = {
     isLoading: true,
     progress: readStore(STORAGE_KEYS.progress),
     certificates: readStore(STORAGE_KEYS.certificates),
+    sessionToken: readAuthToken(),
     admin: {
         key: null,
         isLoading: false,
@@ -378,7 +380,7 @@ async function loadStudents() {
     }
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     console.log("handleLogin: function triggered."); // Debugging line
     if (portalState.isLoading) {
@@ -413,17 +415,53 @@ function handleLogin(event) {
         return;
     }
 
-    portalState.activeStudent = match;
-    persistSession(match.id);
-    portalEls.form?.reset();
-    setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
-    console.log("handleLogin: Calling renderPortal()");
-    recordPortalActivity(match.id, "login");
-    syncStudentProgress(match.id).finally(() => renderPortal());
+    if (!HAS_REMOTE_API) {
+        portalState.activeStudent = match;
+        persistSession(match.id);
+        portalEls.form?.reset();
+        setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
+        renderPortal();
+        return;
+    }
+
+    try {
+        setStatus("Signing you in...", "progress");
+        const loginResponse = await recordPortalActivity(match.id, "login", {
+            birthDate: dobValue
+        });
+        const token = loginResponse?.token;
+        if (!token) {
+            throw new Error("Unable to authenticate with the portal.");
+        }
+
+        portalState.sessionToken = token;
+        persistSession(match.id);
+        persistAuthToken(token);
+        portalState.activeStudent = match;
+        portalEls.form?.reset();
+
+        if (loginResponse?.progress?.records) {
+            applyServerProgressRecords(match, loginResponse.progress.records, {
+                silent: true
+            });
+        }
+
+        setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
+        syncStudentProgress(match.id).finally(() => renderPortal());
+    } catch (error) {
+        console.error("handleLogin: Authentication failed.", error);
+        portalState.activeStudent = null;
+        portalState.sessionToken = null;
+        clearSession();
+        setStatus(
+            error?.message || "Unable to sign in right now. Please try again shortly."
+        );
+    }
 }
 
 function handleLogout() {
     portalState.activeStudent = null;
+    portalState.sessionToken = null;
     clearSession();
     togglePortal(false);
     setStatus("You have signed out. Come back soon!", "success");
@@ -432,14 +470,33 @@ function handleLogout() {
 function attemptRestoreSession() {
     const savedId = readSession();
     if (!savedId) return;
+
     const match = portalState.students.find(
         (record) => record.id.toLowerCase() === savedId.toLowerCase()
     );
-    if (match) {
-        portalState.activeStudent = match;
-        setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
-        syncStudentProgress(match.id, { silent: true }).finally(() => renderPortal());
+    if (!match) {
+        clearSession();
+        return;
     }
+
+    if (HAS_REMOTE_API) {
+        const token = portalState.sessionToken || readAuthToken();
+        if (!token) {
+            clearSession();
+            return;
+        }
+        portalState.sessionToken = token;
+    }
+
+    portalState.activeStudent = match;
+    setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
+
+    if (!HAS_REMOTE_API) {
+        renderPortal();
+        return;
+    }
+
+    syncStudentProgress(match.id, { silent: true }).finally(() => renderPortal());
 }
 
 function renderPortal() {
@@ -475,7 +532,7 @@ function renderPortal() {
     toggleBeltTestForm(false); // Hide form on portal render
 }
 
-function recordPortalActivity(studentId, action = "login") {
+function recordPortalActivity(studentId, action = "login", extraPayload = {}) {
     if (!studentId || !HAS_REMOTE_API) return Promise.resolve();
     const url = buildApiUrl("/portal/login-event");
     if (!url) return Promise.resolve();
@@ -484,6 +541,9 @@ function recordPortalActivity(studentId, action = "login") {
         action,
         actor: "student"
     };
+    if (extraPayload && typeof extraPayload === "object") {
+        Object.assign(payload, extraPayload);
+    }
 
     return fetch(url, {
         method: "POST",
@@ -513,12 +573,16 @@ function recordCertificateProgress(studentId, belt, certificate) {
         fileName: certificate.fileName || "",
         uploadedAt: certificate.uploadedAt
     };
+    const headers = {
+        "Content-Type": "application/json"
+    };
+    if (portalState.sessionToken) {
+        headers.Authorization = `Bearer ${portalState.sessionToken}`;
+    }
 
     return fetch(url, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify(payload),
         mode: "cors",
         credentials: "omit"
@@ -539,15 +603,34 @@ function syncStudentProgress(studentId, options = {}) {
     const { silent = false } = options;
     const url = buildApiUrl(`/portal/progress/${encodeURIComponent(studentId)}`);
     if (!url) return Promise.resolve();
+    const token = portalState.sessionToken || readAuthToken();
+    if (!token) {
+        if (!silent) {
+            setStatus("Please sign in again to sync your progress.");
+        }
+        portalState.sessionToken = null;
+        portalState.activeStudent = null;
+        clearSession();
+        togglePortal(false);
+        return Promise.resolve();
+    }
 
     return fetch(url, {
         method: "GET",
         mode: "cors",
-        credentials: "omit"
+        credentials: "omit",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
     })
         .then((response) => {
             if (response.status === 404) {
                 return { records: [] };
+            }
+            if (response.status === 401 || response.status === 403) {
+                const authError = new Error("Unauthorized");
+                authError.code = "UNAUTHORIZED";
+                throw authError;
             }
             if (!response.ok) {
                 throw new Error(`Progress sync failed (${response.status})`);
@@ -555,69 +638,19 @@ function syncStudentProgress(studentId, options = {}) {
             return response.json();
         })
         .then((data) => {
-            const records = Array.isArray(data.records) ? data.records : [];
             const student = portalState.activeStudent;
             if (!student) return;
-
-            const baseIndex = resolveBeltIndex(student.currentBelt);
-            const defaultUnlocked = baseIndex >= BELT_SEQUENCE.length - 1 ? baseIndex : baseIndex + 1;
-            const lastIndex = BELT_SEQUENCE.length - 1;
-
-            let serverAwarded = baseIndex;
-            let serverUnlocked = defaultUnlocked;
-
-            const certificateMap = portalState.certificates[student.id] ?? {};
-
-            records.forEach((record) => {
-                const belt = resolveBeltDataBySlug(record.beltSlug);
-                if (!belt) return;
-                const beltIndex = resolveBeltIndex(belt.name);
-                serverAwarded = Math.max(serverAwarded, beltIndex);
-                serverUnlocked = Math.max(serverUnlocked, Math.min(beltIndex + 1, lastIndex));
-
-                const existing = certificateMap[belt.name] ?? {};
-                const hasLocalFile = Boolean(
-                    existing.storageKey || existing.dataUrl || existing.hasFile
-                );
-                certificateMap[belt.name] = {
-                    belt: belt.name,
-                    beltSlug: belt.slug,
-                    uploadedAt: record.uploadedAt,
-                    fileName: record.fileName || existing.fileName || "Certificate uploaded",
-                    fileType: existing.fileType || "",
-                    fileSize:
-                        typeof existing.fileSize === "number" && !Number.isNaN(existing.fileSize)
-                            ? existing.fileSize
-                            : null,
-                    storageKey: existing.storageKey || null,
-                    dataUrl: hasLocalFile && !existing.storageKey ? existing.dataUrl || null : null,
-                    hasFile: hasLocalFile,
-                    source: hasLocalFile ? existing.source || "local" : "server"
-                };
-            });
-
-            portalState.certificates[student.id] = certificateMap;
-            persistCertificates();
-
-            const existingProgress = portalState.progress[student.id] ?? {};
-            const mergedUnlocked = Math.max(
-                defaultUnlocked,
-                existingProgress.unlockedIndex ?? defaultUnlocked,
-                serverUnlocked
-            );
-            const mergedAwarded = Math.max(existingProgress.awardedIndex ?? baseIndex, serverAwarded);
-
-            portalState.progress[student.id] = {
-                unlockedIndex: mergedUnlocked,
-                awardedIndex: mergedAwarded
-            };
-            persistProgress();
-
-            if (!silent && records.length) {
-                setStatus("Progress synced with the studio.", "success");
-            }
+            applyServerProgressRecords(student, data.records, { silent });
         })
         .catch((error) => {
+            if (error?.code === "UNAUTHORIZED") {
+                portalState.sessionToken = null;
+                portalState.activeStudent = null;
+                clearSession();
+                togglePortal(false);
+                setStatus("Your session expired. Please sign in again.");
+                return;
+            }
             console.warn("syncStudentProgress error:", error);
             if (!silent) {
                 const offline =
@@ -628,6 +661,70 @@ function syncStudentProgress(studentId, options = {}) {
                 setStatus(message, "success");
             }
         });
+}
+
+function applyServerProgressRecords(student, records, options = {}) {
+    if (!student) return;
+    const { silent = false } = options;
+    const entries = Array.isArray(records) ? records : [];
+
+    const baseIndex = resolveBeltIndex(student.currentBelt);
+    const defaultUnlocked = baseIndex >= BELT_SEQUENCE.length - 1 ? baseIndex : baseIndex + 1;
+    const lastIndex = BELT_SEQUENCE.length - 1;
+
+    let serverAwarded = baseIndex;
+    let serverUnlocked = defaultUnlocked;
+
+    const certificateMap = portalState.certificates[student.id] ?? {};
+
+    entries.forEach((record) => {
+        const belt = resolveBeltDataBySlug(record.beltSlug);
+        if (!belt) return;
+        const beltIndex = resolveBeltIndex(belt.name);
+        serverAwarded = Math.max(serverAwarded, beltIndex);
+        serverUnlocked = Math.max(serverUnlocked, Math.min(beltIndex + 1, lastIndex));
+
+        const existing = certificateMap[belt.name] ?? {};
+        const hasLocalFile = Boolean(
+            existing.storageKey || existing.dataUrl || existing.hasFile
+        );
+        certificateMap[belt.name] = {
+            belt: belt.name,
+            beltSlug: belt.slug,
+            uploadedAt: record.uploadedAt,
+            fileName: record.fileName || existing.fileName || "Certificate uploaded",
+            fileType: existing.fileType || "",
+            fileSize:
+                typeof existing.fileSize === "number" && !Number.isNaN(existing.fileSize)
+                    ? existing.fileSize
+                    : null,
+            storageKey: existing.storageKey || null,
+            dataUrl: hasLocalFile && !existing.storageKey ? existing.dataUrl || null : null,
+            hasFile: hasLocalFile,
+            source: hasLocalFile ? existing.source || "local" : "server"
+        };
+    });
+
+    portalState.certificates[student.id] = certificateMap;
+    persistCertificates();
+
+    const existingProgress = portalState.progress[student.id] ?? {};
+    const mergedUnlocked = Math.max(
+        defaultUnlocked,
+        existingProgress.unlockedIndex ?? defaultUnlocked,
+        serverUnlocked
+    );
+    const mergedAwarded = Math.max(existingProgress.awardedIndex ?? baseIndex, serverAwarded);
+
+    portalState.progress[student.id] = {
+        unlockedIndex: mergedUnlocked,
+        awardedIndex: mergedAwarded
+    };
+    persistProgress();
+
+    if (!silent && entries.length) {
+        setStatus("Progress synced with the studio.", "success");
+    }
 }
 
 function handleAdminAuth(event) {
@@ -1444,11 +1541,38 @@ function clearSession() {
     } catch (error) {
         console.warn("Session storage is unavailable", error);
     }
+    clearAuthToken();
 }
 
 function readSession() {
     try {
         return sessionStorage.getItem(STORAGE_KEYS.session);
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
+        return null;
+    }
+}
+
+function persistAuthToken(token) {
+    if (!token) return;
+    try {
+        sessionStorage.setItem(STORAGE_KEYS.sessionToken, token);
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
+    }
+}
+
+function clearAuthToken() {
+    try {
+        sessionStorage.removeItem(STORAGE_KEYS.sessionToken);
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
+    }
+}
+
+function readAuthToken() {
+    try {
+        return sessionStorage.getItem(STORAGE_KEYS.sessionToken);
     } catch (error) {
         console.warn("Session storage is unavailable", error);
         return null;

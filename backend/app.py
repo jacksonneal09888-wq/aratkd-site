@@ -1,12 +1,15 @@
+import json
 import os
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from functools import wraps
 from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 from openai import OpenAI
+import jwt
 
 load_dotenv()
 
@@ -17,6 +20,18 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 DATABASE_PATH = Path(os.getenv("PORTAL_DB_PATH", Path(__file__).resolve().parent / "portal.db"))
 ADMIN_PORTAL_KEY = os.getenv("ADMIN_PORTAL_KEY")
+STUDENTS_DATA_PATH = Path(
+    os.getenv(
+        "PORTAL_STUDENTS_PATH",
+        Path(__file__).resolve().parents[1] / "assets" / "data" / "students.json"
+    )
+)
+JWT_SECRET = os.getenv("PORTAL_JWT_SECRET") or ADMIN_PORTAL_KEY or "change-me"
+try:
+    JWT_EXP_MINUTES = int(os.getenv("PORTAL_JWT_EXP_MINUTES", "1440"))
+except ValueError:
+    JWT_EXP_MINUTES = 1440
+JWT_ALGORITHM = "HS256"
 
 
 def get_db_connection():
@@ -55,6 +70,102 @@ def init_db():
             "CREATE INDEX IF NOT EXISTS idx_belt_progress_student ON belt_progress(student_id)"
         )
         conn.commit()
+
+
+_student_cache = {"data": [], "mtime": None}
+
+
+def load_student_roster():
+    try:
+        current_mtime = STUDENTS_DATA_PATH.stat().st_mtime
+    except (FileNotFoundError, OSError):
+        return []
+
+    cache_mtime = _student_cache.get("mtime")
+    if cache_mtime == current_mtime and _student_cache.get("data") is not None:
+        return _student_cache["data"]
+
+    try:
+        with STUDENTS_DATA_PATH.open("r", encoding="utf-8-sig") as handle:
+            data = json.load(handle)
+            roster = data if isinstance(data, list) else []
+    except (json.JSONDecodeError, OSError):
+        roster = []
+
+    _student_cache["data"] = roster
+    _student_cache["mtime"] = current_mtime
+    return roster
+
+
+def find_student_record(student_id):
+    if not student_id:
+        return None
+    roster = load_student_roster()
+    lookup = student_id.strip().lower()
+    for entry in roster:
+        if (entry.get("id") or "").strip().lower() == lookup:
+            return entry
+    return None
+
+
+def issue_portal_token(student_id):
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(minutes=JWT_EXP_MINUTES)
+    payload = {
+        "sub": student_id,
+        "iat": int(now.timestamp()),
+        "exp": int(expires_at.timestamp()),
+        "scope": "portal"
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def fetch_portal_progress(student_id):
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT belt_slug, file_name, uploaded_at
+            FROM belt_progress
+            WHERE student_id = ?
+            ORDER BY datetime(uploaded_at) ASC
+            """,
+            (student_id,)
+        ).fetchall()
+
+    return [
+        {
+            "beltSlug": row["belt_slug"],
+            "fileName": row["file_name"],
+            "uploadedAt": row["uploaded_at"]
+        }
+        for row in rows
+    ]
+
+
+def require_portal_auth(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        token = auth_header.split(" ", 1)[1].strip()
+        try:
+            claims = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Session expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), 401
+
+        requested_student_id = kwargs.get("student_id") or ""
+        token_student_id = (claims.get("sub") or "").strip()
+        if requested_student_id and token_student_id.lower() != requested_student_id.lower():
+            return jsonify({"error": "Forbidden"}), 403
+
+        g.portal_claims = claims
+        return view_func(*args, **kwargs)
+
+    return wrapper
 
 
 # Initialize database immediately on module load
@@ -100,9 +211,39 @@ def record_portal_event():
     student_id = (payload.get("studentId") or "").strip()
     action = (payload.get("action") or "login").strip().lower()
     actor = (payload.get("actor") or "student").strip().lower()
+    birth_date = (payload.get("birthDate") or "").strip()
 
     if not student_id:
         return jsonify({"error": "studentId is required"}), 400
+
+    is_login_attempt = action == "login"
+    token = None
+    student = None
+    progress_snapshot = None
+
+    if is_login_attempt:
+        if not birth_date:
+            return jsonify({"error": "birthDate is required for login"}), 400
+
+        student = find_student_record(student_id)
+        if not student:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        stored_birth_date = (student.get("birthDate") or "").strip()
+        if stored_birth_date != birth_date:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        canonical_id = (student.get("id") or student_id).strip()
+        try:
+            records = fetch_portal_progress(student_id)
+        except sqlite3.Error as error:
+            return jsonify({"error": f"Failed to load progress: {error}"}), 500
+
+        token = issue_portal_token(canonical_id)
+        progress_snapshot = {
+            "records": records,
+            "generatedAt": datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        }
 
     timestamp = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
@@ -116,37 +257,29 @@ def record_portal_event():
     except sqlite3.Error as error:
         return jsonify({"error": f"Failed to record event: {error}"}), 500
 
-    return jsonify({"ok": True, "recordedAt": timestamp})
+    response_payload = {"ok": True, "recordedAt": timestamp}
+    if token:
+        response_payload["token"] = token
+        response_payload["student"] = {
+            "id": student.get("id"),
+            "name": student.get("name")
+        }
+        response_payload["progress"] = progress_snapshot
+
+    return jsonify(response_payload)
 
 
 @app.route("/portal/progress/<student_id>", methods=["GET"])
+@require_portal_auth
 def get_portal_progress(student_id):
     sanitized_id = (student_id or "").strip()
     if not sanitized_id:
         return jsonify({"error": "Invalid student ID"}), 400
 
     try:
-        with get_db_connection() as conn:
-            rows = conn.execute(
-                """
-                SELECT belt_slug, file_name, uploaded_at
-                FROM belt_progress
-                WHERE student_id = ?
-                ORDER BY datetime(uploaded_at) ASC
-                """,
-                (sanitized_id,)
-            ).fetchall()
+        records = fetch_portal_progress(sanitized_id)
     except sqlite3.Error as error:
         return jsonify({"error": f"Failed to load progress: {error}"}), 500
-
-    records = [
-        {
-            "beltSlug": row["belt_slug"],
-            "fileName": row["file_name"],
-            "uploadedAt": row["uploaded_at"]
-        }
-        for row in rows
-    ]
 
     return jsonify(
         {
