@@ -121,8 +121,8 @@
                         <p>Founder of Ara's Martial Arts Sportsplex and World Taekwondo Federation black belt guiding students toward confidence, discipline, and championship-ready technique.</p>
                     </article>
                     <article class="profile-card">
-                        <figure class="profile-card__media">
-                            <img class="profile-card__photo" src="assets/Images/Master%20Ara.jpeg" alt="Coach Fatima Enriquez coaching students">
+                        <figure class="profile-card__media profile-card__media--portrait">
+                            <img class="profile-card__photo" src="assets/materials/Yoga.jpg" alt="Coach Fatima Enriquez guiding a yoga class">
                         </figure>
                         <h3>Coach Fatima Enriquez</h3>
                         <p class="profile-title">Certified Personal Trainer</p>
@@ -179,54 +179,46 @@
             </div>
         </section>
 
-        <section class="section" id="schedule">
+        <section class="section" id="schedule" data-calendar-root>
             <div class="container">
                 <header class="section-header">
-                    <h2>Weekly Class Schedule</h2>
-                    <p>A sample weekly flow for our current programs&mdash;call for the latest testing, tournament, and camp updates.</p>
+                    <h2>Monthly Training Calendar</h2>
+                    <p>This feed mirrors the Student Portal calendar and automatically updates when we adjust the parent spreadsheet so you always have the latest testing, tournament, and camp info.</p>
                 </header>
-                <div class="schedule-wrapper">
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Monday</th>
-                                <th>Wednesday</th>
-                                <th>Friday</th>
-                                <th>Saturday</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Afternoon</td>
-                                <td>After School Success Program &middot; homework lab, snack, martial arts</td>
-                                <td>After School Success Program &middot; STEM projects &amp; indoor sports</td>
-                                <td>After School Success Program &middot; Parent Night Out prep</td>
-                                <td>All-day camps and community events when school is out</td>
-                            </tr>
-                            <tr>
-                                <td>5:30 PM</td>
-                                <td>Kids &amp; Family Taekwondo &middot; confidence and focus</td>
-                                <td>Forms &amp; sparring development for color belts</td>
-                                <td>Family Taekwondo celebration &amp; belt stripes</td>
-                                <td>Boot Camp Conditioning with Coach Fatima</td>
-                            </tr>
-                            <tr>
-                                <td>6:30 PM</td>
-                                <td>Teens &amp; Adults Taekwondo &middot; strength and stamina</td>
-                                <td>Leadership and instructor training tracks</td>
-                                <td>Black belt prep &middot; board breaking &amp; testing reviews</td>
-                                <td>Open mat for testing practice &amp; sparring labs</td>
-                            </tr>
-                            <tr>
-                                <td>7:30 PM</td>
-                                <td>Hapkido self-defense essentials</td>
-                                <td>Advanced self-defense and situational drills</td>
-                                <td>Mindfulness, stretching, and recovery</td>
-                                <td>Private lessons by appointment</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="portal-calendar">
+                    <div class="portal-calendar__actions">
+                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1471011839" target="_blank" rel="noopener" download>Download Latest Calendar</a>
+                        <a class="text-link-btn" href="student-portal.html#portal-calendar-title">Open Student Portal</a>
+                    </div>
+                    <div class="portal-calendar__header">
+                        <p class="eyebrow" data-calendar-month>November 2023</p>
+                        <p class="portal-calendar__note" data-calendar-note>We offer 1-on-1 private lessons on Tuesdays &amp; Thursdays. Visit the front desk for details and scheduling.</p>
+                    </div>
+                    <div class="portal-calendar__table-wrap">
+                        <table class="portal-calendar__table" aria-label="Monthly class calendar">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Week</th>
+                                    <th scope="col">Mon</th>
+                                    <th scope="col">Tue</th>
+                                    <th scope="col">Wed</th>
+                                    <th scope="col">Thu</th>
+                                    <th scope="col">Fri</th>
+                                    <th scope="col">Sat</th>
+                                    <th scope="col">Sun</th>
+                                    <th scope="col">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody data-calendar-body>
+                                <tr>
+                                    <td colspan="9">Loading the latest calendar...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <ul class="portal-calendar__footnotes" data-calendar-footnotes>
+                        <li>Schedule is subject to change.</li>
+                    </ul>
                 </div>
             </div>
         </section>

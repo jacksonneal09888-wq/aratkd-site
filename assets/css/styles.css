@@ -1854,12 +1854,25 @@ body.js-enabled [data-reveal].is-visible {
     margin-bottom: 1rem;
 }
 
+.portal-calendar__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
 .portal-calendar__note {
     margin: 0 auto 1.5rem;
     max-width: 640px;
     text-align: center;
     font-weight: 600;
     color: var(--color-primary);
+}
+
+.portal-calendar__header .portal-calendar__note {
+    margin: 0;
+    text-align: left;
 }
 
 .portal-calendar__table-wrap {

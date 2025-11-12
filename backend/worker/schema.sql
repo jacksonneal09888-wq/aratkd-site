@@ -19,3 +19,14 @@ CREATE TABLE IF NOT EXISTS belt_progress (
 );
 CREATE INDEX IF NOT EXISTS idx_belt_progress_student ON belt_progress(student_id);
 CREATE INDEX IF NOT EXISTS idx_belt_progress_uploaded ON belt_progress(uploaded_at);
+
+CREATE TABLE IF NOT EXISTS students (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  birth_date TEXT NOT NULL,
+  phone TEXT,
+  current_belt TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_students_id ON students(id);

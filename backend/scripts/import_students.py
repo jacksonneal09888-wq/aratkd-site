@@ -56,11 +56,9 @@ def load_students(path: Path) -> List[Dict[str, Any]]:
         return normalized
 
 
-def import_students(source: Path, db_path: Path, truncate: bool = False) -> int:
-    roster = load_students(source)
+def import_students(roster: List[Dict[str, Any]], db_path: Path, truncate: bool = False) -> int:
     if not roster:
         return 0
-
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     try:
@@ -110,6 +108,35 @@ def import_students(source: Path, db_path: Path, truncate: bool = False) -> int:
     return len(roster)
 
 
+def emit_d1_sql(roster: List[Dict[str, Any]], sql_path: Path, truncate: bool = False) -> None:
+    def sql_value(value: Any) -> str:
+        if value is None:
+            return "NULL"
+        if isinstance(value, str):
+            return "'" + value.replace("'", "''") + "'"
+        return str(value)
+
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    lines = ["BEGIN TRANSACTION;"]
+    if truncate:
+        lines.append("DELETE FROM students;")
+    for record in roster:
+        lines.append(
+            "INSERT INTO students (id, name, birth_date, phone, current_belt, created_at, updated_at)"
+            f" VALUES ({sql_value(record['id'])}, {sql_value(record['name'])}, {sql_value(record['birth_date'])},"
+            f" {sql_value(record['phone'])}, {sql_value(record['current_belt'])}, {sql_value(now)}, {sql_value(now)})"
+            " ON CONFLICT(id) DO UPDATE SET"
+            " name=excluded.name,"
+            " birth_date=excluded.birth_date,"
+            " phone=excluded.phone,"
+            " current_belt=excluded.current_belt,"
+            " updated_at=excluded.updated_at;"
+        )
+    lines.append("COMMIT;")
+    sql_path.parent.mkdir(parents=True, exist_ok=True)
+    sql_path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Import student roster into the portal database.")
     parser.add_argument("source", type=Path, help="Path to the private students JSON file.")
@@ -124,12 +151,22 @@ def main():
         action="store_true",
         help="Delete existing student records before import.",
     )
+    parser.add_argument(
+        "--d1-sql",
+        type=Path,
+        help="Optional path to write SQL upserts that can be applied with `wrangler d1 execute`.",
+    )
     args = parser.parse_args()
 
     if not args.source.exists():
         raise SystemExit(f"Source file not found: {args.source}")
 
-    imported = import_students(args.source, args.db, truncate=args.truncate)
+    roster = load_students(args.source)
+    if args.d1_sql:
+        emit_d1_sql(roster, args.d1_sql, truncate=args.truncate)
+        print(f"Wrote D1 SQL script to {args.d1_sql}")
+
+    imported = import_students(roster, args.db, truncate=args.truncate)
     print(f"Imported {imported} student record(s) into {args.db}")
 
 
