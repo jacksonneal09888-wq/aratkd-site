@@ -31,7 +31,7 @@ DEFAULT_DB_PATH = Path(
 
 
 def load_students(path: Path) -> List[Dict[str, Any]]:
-    with path.open("r", encoding="utf-8") as handle:
+    with path.open("r", encoding="utf-8-sig") as handle:
         data = json.load(handle)
         if not isinstance(data, list):
             raise ValueError("Student data must be a JSON array.")
