@@ -188,6 +188,23 @@ body.js-enabled [data-reveal].is-visible {
     font-weight: 600;
 }
 
+.language-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    font-size: 0.85rem;
+}
+
+#google_translate_element select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+
 .main-nav {
     position: relative;
     display: flex;
