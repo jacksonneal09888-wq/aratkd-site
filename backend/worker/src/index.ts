@@ -1,6 +1,6 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
-import { sign, verify } from 'hono/jwt';
+import { sign, verify, type JWTPayload } from 'hono/jwt';
 
 interface Env {
   PORTAL_DB: D1Database;
@@ -10,13 +10,28 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
+const ALLOWED_METHODS = 'GET,POST,OPTIONS';
+const ALLOWED_HEADERS = 'Content-Type,Authorization,X-Admin-Key';
+
 app.use(
   '*',
   cors({
     origin: (origin) => origin ?? '*',
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
+    allowMethods: ALLOWED_METHODS.split(','),
+    allowHeaders: ALLOWED_HEADERS.split(','),
     maxAge: 86400
+  })
+);
+
+app.options('*', (c) =>
+  c.newResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': c.req.header('Origin') || '*',
+      'Access-Control-Allow-Methods': ALLOWED_METHODS,
+      'Access-Control-Allow-Headers': ALLOWED_HEADERS,
+      'Access-Control-Max-Age': '86400'
+    }
   })
 );
 
@@ -79,7 +94,14 @@ const issuePortalToken = async (studentId: string, env: Env) => {
   );
 };
 
-const authenticateRequest = async (c: any) => {
+type AuthResult =
+  | {
+      studentId: string;
+      claims: JWTPayload;
+    }
+  | { error: Response };
+
+const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthResult> => {
   const authHeader = c.req.header('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) {
     return { error: c.json({ error: 'Unauthorized' }, 401) };
