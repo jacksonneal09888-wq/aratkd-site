@@ -643,6 +643,9 @@ body.js-enabled [data-reveal].is-visible {
     object-position: 50% 35%;
     filter: contrast(1.04) saturate(1.02);
 }
+.profile-card__photo--fatima {
+    object-position: 50% 28%;
+}
 
 .profile-card--no-photo {
     padding-top: 2.5rem;

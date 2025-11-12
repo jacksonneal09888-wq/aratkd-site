@@ -117,7 +117,7 @@ def emit_d1_sql(roster: List[Dict[str, Any]], sql_path: Path, truncate: bool = F
         return str(value)
 
     now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
-    lines = ["BEGIN TRANSACTION;"]
+    lines = []
     if truncate:
         lines.append("DELETE FROM students;")
     for record in roster:
@@ -132,7 +132,6 @@ def emit_d1_sql(roster: List[Dict[str, Any]], sql_path: Path, truncate: bool = F
             " current_belt=excluded.current_belt,"
             " updated_at=excluded.updated_at;"
         )
-    lines.append("COMMIT;")
     sql_path.parent.mkdir(parents=True, exist_ok=True)
     sql_path.write_text("\n".join(lines), encoding="utf-8")
 
