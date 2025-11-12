@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 interface Env {
   PORTAL_DB: D1Database;
@@ -6,6 +7,16 @@ interface Env {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use(
+  '*',
+  cors({
+    origin: (origin) => origin ?? '*',
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
+    maxAge: 86400
+  })
+);
 
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
 
