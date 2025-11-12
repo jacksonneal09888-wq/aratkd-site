@@ -565,6 +565,11 @@ function recordPortalActivity(studentId, action = "login", extraPayload = {}) {
 
 function recordCertificateProgress(studentId, belt, certificate) {
     if (!studentId || !belt || !HAS_REMOTE_API) return Promise.resolve();
+    const token = portalState.sessionToken || readAuthToken();
+    if (!token) {
+        setStatus("Please sign in again before uploading certificates.");
+        return Promise.reject(new Error("Missing authentication token"));
+    }
     const url = buildApiUrl("/portal/progress");
     if (!url) return Promise.resolve();
     const payload = {
@@ -574,11 +579,9 @@ function recordCertificateProgress(studentId, belt, certificate) {
         uploadedAt: certificate.uploadedAt
     };
     const headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
     };
-    if (portalState.sessionToken) {
-        headers.Authorization = `Bearer ${portalState.sessionToken}`;
-    }
 
     return fetch(url, {
         method: "POST",
@@ -588,12 +591,25 @@ function recordCertificateProgress(studentId, belt, certificate) {
         credentials: "omit"
     })
         .then((response) => {
+            if (response.status === 401 || response.status === 403) {
+                const authError = new Error("Unauthorized");
+                authError.code = "UNAUTHORIZED";
+                throw authError;
+            }
             if (!response.ok) {
                 throw new Error(`Failed to store progress (${response.status})`);
             }
             return response.json();
         })
         .catch((error) => {
+            if (error?.code === "UNAUTHORIZED") {
+                portalState.sessionToken = null;
+                portalState.activeStudent = null;
+                clearSession();
+                togglePortal(false);
+                setStatus("Your session expired. Please sign in again.");
+                return;
+            }
             console.warn("recordCertificateProgress error:", error);
         });
 }

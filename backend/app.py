@@ -290,6 +290,7 @@ def get_portal_progress(student_id):
 
 
 @app.route("/portal/progress", methods=["POST"])
+@require_portal_auth
 def save_portal_progress():
     payload = request.get_json(silent=True) or {}
     student_id = (payload.get("studentId") or "").strip()
@@ -299,6 +300,10 @@ def save_portal_progress():
 
     if not student_id or not belt_slug:
         return jsonify({"error": "studentId and beltSlug are required"}), 400
+
+    token_student_id = (g.portal_claims.get("sub") or "").strip()
+    if not token_student_id or token_student_id.lower() != student_id.lower():
+        return jsonify({"error": "Forbidden"}), 403
 
     try:
         timestamp = datetime.fromisoformat(uploaded_at.replace("Z", "+00:00")) if uploaded_at else datetime.utcnow()
