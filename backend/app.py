@@ -23,7 +23,7 @@ ADMIN_PORTAL_KEY = os.getenv("ADMIN_PORTAL_KEY")
 STUDENTS_DATA_PATH = Path(
     os.getenv(
         "PORTAL_STUDENTS_PATH",
-        Path(__file__).resolve().parents[1] / "assets" / "data" / "students.json"
+        Path(__file__).resolve().parent / "data" / "students.json"
     )
 )
 JWT_SECRET = os.getenv("PORTAL_JWT_SECRET") or ADMIN_PORTAL_KEY or "change-me"
@@ -106,6 +106,16 @@ def find_student_record(student_id):
         if (entry.get("id") or "").strip().lower() == lookup:
             return entry
     return None
+
+
+def sanitize_student_record(student):
+    if not student:
+        return None
+    return {
+        "id": student.get("id"),
+        "name": student.get("name"),
+        "currentBelt": student.get("currentBelt")
+    }
 
 
 def issue_portal_token(student_id):
@@ -220,6 +230,7 @@ def record_portal_event():
     token = None
     student = None
     progress_snapshot = None
+    student_profile = None
 
     if is_login_attempt:
         if not birth_date:
@@ -240,6 +251,7 @@ def record_portal_event():
             return jsonify({"error": f"Failed to load progress: {error}"}), 500
 
         token = issue_portal_token(canonical_id)
+        student_profile = sanitize_student_record(student)
         progress_snapshot = {
             "records": records,
             "generatedAt": datetime.utcnow().isoformat(timespec="seconds") + "Z"
@@ -260,10 +272,7 @@ def record_portal_event():
     response_payload = {"ok": True, "recordedAt": timestamp}
     if token:
         response_payload["token"] = token
-        response_payload["student"] = {
-            "id": student.get("id"),
-            "name": student.get("name")
-        }
+        response_payload["student"] = student_profile
         response_payload["progress"] = progress_snapshot
 
     return jsonify(response_payload)
@@ -287,6 +296,20 @@ def get_portal_progress(student_id):
             "generatedAt": datetime.utcnow().isoformat(timespec="seconds") + "Z"
         }
     )
+
+
+@app.route("/portal/profile", methods=["GET"])
+@require_portal_auth
+def get_portal_profile():
+    student_id = (g.portal_claims.get("sub") or "").strip()
+    if not student_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    student = find_student_record(student_id)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    return jsonify({"student": sanitize_student_record(student)})
 
 
 @app.route("/portal/progress", methods=["POST"])

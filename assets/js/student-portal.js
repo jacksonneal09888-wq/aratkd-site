@@ -2,7 +2,8 @@ const STORAGE_KEYS = {
     progress: "araStudentProgress",
     certificates: "araStudentCertificates",
     session: "araStudentSession",
-    sessionToken: "araStudentSessionToken"
+    sessionToken: "araStudentSessionToken",
+    profile: "araStudentProfile"
 };
 
 const ADMIN_STORAGE_KEY = "araPortalAdminKey";
@@ -299,9 +300,8 @@ const portalEls = {
 console.log("portalEls:", portalEls); // Debugging line
 
 const portalState = {
-    students: [],
-    activeStudent: null,
-    isLoading: true,
+    activeStudent: readStoredStudentProfile(),
+    isLoading: false,
     progress: readStore(STORAGE_KEYS.progress),
     certificates: readStore(STORAGE_KEYS.certificates),
     sessionToken: readAuthToken(),
@@ -320,9 +320,12 @@ migrateLegacyCertificates();
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
     if (!IS_ADMIN_MODE) {
-        loadStudents();
-    } else {
-        portalState.isLoading = false;
+        if (HAS_REMOTE_API) {
+            attemptRestoreSession();
+        } else {
+            setStatus("Portal login is temporarily unavailable. Please contact the studio.", "error");
+            disableForm();
+        }
     }
 
     if (HAS_REMOTE_API) {
@@ -353,109 +356,67 @@ function attachHandlers() {
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
 }
 
-async function loadStudents() {
-    if (IS_ADMIN_MODE) {
-        portalState.isLoading = false;
-        return;
-    }
-    disableForm();
-    try {
-        const response = await fetch("/assets/data/students.json", { cache: "no-store" });
-        if (!response.ok) {
-            throw new Error("Could not load student roster.");
-        }
-        const data = await response.json();
-        portalState.students = Array.isArray(data) ? data : [];
-        portalState.isLoading = false;
-        enableForm();
-        attemptRestoreSession();
-    } catch (error) {
-        portalState.isLoading = false;
-        disableForm();
-        console.error(error);
-        setStatus("Student roster is unavailable. Please try again later.");
-    } finally {
-        portalState.isLoading = false; // Ensure isLoading is always set to false
-        enableForm(); // Ensure form is enabled even if loading fails
-    }
-}
-
 async function handleLogin(event) {
     event.preventDefault();
-    console.log("handleLogin: function triggered."); // Debugging line
+    if (!HAS_REMOTE_API) {
+        setStatus("Portal login is unavailable. Please contact the studio.");
+        return;
+    }
     if (portalState.isLoading) {
-        setStatus("Still loading student roster. Please wait a moment.");
-        console.log("handleLogin: portalState.isLoading is true, returning.");
+        setStatus("Already working on that request...");
         return;
     }
 
     const idValue = portalEls.studentId?.value.trim() ?? "";
     const dobValue = portalEls.studentDob?.value.trim() ?? "";
-    console.log(`handleLogin: idValue=${idValue}, dobValue=${dobValue}`); // Debugging line
 
     if (!idValue || !dobValue) {
         setStatus("Enter both your Student ID and birthdate.");
-        console.log("handleLogin: Missing ID or DOB."); // Debugging line
         return;
     }
 
-    const match = portalState.students.find(
-        (record) => record.id.toLowerCase() === idValue.toLowerCase()
-    );
-
-    if (!match) {
-        setStatus("We couldn't find that Student ID. Double-check with the office.");
-        console.log("handleLogin: No student match found."); // Debugging line
-        return;
-    }
-
-    if (match.birthDate !== dobValue) {
-        setStatus("That birthdate does not match our records.");
-        console.log("handleLogin: Birthdate mismatch."); // Debugging line
-        return;
-    }
-
-    if (!HAS_REMOTE_API) {
-        portalState.activeStudent = match;
-        persistSession(match.id);
-        portalEls.form?.reset();
-        setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
-        renderPortal();
-        return;
-    }
+    portalState.isLoading = true;
+    disableForm();
 
     try {
         setStatus("Signing you in...", "progress");
-        const loginResponse = await recordPortalActivity(match.id, "login", {
-            birthDate: dobValue
-        });
+        const loginResponse = await authenticateStudent(idValue, dobValue);
         const token = loginResponse?.token;
-        if (!token) {
+        const studentProfile = loginResponse?.student;
+        if (!token || !studentProfile) {
             throw new Error("Unable to authenticate with the portal.");
         }
 
         portalState.sessionToken = token;
-        persistSession(match.id);
+        portalState.activeStudent = studentProfile;
+        persistSession(studentProfile.id);
         persistAuthToken(token);
-        portalState.activeStudent = match;
+        persistStudentProfile(studentProfile);
         portalEls.form?.reset();
 
-        if (loginResponse?.progress?.records) {
-            applyServerProgressRecords(match, loginResponse.progress.records, {
+        if (Array.isArray(loginResponse?.progress?.records)) {
+            applyServerProgressRecords(studentProfile, loginResponse.progress.records, {
                 silent: true
             });
         }
 
-        setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
-        syncStudentProgress(match.id).finally(() => renderPortal());
+        setStatus(`Welcome back, ${studentProfile.name.split(" ")[0]}!`, "success");
+        await syncStudentProgress(studentProfile.id);
+        renderPortal();
     } catch (error) {
         console.error("handleLogin: Authentication failed.", error);
+        const message =
+            error?.code === "UNAUTHORIZED"
+                ? "We couldn't verify that Student ID and birthdate."
+                : error?.message || "Unable to sign in right now. Please try again shortly.";
+        setStatus(message);
         portalState.activeStudent = null;
         portalState.sessionToken = null;
         clearSession();
-        setStatus(
-            error?.message || "Unable to sign in right now. Please try again shortly."
-        );
+        togglePortal(false);
+    } finally {
+        portalState.isLoading = false;
+        enableForm();
     }
 }
 
@@ -467,36 +428,53 @@ function handleLogout() {
     setStatus("You have signed out. Come back soon!", "success");
 }
 
-function attemptRestoreSession() {
-    const savedId = readSession();
-    if (!savedId) return;
+async function attemptRestoreSession() {
+    if (!HAS_REMOTE_API) {
+        return;
+    }
 
-    const match = portalState.students.find(
-        (record) => record.id.toLowerCase() === savedId.toLowerCase()
-    );
-    if (!match) {
+    const savedId = readSession();
+    const token = portalState.sessionToken || readAuthToken();
+    if (!savedId || !token) {
         clearSession();
         return;
     }
 
-    if (HAS_REMOTE_API) {
-        const token = portalState.sessionToken || readAuthToken();
-        if (!token) {
+    portalState.sessionToken = token;
+    const storedProfile = readStoredStudentProfile();
+    if (
+        storedProfile &&
+        storedProfile.id &&
+        storedProfile.id.toLowerCase() === savedId.toLowerCase()
+    ) {
+        portalState.activeStudent = storedProfile;
+        renderPortal();
+    }
+
+    try {
+        const profile = await fetchStudentProfile();
+        if (!profile) {
             clearSession();
+            togglePortal(false);
             return;
         }
-        portalState.sessionToken = token;
-    }
 
-    portalState.activeStudent = match;
-    setStatus(`Welcome back, ${match.name.split(" ")[0]}!`, "success");
-
-    if (!HAS_REMOTE_API) {
+        portalState.activeStudent = profile;
+        persistStudentProfile(profile);
+        persistSession(profile.id);
         renderPortal();
-        return;
+        await syncStudentProgress(profile.id, { silent: true });
+    } catch (error) {
+        if (error?.code === "UNAUTHORIZED") {
+            portalState.sessionToken = null;
+            portalState.activeStudent = null;
+            clearSession();
+            togglePortal(false);
+            setStatus("Your session expired. Please sign in again.");
+        } else {
+            console.warn("attemptRestoreSession error:", error);
+        }
     }
-
-    syncStudentProgress(match.id, { silent: true }).finally(() => renderPortal());
 }
 
 function renderPortal() {
@@ -530,6 +508,81 @@ function renderPortal() {
     renderBeltGrid(student, unlockedIndex, awardedIndex);
     renderCertificateLog(student);
     toggleBeltTestForm(false); // Hide form on portal render
+}
+
+async function authenticateStudent(studentId, birthDate) {
+    const url = buildApiUrl("/portal/login-event");
+    if (!url) {
+        throw new Error("Portal login is unavailable.");
+    }
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            studentId,
+            birthDate,
+            action: "login",
+            actor: "student"
+        }),
+        mode: "cors",
+        credentials: "omit"
+    });
+
+    let data = null;
+    try {
+        data = await response.json();
+    } catch (error) {
+        console.warn("authenticateStudent: Non-JSON response", error);
+    }
+
+    if (!response.ok) {
+        const authError = new Error(data?.error || `Login failed (${response.status})`);
+        if (response.status === 401) {
+            authError.code = "UNAUTHORIZED";
+        }
+        throw authError;
+    }
+
+    return data;
+}
+
+async function fetchStudentProfile() {
+    if (!HAS_REMOTE_API) return null;
+    const token = portalState.sessionToken || readAuthToken();
+    if (!token) return null;
+    const url = buildApiUrl("/portal/profile");
+    if (!url) return null;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        mode: "cors",
+        credentials: "omit"
+    });
+
+    let data = null;
+    try {
+        data = await response.json();
+    } catch (error) {
+        console.warn("fetchStudentProfile: Non-JSON response", error);
+    }
+
+    if (response.status === 401 || response.status === 403) {
+        const error = new Error("Unauthorized");
+        error.code = "UNAUTHORIZED";
+        throw error;
+    }
+
+    if (!response.ok) {
+        throw new Error(data?.error || `Failed to load profile (${response.status})`);
+    }
+
+    return data?.student || null;
 }
 
 function recordPortalActivity(studentId, action = "login", extraPayload = {}) {
@@ -1205,7 +1258,7 @@ async function handleCertificateUpload(file, belt, beltIndex) {
         storeCertificate(studentId, payload);
 
         const nextUnlockIndex = beltIndex + 1;
-        updateProgress(studentId, nextUnlockIndex);
+        updateProgress(portalState.activeStudent, nextUnlockIndex);
         recordPortalActivity(studentId, `certificate:${belt.slug}`);
 
         const syncPromise = HAS_REMOTE_API
@@ -1291,14 +1344,12 @@ function ensureUnlockedIndex(student) {
     return normalized;
 }
 
-function updateProgress(studentId, unlockedIndex) {
+function updateProgress(student, unlockedIndex) {
+    if (!student) return;
     const cappedUnlock = Math.min(unlockedIndex, BELT_SEQUENCE.length - 1);
-    const student =
-        findStudentRecord(studentId) ??
-        (portalState.activeStudent?.id === studentId ? portalState.activeStudent : null);
     const awardedIndex = computeAwardedIndex(student, cappedUnlock);
 
-    portalState.progress[studentId] = {
+    portalState.progress[student.id] = {
         unlockedIndex: cappedUnlock,
         awardedIndex
     };
@@ -1557,6 +1608,7 @@ function clearSession() {
     } catch (error) {
         console.warn("Session storage is unavailable", error);
     }
+    clearStudentProfile();
     clearAuthToken();
 }
 
@@ -1566,6 +1618,36 @@ function readSession() {
     } catch (error) {
         console.warn("Session storage is unavailable", error);
         return null;
+    }
+}
+
+function persistStudentProfile(profile) {
+    if (!profile) {
+        clearStudentProfile();
+        return;
+    }
+    try {
+        sessionStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(profile));
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
+    }
+}
+
+function readStoredStudentProfile() {
+    try {
+        const raw = sessionStorage.getItem(STORAGE_KEYS.profile);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
+        return null;
+    }
+}
+
+function clearStudentProfile() {
+    try {
+        sessionStorage.removeItem(STORAGE_KEYS.profile);
+    } catch (error) {
+        console.warn("Session storage is unavailable", error);
     }
 }
 
@@ -1646,16 +1728,6 @@ function writeStore(key, value) {
         console.warn("Unable to save data", error);
         setStatus("Storage is full or disabled. Clear space and try again.");
     }
-}
-
-function findStudentRecord(studentId) {
-    if (!studentId) return null;
-    const normalizedId = studentId.toLowerCase();
-    return (
-        portalState.students.find(
-            (record) => record.id && record.id.toLowerCase() === normalizedId
-        ) ?? null
-    );
 }
 
 function computeAwardedIndex(student, unlockedIndex) {
