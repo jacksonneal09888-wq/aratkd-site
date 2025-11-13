@@ -2581,6 +2581,21 @@ body {
     color: rgba(255, 255, 255, 0.85);
 }
 
+.winter-games__qr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.winter-games__qr img {
+    width: 180px;
+    height: 180px;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.35);
+    background: #fff;
+}
+
 @media (max-width: 900px) {
     .winter-games {
         padding: 3rem 0;
