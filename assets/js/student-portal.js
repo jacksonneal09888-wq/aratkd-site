@@ -44,6 +44,30 @@ const ACCEPTED_TYPES = [
     "image/heif"
 ];
 
+const STRIPE_LABELS = {
+    poomsae: "Forms/Poomsae",
+    selfDefense: "Self-defense",
+    boardBreaking: "Board Breaking",
+    sparring: "Sparring"
+};
+
+const BELT_ATTENDANCE_TARGETS = {
+    default: { lessons: 25, percent: 0.7 },
+    white: { lessons: 25, percent: 0.7 },
+    "high-white": { lessons: 25, percent: 0.7 },
+    yellow: { lessons: 25, percent: 0.7 },
+    "high-yellow": { lessons: 25, percent: 0.7 },
+    green: { lessons: 25, percent: 0.7 },
+    "high-green": { lessons: 30, percent: 0.743 },
+    blue: { lessons: 30, percent: 0.743 },
+    "high-blue": { lessons: 32, percent: 0.761 },
+    red: { lessons: 42, percent: 0.848 },
+    "high-red": { lessons: 48, percent: 0.9 }
+};
+
+const READINESS_STORAGE_KEY = "araReadinessTracker";
+const ADMIN_VISIBILITY_KEY = "araAdminPanelVisible";
+
 const CERTIFICATE_DB_NAME = "araPortalCertificates";
 const CERTIFICATE_STORE_NAME = "certificates";
 
@@ -130,6 +154,90 @@ const certificateStorage = (() => {
         remove
     };
 })();
+
+function loadReadinessStore() {
+    if (typeof localStorage === "undefined") {
+        return {};
+    }
+    try {
+        const raw = localStorage.getItem(READINESS_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+        console.warn("Unable to read readiness tracker from storage.", error);
+        return {};
+    }
+}
+
+function persistReadinessStore() {
+    if (typeof localStorage === "undefined") {
+        return;
+    }
+    try {
+        localStorage.setItem(READINESS_STORAGE_KEY, JSON.stringify(portalState.readiness));
+    } catch (error) {
+        console.warn("Unable to persist readiness tracker.", error);
+    }
+}
+
+function getStripeTemplate(defaultValue = false) {
+    return {
+        poomsae: Boolean(defaultValue),
+        selfDefense: Boolean(defaultValue),
+        boardBreaking: Boolean(defaultValue),
+        sparring: Boolean(defaultValue)
+    };
+}
+
+function getReadinessEntry(studentId, beltSlug) {
+    if (!studentId || !beltSlug) {
+        return {
+            classesOffered: 0,
+            classesAttended: 0,
+            stripes: getStripeTemplate(),
+            updatedAt: null
+        };
+    }
+
+    const studentData = portalState.readiness[studentId] || {};
+    const entry = studentData[beltSlug];
+    if (!entry) {
+        return {
+            classesOffered: 0,
+            classesAttended: 0,
+            stripes: getStripeTemplate(),
+            updatedAt: null
+        };
+    }
+
+    return {
+        classesOffered: Number(entry.classesOffered) || 0,
+        classesAttended: Number(entry.classesAttended) || 0,
+        stripes: {
+            poomsae: Boolean(entry.stripes?.poomsae),
+            selfDefense: Boolean(entry.stripes?.selfDefense),
+            boardBreaking: Boolean(entry.stripes?.boardBreaking),
+            sparring: Boolean(entry.stripes?.sparring)
+        },
+        updatedAt: entry.updatedAt || null
+    };
+}
+
+function saveReadinessEntry(studentId, beltSlug, payload) {
+    if (!studentId || !beltSlug) return;
+    if (!portalState.readiness[studentId]) {
+        portalState.readiness[studentId] = {};
+    }
+    portalState.readiness[studentId][beltSlug] = {
+        classesOffered: Number(payload.classesOffered) || 0,
+        classesAttended: Number(payload.classesAttended) || 0,
+        stripes: {
+            ...getStripeTemplate(),
+            ...(payload.stripes || {})
+        },
+        updatedAt: payload.updatedAt || new Date().toISOString()
+    };
+    persistReadinessStore();
+}
 
 const CURRICULUM_PDF = "assets/materials/tkd-curriculum-aras-martial-arts.pdf";
 
@@ -294,7 +402,23 @@ const portalEls = {
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
     adminEventsList: document.getElementById("admin-events-list"),
-    adminRefresh: document.getElementById("admin-refresh")
+    adminRefresh: document.getElementById("admin-refresh"),
+    readinessWrapper: document.getElementById("portal-readiness"),
+    readinessTargetLabel: document.getElementById("readiness-target-label"),
+    readinessReadyPill: document.getElementById("readiness-ready-pill"),
+    readinessForm: document.getElementById("readiness-form"),
+    readinessClassesOffered: document.getElementById("readiness-classes-offered"),
+    readinessClassesAttended: document.getElementById("readiness-classes-attended"),
+    readinessStatus: document.getElementById("readiness-status"),
+    readinessChecklist: document.getElementById("readiness-checklist"),
+    readinessPercentDisplay: document.getElementById("readiness-percent-display"),
+    readinessLessonDisplay: document.getElementById("readiness-lesson-display"),
+    readinessStripeInputs: document.querySelectorAll("[data-stripe-field]"),
+    beltTestCard: document.getElementById("belt-test-card"),
+    beltTestHint: document.getElementById("belt-test-hint"),
+    adminSection: document.getElementById("portal-admin-section"),
+    adminGeneratedAt: document.getElementById("admin-generated-at"),
+    brandReveal: document.querySelector("[data-admin-reveal]")
 };
 
 console.log("portalEls:", portalEls); // Debugging line
@@ -305,6 +429,8 @@ const portalState = {
     progress: readStore(STORAGE_KEYS.progress),
     certificates: readStore(STORAGE_KEYS.certificates),
     sessionToken: readAuthToken(),
+    readiness: loadReadinessStore(),
+    currentReadiness: null,
     admin: {
         key: null,
         isLoading: false,
@@ -319,6 +445,7 @@ migrateLegacyCertificates();
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
+    setupAdminReveal();
     if (!IS_ADMIN_MODE) {
         if (HAS_REMOTE_API) {
             attemptRestoreSession();
@@ -350,7 +477,8 @@ function attachHandlers() {
             setStatus("Portal refreshed.", "success");
         }
     });
-    portalEls.beltTestApplicationBtn?.addEventListener("click", toggleBeltTestForm);
+    portalEls.readinessForm?.addEventListener("submit", handleReadinessSubmit);
+    portalEls.beltTestApplicationBtn?.addEventListener("click", handleBeltTestButton);
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminAuth);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
@@ -423,6 +551,7 @@ async function handleLogin(event) {
 function handleLogout() {
     portalState.activeStudent = null;
     portalState.sessionToken = null;
+    portalState.currentReadiness = null;
     clearSession();
     togglePortal(false);
     setStatus("You have signed out. Come back soon!", "success");
@@ -502,11 +631,13 @@ function renderPortal() {
 
     const hasNext =
         unlockedIndex > awardedIndex && unlockedIndex < BELT_SEQUENCE.length;
-    const nextBeltName = hasNext ? BELT_SEQUENCE[unlockedIndex]?.name : null;
-    portalEls.nextBelt.textContent = nextBeltName ?? "You're at the final belt!";
+    const nextBelt = hasNext ? BELT_SEQUENCE[unlockedIndex] : null;
+    portalEls.nextBelt.textContent = nextBelt?.name ?? "You're at the final belt!";
 
     renderBeltGrid(student, unlockedIndex, awardedIndex);
     renderCertificateLog(student);
+    const readinessState = renderReadinessCard(student, nextBelt);
+    updateBeltTestAvailability(nextBelt, readinessState);
     toggleBeltTestForm(false); // Hide form on portal render
 }
 
@@ -850,6 +981,57 @@ function attemptRestoreAdminSession() {
     }
 }
 
+function setupAdminReveal() {
+    if (!portalEls.adminSection) return;
+    if (shouldRevealAdminPanel()) {
+        revealAdminSection({ scroll: false });
+    }
+    const trigger = portalEls.brandReveal;
+    if (!trigger) return;
+    let tapCount = 0;
+    let resetTimer = null;
+    trigger.addEventListener("click", () => {
+        tapCount += 1;
+        if (tapCount >= 3) {
+            revealAdminSection({ scroll: true });
+            tapCount = 0;
+        }
+        clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(() => {
+            tapCount = 0;
+        }, 1200);
+    });
+}
+
+function shouldRevealAdminPanel() {
+    try {
+        if (sessionStorage.getItem(ADMIN_VISIBILITY_KEY) === "1") {
+            return true;
+        }
+    } catch (error) {
+        console.warn("Admin visibility session check failed:", error);
+    }
+    const params = new URLSearchParams(window.location.search);
+    return params.get("admin") === "1" || params.get("mode") === "admin";
+}
+
+function revealAdminSection(options = {}) {
+    if (!portalEls.adminSection) return;
+    if (!portalEls.adminSection.hidden && !options.force) {
+        return;
+    }
+    portalEls.adminSection.hidden = false;
+    document.body.dataset.portalMode = "admin";
+    try {
+        sessionStorage.setItem(ADMIN_VISIBILITY_KEY, "1");
+    } catch (error) {
+        console.warn("Unable to persist admin visibility flag.", error);
+    }
+    if (options.scroll !== false) {
+        portalEls.adminSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
 function loadAdminActivity(adminKey, options = {}) {
     const { silent = false } = options;
     if (!HAS_REMOTE_API) {
@@ -926,6 +1108,9 @@ function loadAdminActivity(adminKey, options = {}) {
             if (portalEls.adminDashboard) {
                 portalEls.adminDashboard.hidden = true;
             }
+            if (portalEls.adminGeneratedAt) {
+                portalEls.adminGeneratedAt.textContent = "—";
+            }
             try {
                 sessionStorage.removeItem(ADMIN_STORAGE_KEY);
             } catch (err) {
@@ -949,6 +1134,12 @@ function renderAdminDashboard() {
     }
 
     portalEls.adminDashboard.hidden = false;
+
+    if (portalEls.adminGeneratedAt) {
+        portalEls.adminGeneratedAt.textContent = portalState.admin.generatedAt
+            ? formatDateTime(portalState.admin.generatedAt)
+            : "—";
+    }
 
     const summaryBody = portalEls.adminSummaryBody;
     summaryBody.innerHTML = "";
@@ -1227,6 +1418,292 @@ function renderCertificateLog(student) {
     portalEls.certificateLog.append(list);
 }
 
+function renderReadinessCard(student, targetBelt) {
+    if (!portalEls.readinessWrapper) {
+        return null;
+    }
+
+    if (!student || !targetBelt) {
+        portalEls.readinessWrapper.hidden = true;
+        portalState.currentReadiness = null;
+        portalEls.readinessForm?.reset();
+        return null;
+    }
+
+    portalEls.readinessWrapper.hidden = false;
+
+    const readinessState = computeReadinessState(student, targetBelt);
+    portalState.currentReadiness = readinessState;
+    const entry = readinessState.entry;
+
+    if (portalEls.readinessTargetLabel) {
+        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: ${readinessState.goals.lessons} classes · ${formatPercent(readinessState.goals.percent)}`;
+    }
+
+    if (portalEls.readinessReadyPill) {
+        portalEls.readinessReadyPill.textContent = readinessState.isReady ? "Ready" : "Locked";
+        portalEls.readinessReadyPill.classList.toggle("is-ready", readinessState.isReady);
+        portalEls.readinessReadyPill.classList.toggle("is-missing", !readinessState.isReady);
+    }
+
+    if (portalEls.readinessClassesOffered) {
+        portalEls.readinessClassesOffered.value = entry.classesOffered ?? "";
+    }
+
+    if (portalEls.readinessClassesAttended) {
+        portalEls.readinessClassesAttended.value = entry.classesAttended ?? "";
+    }
+
+    if (portalEls.readinessStripeInputs?.length) {
+        portalEls.readinessStripeInputs.forEach((input) => {
+            const key = input.dataset.stripeField;
+            if (!key) return;
+            input.checked = Boolean(entry.stripes?.[key]);
+        });
+    }
+
+    if (portalEls.readinessPercentDisplay) {
+        portalEls.readinessPercentDisplay.textContent = entry.classesOffered
+            ? formatPercent(readinessState.attendancePercent)
+            : "0%";
+    }
+
+    if (portalEls.readinessLessonDisplay) {
+        portalEls.readinessLessonDisplay.textContent = `${entry.classesAttended} / ${readinessState.goals.lessons}`;
+    }
+
+    if (portalEls.readinessChecklist) {
+        portalEls.readinessChecklist.innerHTML = "";
+        const checklistItems = [
+            {
+                label: "Lesson Minimum",
+                value: `${entry.classesAttended}/${readinessState.goals.lessons}`,
+                met: readinessState.lessonsMet
+            },
+            {
+                label: "Attendance %",
+                value: entry.classesOffered
+                    ? `${formatPercent(readinessState.attendancePercent)} / ${formatPercent(readinessState.goals.percent)}`
+                    : "Add classes offered",
+                met: readinessState.percentMet
+            },
+            {
+                label: "All 4 Stripes",
+                value: `${readinessState.earnedStripes}/${Object.keys(STRIPE_LABELS).length}`,
+                met: readinessState.stripesMet
+            }
+        ];
+
+        checklistItems.forEach((item) => {
+            const li = document.createElement("li");
+            const labelSpan = document.createElement("span");
+            labelSpan.textContent = item.label;
+            const valueSpan = document.createElement("span");
+            valueSpan.className = "readiness-pill";
+            valueSpan.classList.toggle("is-ready", item.met);
+            valueSpan.classList.toggle("is-missing", !item.met);
+            valueSpan.textContent = item.value;
+            li.append(labelSpan, valueSpan);
+            portalEls.readinessChecklist.append(li);
+        });
+    }
+
+    if (portalEls.readinessStatus) {
+        if (readinessState.isReady) {
+            portalEls.readinessStatus.textContent = "All set! You can request your test date.";
+            portalEls.readinessStatus.classList.add("is-success");
+        } else {
+            const remaining = readinessState.missing.length
+                ? readinessState.missing.join(" · ")
+                : "Log your attendance details to unlock testing.";
+            portalEls.readinessStatus.textContent = `Still needed: ${remaining}`;
+            portalEls.readinessStatus.classList.remove("is-success");
+        }
+    }
+
+    return readinessState;
+}
+
+function updateBeltTestAvailability(targetBelt, readinessState) {
+    if (
+        !portalEls.beltTestCard ||
+        !portalEls.beltTestApplicationBtn ||
+        !portalEls.beltTestHint
+    ) {
+        return;
+    }
+
+    portalEls.beltTestCard.hidden = false;
+
+    if (!targetBelt) {
+        portalEls.beltTestApplicationBtn.disabled = true;
+        portalEls.beltTestHint.textContent =
+            "You already hold the highest rank on this tracker. No test request needed!";
+        toggleBeltTestForm(false);
+        return;
+    }
+
+    if (!readinessState) {
+        portalEls.beltTestApplicationBtn.disabled = true;
+        portalEls.beltTestHint.textContent =
+            "Log your attendance above to unlock belt test requests.";
+        toggleBeltTestForm(false);
+        return;
+    }
+
+    if (readinessState.isReady) {
+        portalEls.beltTestApplicationBtn.disabled = false;
+        portalEls.beltTestHint.textContent =
+            "All requirements met—request your belt test below.";
+    } else {
+        portalEls.beltTestApplicationBtn.disabled = true;
+        portalEls.beltTestHint.textContent = readinessState.missing.length
+            ? `Keep working: ${readinessState.missing.join(" · ")}`
+            : "Update the tracker to see what’s missing.";
+        toggleBeltTestForm(false);
+    }
+}
+
+function handleReadinessSubmit(event) {
+    event.preventDefault();
+    if (!portalState.activeStudent) {
+        setStatus("Log in to save your readiness tracker.");
+        return;
+    }
+
+    const student = portalState.activeStudent;
+    const targetBelt =
+        portalState.currentReadiness?.targetBelt || resolveUpcomingBelt(student);
+
+    if (!targetBelt) {
+        if (portalEls.readinessStatus) {
+            portalEls.readinessStatus.textContent =
+                "You're already at the final belt—no readiness tracking needed.";
+            portalEls.readinessStatus.classList.remove("is-success");
+        }
+        return;
+    }
+
+    const offered = Math.max(
+        0,
+        Number(portalEls.readinessClassesOffered?.value || 0)
+    );
+    const attended = Math.max(
+        0,
+        Number(portalEls.readinessClassesAttended?.value || 0)
+    );
+
+    const stripes = getStripeTemplate();
+    if (portalEls.readinessStripeInputs?.length) {
+        portalEls.readinessStripeInputs.forEach((input) => {
+            const key = input.dataset.stripeField;
+            if (!key) return;
+            stripes[key] = Boolean(input.checked);
+        });
+    }
+
+    saveReadinessEntry(student.id, targetBelt.slug, {
+        classesOffered: offered,
+        classesAttended: attended,
+        stripes
+    });
+
+    recordPortalActivity(student.id, "readiness:update", {
+        beltSlug: targetBelt.slug
+    });
+
+    const updatedState = renderReadinessCard(student, targetBelt);
+    updateBeltTestAvailability(targetBelt, updatedState);
+
+    if (portalEls.readinessStatus && updatedState) {
+        portalEls.readinessStatus.textContent = "Tracker saved!";
+        portalEls.readinessStatus.classList.add("is-success");
+    }
+}
+
+function handleBeltTestButton() {
+    if (!portalState.activeStudent) {
+        setStatus("Log in to request a belt test.");
+        return;
+    }
+    if (!portalState.currentReadiness || !portalState.currentReadiness.isReady) {
+        if (portalEls.beltTestHint) {
+            portalEls.beltTestHint.textContent =
+                "Finish the readiness tracker (classes, attendance, stripes) to unlock this form.";
+        }
+        return;
+    }
+    toggleBeltTestForm(true);
+}
+
+function resolveUpcomingBelt(student) {
+    if (!student) return null;
+    const unlockedIndex = ensureUnlockedIndex(student);
+    const progress = portalState.progress[student.id] ?? {};
+    const awardedIndex =
+        typeof progress.awardedIndex === "number"
+            ? progress.awardedIndex
+            : computeAwardedIndex(student, unlockedIndex);
+    if (unlockedIndex > awardedIndex && unlockedIndex < BELT_SEQUENCE.length) {
+        return BELT_SEQUENCE[unlockedIndex];
+    }
+    return null;
+}
+
+function computeReadinessState(student, targetBelt) {
+    if (!student || !targetBelt) {
+        return null;
+    }
+
+    const entry = getReadinessEntry(student.id, targetBelt.slug);
+    const goals = resolveAttendanceTargets(targetBelt.slug);
+    const attendancePercent =
+        entry.classesOffered > 0 ? entry.classesAttended / entry.classesOffered : 0;
+    const lessonsMet = entry.classesAttended >= goals.lessons;
+    const percentMet = entry.classesOffered > 0 && attendancePercent >= goals.percent;
+    const stripes = entry.stripes || getStripeTemplate();
+    const earnedStripes = Object.values(stripes).filter(Boolean).length;
+    const stripesMet = earnedStripes === Object.keys(STRIPE_LABELS).length;
+
+    const missing = [];
+    if (!lessonsMet) {
+        const diff = Math.max(0, goals.lessons - entry.classesAttended);
+        missing.push(diff ? `${diff} more classes` : "Log class attendance");
+    }
+    if (!percentMet) {
+        missing.push(
+            entry.classesOffered
+                ? `Attendance ${formatPercent(attendancePercent)} / ${formatPercent(goals.percent)}`
+                : "Add classes offered to calculate attendance %"
+        );
+    }
+    if (!stripesMet) {
+        const needed = Object.entries(stripes)
+            .filter(([, complete]) => !complete)
+            .map(([key]) => STRIPE_LABELS[key]);
+        if (needed.length) {
+            missing.push(`Stripes: ${needed.join(", ")}`);
+        }
+    }
+
+    return {
+        targetBelt,
+        entry,
+        goals,
+        attendancePercent,
+        lessonsMet,
+        percentMet,
+        stripesMet,
+        earnedStripes,
+        missing,
+        isReady: lessonsMet && percentMet && stripesMet
+    };
+}
+
+function resolveAttendanceTargets(slug) {
+    return BELT_ATTENDANCE_TARGETS[slug] || BELT_ATTENDANCE_TARGETS.default;
+}
+
 async function handleCertificateUpload(file, belt, beltIndex) {
     if (!portalState.activeStudent) return;
 
@@ -1455,6 +1932,18 @@ function togglePortal(show) {
     if (show) {
         // Scroll to the portal-app section after successful login
         portalEls.app?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+        if (portalEls.readinessWrapper) {
+            portalEls.readinessWrapper.hidden = true;
+        }
+        if (portalEls.beltTestCard) {
+            portalEls.beltTestCard.hidden = true;
+        }
+        if (portalEls.beltTestForm) {
+            portalEls.beltTestForm.hidden = true;
+            portalEls.beltTestForm.reset();
+        }
+        portalState.currentReadiness = null;
     }
 }
 
@@ -1485,6 +1974,14 @@ function formatDate(isoString) {
         month: "short",
         day: "numeric"
     });
+}
+
+function formatPercent(value, decimals = 1) {
+    if (!Number.isFinite(value)) {
+        return "0%";
+    }
+    const percentage = value * 100;
+    return `${percentage.toFixed(decimals)}%`;
 }
 
 function formatDateTime(isoString) {
@@ -1554,6 +2051,13 @@ async function handleBeltTestApplication(event) {
         return;
     }
 
+    if (!portalState.currentReadiness || !portalState.currentReadiness.isReady) {
+        portalEls.beltTestStatus.textContent =
+            "Finish the readiness tracker before submitting your test request.";
+        portalEls.beltTestStatus.classList.remove("is-success");
+        return;
+    }
+
     const form = event.target;
     const formData = new FormData(form);
     const studentName = formData.get("studentName");
@@ -1583,6 +2087,9 @@ async function handleBeltTestApplication(event) {
             portalEls.beltTestStatus.classList.add("is-success");
             form.reset();
             toggleBeltTestForm(false);
+            recordPortalActivity(studentId, "belt-test-request", {
+                beltSlug: portalState.currentReadiness?.targetBelt?.slug || desiredBelt
+            });
         } else {
             portalEls.beltTestStatus.textContent = "There was an error submitting your application. Please try again.";
             portalEls.beltTestStatus.classList.remove("is-success");

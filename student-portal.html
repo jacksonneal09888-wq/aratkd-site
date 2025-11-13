@@ -13,7 +13,7 @@
 <body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <header class="site-header">
         <div class="container">
-            <div class="brand">
+            <div class="brand" data-admin-reveal="true">
                 <a href="index.html#top" class="brand-link">
                     <span class="brand-mark">ARA</span>
                     <span class="brand-name">Martial Arts</span>
@@ -139,6 +139,98 @@
                     </div>
                     <div class="belt-grid" id="belt-grid" aria-live="polite"></div>
                     <div class="certificate-log" id="certificate-log" aria-live="polite"></div>
+                    <div class="portal-readiness-grid" id="portal-readiness" hidden>
+                        <article class="portal-card readiness-card" id="readiness-card">
+                            <div class="readiness-head">
+                                <div>
+                                    <h3>Testing Readiness Tracker</h3>
+                                    <p id="readiness-target-label" class="readiness-target">Next goal: —</p>
+                                </div>
+                                <span class="readiness-pill" id="readiness-ready-pill">Locked</span>
+                            </div>
+                            <form id="readiness-form" class="readiness-form" novalidate>
+                                <label for="readiness-classes-offered">Classes Offered Since Last Test</label>
+                                <input type="number" min="0" inputmode="numeric" id="readiness-classes-offered" name="classesOffered" placeholder="e.g. 36">
+
+                                <label for="readiness-classes-attended">Classes Attended</label>
+                                <input type="number" min="0" inputmode="numeric" id="readiness-classes-attended" name="classesAttended" placeholder="e.g. 31">
+
+                                <fieldset class="stripe-checklist">
+                                    <legend>Stripe Sign-Offs</legend>
+                                    <label>
+                                        <input type="checkbox" id="stripe-poomsae" data-stripe-field="poomsae">
+                                        Forms / Poomsae stripe
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" id="stripe-self-defense" data-stripe-field="selfDefense">
+                                        Self-defense stripe
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" id="stripe-board-breaking" data-stripe-field="boardBreaking">
+                                        Board breaking stripe
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" id="stripe-sparring" data-stripe-field="sparring">
+                                        Sparring stripe
+                                    </label>
+                                </fieldset>
+                                <button type="submit" class="secondary-btn">Save Tracker</button>
+                                <p class="form-status" id="readiness-status" aria-live="polite"></p>
+                            </form>
+
+                            <div class="readiness-summary">
+                                <div class="readiness-metrics">
+                                    <p><strong>Attendance:</strong> <span id="readiness-percent-display">0%</span></p>
+                                    <p><strong>Classes Logged:</strong> <span id="readiness-lesson-display">0 / 0</span></p>
+                                </div>
+                                <ul class="readiness-checklist" id="readiness-checklist">
+                                    <li>
+                                        <span>Lesson Minimum</span>
+                                        <span class="readiness-pill">—</span>
+                                    </li>
+                                    <li>
+                                        <span>Attendance %</span>
+                                        <span class="readiness-pill">—</span>
+                                    </li>
+                                    <li>
+                                        <span>All 4 Stripes</span>
+                                        <span class="readiness-pill">—</span>
+                                    </li>
+                                </ul>
+                                <p class="readiness-note">
+                                    Need the full policy? <a href="assets/materials/belt-attendance-readiness.md" target="_blank" rel="noopener">Download the attendance guide</a>.
+                                </p>
+                            </div>
+                        </article>
+                        <article class="portal-card belt-test-card" id="belt-test-card" hidden>
+                            <h3>Apply for Belt Test</h3>
+                            <p class="belt-test-hint" id="belt-test-hint" aria-live="polite">Log attendance to unlock test requests.</p>
+                            <button type="button" class="cta-btn" id="belt-test-application-btn" disabled>Request Test Review</button>
+                            <form class="belt-test-form" id="belt-test-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com" hidden>
+                                <label for="test-student-name">Student Name</label>
+                                <input type="text" id="test-student-name" name="studentName" required>
+
+                                <label for="test-student-id">Student ID</label>
+                                <input type="text" id="test-student-id" name="studentId" required readonly>
+
+                                <label for="current-belt">Current Belt</label>
+                                <input type="text" id="current-belt" name="currentBelt" required readonly>
+
+                                <label for="desired-belt">Desired Belt</label>
+                                <input type="text" id="desired-belt" name="desiredBelt" required readonly>
+
+                                <label for="test-date">Preferred Test Date</label>
+                                <input type="date" id="test-date" name="preferredTestDate" required>
+
+                                <label for="test-message">Message for Master Ara (optional)</label>
+                                <textarea id="test-message" name="message" rows="4" placeholder="Anything we should know before the test?"></textarea>
+
+                                <input type="hidden" name="_subject" value="Ara TKD Belt Test Request">
+                                <button type="submit" class="cta-btn">Send Application</button>
+                                <p class="form-status" id="belt-test-status" aria-live="polite"></p>
+                            </form>
+                        </article>
+                    </div>
                 </div>
                 <div class="portal-support">
                     <div class="support-card">
@@ -258,6 +350,55 @@
                         <summary>What happens after I submit a belt test request?</summary>
                         <p>Instructors review submissions weekly. Expect a confirmation email with prep tips and your scheduled test date.</p>
                     </details>
+                </div>
+            </div>
+        </section>
+
+        <section class="section portal-admin" id="portal-admin-section" hidden>
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Instructor Access</p>
+                    <h2>Portal Activity Dashboard</h2>
+                    <p>Review login streaks, certificate uploads, and belt awards in one place. Triple-tap the Ara wordmark to reveal this panel.</p>
+                </div>
+                <form class="admin-auth" id="admin-auth-form" autocomplete="off">
+                    <label for="admin-key">Admin Key</label>
+                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter master key" required>
+                    <button type="submit" class="cta-btn">Unlock Dashboard</button>
+                    <p class="form-status" id="admin-status" aria-live="polite"></p>
+                </form>
+                <div class="admin-dashboard" id="admin-dashboard" hidden>
+                    <div class="admin-summary">
+                        <div class="admin-summary__header">
+                            <h3>Usage Overview</h3>
+                            <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                        </div>
+                        <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table" aria-label="Portal usage summary">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Student ID</th>
+                                        <th scope="col">Total Events</th>
+                                        <th scope="col">Logins</th>
+                                        <th scope="col">Latest Belt</th>
+                                        <th scope="col">Last Activity</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-summary-body">
+                                    <tr>
+                                        <td colspan="5">Unlock the dashboard to load analytics.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="admin-events">
+                        <h3>Recent Portal Events</h3>
+                        <ul class="admin-event-list" id="admin-events-list">
+                            <li>No events yet.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>

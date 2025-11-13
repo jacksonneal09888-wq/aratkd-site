@@ -1717,6 +1717,166 @@ body {
     margin-top: 2.5rem;
 }
 
+.portal-readiness-grid {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.readiness-card,
+.belt-test-card {
+    background: #fff;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    box-shadow: 0 12px 24px rgba(8, 9, 10, 0.08);
+}
+
+.readiness-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.readiness-target {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--color-muted);
+}
+
+.readiness-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: rgba(8, 9, 10, 0.08);
+    color: rgba(8, 9, 10, 0.7);
+}
+
+.readiness-pill.is-ready {
+    background: rgba(30, 134, 80, 0.15);
+    color: #1e8650;
+}
+
+.readiness-pill.is-missing {
+    background: rgba(216, 31, 38, 0.15);
+    color: var(--color-primary);
+}
+
+.readiness-form {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.readiness-form input[type="number"] {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(8, 9, 10, 0.12);
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.readiness-form input[type="number"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.15);
+    outline: none;
+}
+
+.stripe-checklist {
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.stripe-checklist legend {
+    font-weight: 700;
+    padding: 0 0.35rem;
+    color: rgba(8, 9, 10, 0.7);
+}
+
+.stripe-checklist label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.stripe-checklist input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.readiness-summary {
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(8, 9, 10, 0.08);
+    padding-top: 1.25rem;
+}
+
+.readiness-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.95rem;
+}
+
+.readiness-metrics strong {
+    color: rgba(8, 9, 10, 0.7);
+}
+
+.readiness-checklist {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.readiness-checklist li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    background: rgba(8, 9, 10, 0.02);
+    font-weight: 600;
+}
+
+.readiness-checklist .readiness-pill {
+    margin-left: 1rem;
+}
+
+.readiness-note {
+    font-size: 0.9rem;
+    color: rgba(8, 9, 10, 0.7);
+    margin: 0.75rem 0 0;
+}
+
+.belt-test-card .cta-btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.belt-test-card .belt-test-form {
+    margin-top: 1.25rem;
+}
+
+.belt-test-hint {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    min-height: 1.4rem;
+}
+
 .portal-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -2287,6 +2447,24 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(8, 9, 10, 0.55);
+}
+
+.admin-summary__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.admin-generated {
+    font-size: 0.85rem;
+    color: rgba(8, 9, 10, 0.6);
+    margin: 0 0 1rem;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
 }
 
 .portal-reminders {
