@@ -1,57 +1,66 @@
-# Belt Attendance Readiness
+# Belt Attendance Guide (Parent Edition)
 
-Lesson minimums are copied directly from the official curriculum packet (`assets/materials/tkd-curriculum-aras-martial-arts.pdf`). The goal below is to express those lesson counts as an attendance percentage that families can track between tests.
+Keep it simple: before requesting a test, make sure **two numbers** and **four stripes** are locked in.
 
-## Readiness Formula
+## Step 1 · Track Lessons & Attendance
 
-- `lessons_required` = minimum classes listed for the belt in the curriculum.
-- `min_lessons` = 25 (White–Green belts), `max_lessons` = 48 (High Red Belt).
-- `target_attendance` is scaled from 70 % to 90 % as lesson counts increase:
+1. **Count classes offered** since the last test cycle (example: 12 weeks × 3 classes/week = 36).
+2. **Count classes attended** during that same window.
+3. Attendance % = `classes_attended ÷ classes_offered`.
+
+> Every belt also lists a minimum number of lessons. That number comes straight from the printed curriculum packet.
+
+## Step 2 · Hit the Numbers
+
+- `lessons_required` = minimum classes for that belt (see table).
+- `target_attendance` scales from **70 %** up to **90 %** as lesson counts climb.
 
 ```
-target_attendance(belt) = clamp(
-    0.70 + (lessons_required - min_lessons) / (max_lessons - min_lessons) * 0.20,
+target_attendance = clamp(
+    0.70 + (lessons_required - 25) / (48 - 25) * 0.20,
     0.70,
     0.90
 )
 ```
 
-- Parents calculate their child’s current attendance as `classes_attended ÷ classes_offered_since_last_test`.
-- A student is ready to test once ALL conditions are true:
-  1. `classes_attended ≥ lessons_required`
-  2. `attendance_percent ≥ target_attendance(belt)`
-  3. All four stripes (Forms/Poomsae, Self-Defense, Board Breaking, Sparring) are signed off for the current belt
+> Using an older Red Belt sheet that says 38 lessons? Plug “38” into the same formula and you’ll land between High Blue and Red expectations.
 
-> If you still use the older red-belt sheet that lists 38 lessons, plug that number into the same formula—the resulting target percentage will fall between High Blue and Red Belt in the table below.
+### Minimums by Belt
 
-## Belt Targets
-
-| Belt | Min. Lessons | Target Attendance |
+| Belt | Lessons | Attendance Target |
 | --- | ---: | ---: |
-| White Belt | 25 | 70.0 % |
-| High White Belt | 25 | 70.0 % |
-| Yellow Belt | 25 | 70.0 % |
-| High Yellow Belt | 25 | 70.0 % |
-| Green Belt | 25 | 70.0 % |
-| High Green Belt | 30 | 74.3 % |
-| Blue Belt | 30 | 74.3 % |
-| High Blue Belt | 32 | 76.1 % |
-| Red Belt | 42 | 84.8 % |
-| High Red Belt | 48 | 90.0 % |
+| **White** | 25 | 70 % |
+| **High White** | 25 | 70 % |
+| **Yellow** | 25 | 70 % |
+| **High Yellow** | 25 | 70 % |
+| **Green** | 25 | 70 % |
+| **High Green** | 30 | 74 % |
+| **Blue** | 30 | 74 % |
+| **High Blue** | 32 | 76 % |
+| **Red** | 42 | 85 % |
+| **High Red** | 48 | 90 % |
 
-### Example For Families
+## Step 3 · Earn All Four Stripes
 
-1. Count how many regular classes were available since the last test (e.g., 12 weeks × 3 classes/week = 36).
-2. Count attended classes (e.g., 31).
-3. Attendance % = 31 ÷ 36 ≈ 86 %.
-4. A Red Belt needs 42 classes AND ≥ 84.8 % attendance, so in this example the student still needs 11 more classes before requesting a test date.
+1. Forms / Poomsae
+2. Self-defense
+3. Board breaking
+4. Sparring
 
-## Student Portal Integration
+When **lessons ≥ minimum**, **attendance ≥ target**, and **all four stripes** are signed off, the student is ready to hit the “Request Test” button in the portal.
 
-This checklist will power the “Apply for Belt Test” flow inside the student portal. The portal logic will require:
+### Quick Example
 
-- Stored attendance % ≥ target for the student’s belt.
-- Logged classes ≥ the raw lesson minimum.
-- Digital confirmations for all four stripes (uploaded certificates or instructor sign-offs).
+- Offered: 36 classes · Attended: 31 → Attendance = 86 %.
+- Belt goal: Red → Need 42 lessons + ≥ 84.8 %.
+- Result: Student still needs 11 more lessons before requesting a date.
 
-Once those three checks pass, the “Request Test” button becomes available. Until then, the portal will show what is still missing so families know exactly what to work on.
+### In the Student Portal
+
+The new “Testing Readiness Tracker” lets families log:
+
+- Classes offered & attended (calculates attendance automatically)
+- Stripe sign-offs
+- Belt-specific targets pulled from this guide
+
+The **Request Test** button unlocks only after the tracker shows **Ready**. Until then, it lists what’s missing so students know exactly what to work on.

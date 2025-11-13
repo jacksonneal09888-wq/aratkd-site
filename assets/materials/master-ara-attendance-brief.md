@@ -7,7 +7,8 @@
 - Locked in a formula that scales from 70 % (25 lessons) up to 90 % (48 lessons) and still works if the red-belt sheet uses 38 lessons.
 - Documented that every student must (a) hit the minimum lesson count, (b) meet the attendance percentage, and (c) collect all four stripes (Forms, Self-Defense, Board Breaking, Sparring) before testing.
 - Wired the student portal: families log classes offered/attended + stripe sign-offs, and the “Request Test” button stays disabled until the tracker shows 100% readiness.
-- Added a hidden-in-plain-sight admin dashboard (triple-tap the Ara wordmark) so you can log in with the master key and see login counts, recent events, and the last belt upload per student.
+- Added a visible “Master Ara” login card (username: MasterAra · password: AraTKD) so you can sign in directly on the page and see login counts, recent events, and the last belt upload per student.
+- Published a parent-friendly PDF version of the attendance guide (`assets/materials/belt-attendance-guide.pdf`) and linked it inside the portal.
 
 ## Why It Matters
 - Gives families a single sheet to track progress between test cycles, reducing surprise “not ready” conversations.

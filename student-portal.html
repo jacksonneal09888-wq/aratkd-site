@@ -13,7 +13,7 @@
 <body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <header class="site-header">
         <div class="container">
-            <div class="brand" data-admin-reveal="true">
+            <div class="brand">
                 <a href="index.html#top" class="brand-link">
                     <span class="brand-mark">ARA</span>
                     <span class="brand-name">Martial Arts</span>
@@ -198,7 +198,10 @@
                                     </li>
                                 </ul>
                                 <p class="readiness-note">
-                                    Need the full policy? <a href="assets/materials/belt-attendance-readiness.md" target="_blank" rel="noopener">Download the attendance guide</a>.
+                                    <strong>Need the full policy?</strong>
+                                    <a class="readiness-download" href="assets/materials/belt-attendance-guide.pdf" target="_blank" rel="noopener">
+                                        Download the Attendance Guide (PDF)
+                                    </a>
                                 </p>
                             </div>
                         </article>
@@ -354,50 +357,58 @@
             </div>
         </section>
 
-        <section class="section portal-admin" id="portal-admin-section" hidden>
+        <section class="section portal-admin" id="portal-admin-section">
             <div class="container">
                 <div class="section-heading">
                     <p class="eyebrow">Instructor Access</p>
-                    <h2>Portal Activity Dashboard</h2>
-                    <p>Review login streaks, certificate uploads, and belt awards in one place. Triple-tap the Ara wordmark to reveal this panel.</p>
+                    <h2>Master Ara Dashboard</h2>
+                    <p>Sign in below to see student login streaks, certificate uploads, and belt activity in real time.</p>
                 </div>
-                <form class="admin-auth" id="admin-auth-form" autocomplete="off">
-                    <label for="admin-key">Admin Key</label>
-                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter master key" required>
-                    <button type="submit" class="cta-btn">Unlock Dashboard</button>
-                    <p class="form-status" id="admin-status" aria-live="polite"></p>
-                </form>
-                <div class="admin-dashboard" id="admin-dashboard" hidden>
-                    <div class="admin-summary">
-                        <div class="admin-summary__header">
-                            <h3>Usage Overview</h3>
-                            <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                <div class="admin-panel">
+                    <form class="admin-auth" id="admin-auth-form" autocomplete="off">
+                        <div>
+                            <label for="admin-username">Username</label>
+                            <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" required>
                         </div>
-                        <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
-                        <div class="admin-table-wrap">
-                            <table class="admin-table" aria-label="Portal usage summary">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Student ID</th>
-                                        <th scope="col">Total Events</th>
-                                        <th scope="col">Logins</th>
-                                        <th scope="col">Latest Belt</th>
-                                        <th scope="col">Last Activity</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-summary-body">
-                                    <tr>
-                                        <td colspan="5">Unlock the dashboard to load analytics.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div>
+                            <label for="admin-password">Password</label>
+                            <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" required>
                         </div>
-                    </div>
-                    <div class="admin-events">
-                        <h3>Recent Portal Events</h3>
-                        <ul class="admin-event-list" id="admin-events-list">
-                            <li>No events yet.</li>
-                        </ul>
+                        <button type="submit" class="cta-btn">Sign In</button>
+                        <p class="form-status" id="admin-status" aria-live="polite">Use your MasterAra credentials.</p>
+                    </form>
+                    <div class="admin-dashboard" id="admin-dashboard" hidden>
+                        <div class="admin-summary">
+                            <div class="admin-summary__header">
+                                <h3>Usage Overview</h3>
+                                <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                            </div>
+                            <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Portal usage summary">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Student ID</th>
+                                            <th scope="col">Total Events</th>
+                                            <th scope="col">Logins</th>
+                                            <th scope="col">Latest Belt</th>
+                                            <th scope="col">Last Activity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-summary-body">
+                                        <tr>
+                                            <td colspan="5">Sign in to load analytics.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="admin-events">
+                            <h3>Recent Portal Events</h3>
+                            <ul class="admin-event-list" id="admin-events-list">
+                                <li>No events yet.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

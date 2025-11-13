@@ -1861,6 +1861,22 @@ body {
     margin: 0.75rem 0 0;
 }
 
+.readiness-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-primary);
+}
+
+.readiness-download::after {
+    content: "⇩";
+    font-size: 1rem;
+}
+
 .belt-test-card .cta-btn[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
@@ -2354,12 +2370,27 @@ body {
     background: #fff;
 }
 
+.admin-panel {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+    .admin-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
 .admin-auth {
     display: grid;
-    grid-template-columns: minmax(0, 320px);
-    gap: 0.75rem;
-    margin: 0 auto 2rem;
-    max-width: 420px;
+    gap: 0.85rem;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    box-shadow: 0 1rem 2rem rgba(8, 9, 10, 0.08);
+    background: var(--color-light);
 }
 
 .admin-auth label {

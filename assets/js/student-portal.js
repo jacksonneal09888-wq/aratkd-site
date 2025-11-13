@@ -44,6 +44,10 @@ const ACCEPTED_TYPES = [
     "image/heif"
 ];
 
+const ADMIN_MASTER_USERNAME = "MasterAra";
+const ADMIN_MASTER_PASSWORD = "AraTKD";
+const ADMIN_STATIC_KEY = "AraTKD";
+
 const STRIPE_LABELS = {
     poomsae: "Forms/Poomsae",
     selfDefense: "Self-defense",
@@ -66,7 +70,6 @@ const BELT_ATTENDANCE_TARGETS = {
 };
 
 const READINESS_STORAGE_KEY = "araReadinessTracker";
-const ADMIN_VISIBILITY_KEY = "araAdminPanelVisible";
 
 const CERTIFICATE_DB_NAME = "araPortalCertificates";
 const CERTIFICATE_STORE_NAME = "certificates";
@@ -397,7 +400,8 @@ const portalEls = {
     testDate: document.getElementById("test-date"),
     beltTestStatus: document.getElementById("belt-test-status"),
     adminForm: document.getElementById("admin-auth-form"),
-    adminKeyInput: document.getElementById("admin-key"),
+    adminUsername: document.getElementById("admin-username"),
+    adminPassword: document.getElementById("admin-password"),
     adminStatus: document.getElementById("admin-status"),
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
@@ -417,8 +421,7 @@ const portalEls = {
     beltTestCard: document.getElementById("belt-test-card"),
     beltTestHint: document.getElementById("belt-test-hint"),
     adminSection: document.getElementById("portal-admin-section"),
-    adminGeneratedAt: document.getElementById("admin-generated-at"),
-    brandReveal: document.querySelector("[data-admin-reveal]")
+    adminGeneratedAt: document.getElementById("admin-generated-at")
 };
 
 console.log("portalEls:", portalEls); // Debugging line
@@ -436,7 +439,8 @@ const portalState = {
         isLoading: false,
         summary: [],
         events: [],
-        generatedAt: null
+        generatedAt: null,
+        isAuthorized: false
     }
 };
 
@@ -445,7 +449,6 @@ migrateLegacyCertificates();
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
-    setupAdminReveal();
     if (!IS_ADMIN_MODE) {
         if (HAS_REMOTE_API) {
             attemptRestoreSession();
@@ -480,7 +483,7 @@ function attachHandlers() {
     portalEls.readinessForm?.addEventListener("submit", handleReadinessSubmit);
     portalEls.beltTestApplicationBtn?.addEventListener("click", handleBeltTestButton);
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
-    portalEls.adminForm?.addEventListener("submit", handleAdminAuth);
+    portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
 }
 
@@ -927,24 +930,34 @@ function applyServerProgressRecords(student, records, options = {}) {
     }
 }
 
-function handleAdminAuth(event) {
+function handleAdminLogin(event) {
     event.preventDefault();
-    if (!portalEls.adminKeyInput) return;
+    if (!portalEls.adminUsername || !portalEls.adminPassword) return;
 
     if (!HAS_REMOTE_API) {
         setAdminStatus("Connect the portal API before using admin tools.");
         return;
     }
-    const key = portalEls.adminKeyInput.value.trim();
 
-    if (!key) {
-        setAdminStatus("Enter the admin key to continue.");
+    const username = portalEls.adminUsername.value.trim();
+    const password = portalEls.adminPassword.value.trim();
+
+    if (username !== ADMIN_MASTER_USERNAME || password !== ADMIN_MASTER_PASSWORD) {
+        setAdminStatus("Incorrect username or password.");
         return;
+    }
+
+    portalState.admin.isAuthorized = true;
+    portalState.admin.key = ADMIN_STATIC_KEY;
+    try {
+        sessionStorage.setItem(ADMIN_STORAGE_KEY, "authorized");
+    } catch (error) {
+        console.warn("Unable to persist admin session:", error);
     }
 
     setAdminStatus("Loading activity...", "progress");
     setAdminLoadingState(true);
-    loadAdminActivity(key);
+    loadAdminActivity(ADMIN_STATIC_KEY);
 }
 
 function handleAdminRefresh() {
@@ -952,8 +965,8 @@ function handleAdminRefresh() {
         setAdminStatus("Connect the portal API before using admin tools.");
         return;
     }
-    if (!portalState.admin.key) {
-        setAdminStatus("Enter the admin key to refresh data.");
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in as Master Ara to refresh data.");
         return;
     }
     if (portalState.admin.isLoading) {
@@ -961,7 +974,7 @@ function handleAdminRefresh() {
     }
     setAdminStatus("Refreshing activity...", "progress");
     setAdminLoadingState(true);
-    loadAdminActivity(portalState.admin.key);
+    loadAdminActivity(ADMIN_STATIC_KEY);
 }
 
 function attemptRestoreAdminSession() {
@@ -970,65 +983,13 @@ function attemptRestoreAdminSession() {
     }
     try {
         const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
-        if (stored) {
-            if (portalEls.adminKeyInput) {
-                portalEls.adminKeyInput.value = stored;
-            }
-            loadAdminActivity(stored, { silent: true });
+        if (stored === "authorized") {
+            portalState.admin.isAuthorized = true;
+            portalState.admin.key = ADMIN_STATIC_KEY;
+            loadAdminActivity(ADMIN_STATIC_KEY, { silent: true });
         }
     } catch (error) {
         console.warn("Unable to restore admin session:", error);
-    }
-}
-
-function setupAdminReveal() {
-    if (!portalEls.adminSection) return;
-    if (shouldRevealAdminPanel()) {
-        revealAdminSection({ scroll: false });
-    }
-    const trigger = portalEls.brandReveal;
-    if (!trigger) return;
-    let tapCount = 0;
-    let resetTimer = null;
-    trigger.addEventListener("click", () => {
-        tapCount += 1;
-        if (tapCount >= 3) {
-            revealAdminSection({ scroll: true });
-            tapCount = 0;
-        }
-        clearTimeout(resetTimer);
-        resetTimer = window.setTimeout(() => {
-            tapCount = 0;
-        }, 1200);
-    });
-}
-
-function shouldRevealAdminPanel() {
-    try {
-        if (sessionStorage.getItem(ADMIN_VISIBILITY_KEY) === "1") {
-            return true;
-        }
-    } catch (error) {
-        console.warn("Admin visibility session check failed:", error);
-    }
-    const params = new URLSearchParams(window.location.search);
-    return params.get("admin") === "1" || params.get("mode") === "admin";
-}
-
-function revealAdminSection(options = {}) {
-    if (!portalEls.adminSection) return;
-    if (!portalEls.adminSection.hidden && !options.force) {
-        return;
-    }
-    portalEls.adminSection.hidden = false;
-    document.body.dataset.portalMode = "admin";
-    try {
-        sessionStorage.setItem(ADMIN_VISIBILITY_KEY, "1");
-    } catch (error) {
-        console.warn("Unable to persist admin visibility flag.", error);
-    }
-    if (options.scroll !== false) {
-        portalEls.adminSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 }
 
@@ -1082,9 +1043,9 @@ function loadAdminActivity(adminKey, options = {}) {
             }));
             portalState.admin.generatedAt = data.generatedAt ?? null;
             try {
-                sessionStorage.setItem(ADMIN_STORAGE_KEY, adminKey);
+                sessionStorage.setItem(ADMIN_STORAGE_KEY, "authorized");
             } catch (error) {
-                console.warn("Unable to persist admin key:", error);
+                console.warn("Unable to persist admin key flag:", error);
             }
             renderAdminDashboard();
             if (!silent) {
@@ -1105,6 +1066,7 @@ function loadAdminActivity(adminKey, options = {}) {
             portalState.admin.summary = [];
             portalState.admin.events = [];
             portalState.admin.generatedAt = null;
+            portalState.admin.isAuthorized = false;
             if (portalEls.adminDashboard) {
                 portalEls.adminDashboard.hidden = true;
             }
@@ -1129,6 +1091,11 @@ function renderAdminDashboard() {
     }
 
     if (!HAS_REMOTE_API) {
+        portalEls.adminDashboard.hidden = true;
+        return;
+    }
+
+    if (!portalState.admin.isAuthorized) {
         portalEls.adminDashboard.hidden = true;
         return;
     }
