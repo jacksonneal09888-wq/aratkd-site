@@ -4,10 +4,10 @@
 
 ## What Changed
 - Translated the “Amount of Class Participation” numbers from the curriculum PDF into an attendance-percentage ladder, so parents know when they can request a test without guessing.
-- Locked in a formula that scales from 70 % (25 lessons) up to 90 % (48 lessons) and still works if the red-belt sheet uses 38 lessons.
+- Locked in a formula that scales from 70 % (25 lessons) up to 90 % (48 lessons) with unique lesson counts per belt, so expectations step up a little each rank. Still works if a legacy sheet lists 38 lessons for Red.
 - Documented that every student must (a) hit the minimum lesson count, (b) meet the attendance percentage, and (c) collect all four stripes (Forms, Self-Defense, Board Breaking, Sparring) before testing.
 - Wired the student portal: families log classes offered/attended + stripe sign-offs, and the “Request Test” button stays disabled until the tracker shows 100% readiness.
-- Added a visible “Master Ara” login card (username: MasterAra · password: AraTKD) so you can sign in directly on the page and see login counts, recent events, and the last belt upload per student.
+- Added a concealed-but-easy dashboard launcher: tap “Open Instructor Dashboard,” enter `MasterAra / AraTKD`, and the portal injects the key automatically (or you can reveal the key field if the Worker ever changes it). Students never see the data cards that render inside the modal.
 - Published a parent-friendly PDF version of the attendance guide (`assets/materials/belt-attendance-guide.pdf`) and linked it inside the portal.
 
 ## Why It Matters

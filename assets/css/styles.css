@@ -2377,9 +2377,64 @@ body {
     align-items: flex-start;
 }
 
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 999;
+}
+
+.admin-modal[hidden] {
+    display: none;
+}
+
+.admin-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 9, 12, 0.65);
+    backdrop-filter: blur(6px);
+}
+
+.admin-modal__panel {
+    position: relative;
+    width: min(1180px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 1.5rem;
+    background: #fff;
+    padding: 2.5rem;
+    box-shadow: 0 2.5rem 4rem rgba(8, 9, 10, 0.32);
+    z-index: 1;
+}
+
+.admin-modal__close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    font-weight: 700;
+}
+
+body.admin-modal-open {
+    overflow: hidden;
+}
+
 @media (max-width: 900px) {
     .admin-panel {
         grid-template-columns: 1fr;
+    }
+
+    .admin-modal__panel {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .instructor-access__inner {
+        flex-direction: column;
+        text-align: center;
     }
 }
 
@@ -2410,6 +2465,17 @@ body {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.15);
     outline: none;
+}
+
+.admin-key-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -0.25rem;
+}
+
+.admin-key-field {
+    display: grid;
+    gap: 0.4rem;
 }
 
 .admin-dashboard {
@@ -2585,6 +2651,41 @@ body {
     margin-top: 1rem;
     margin-bottom: 0;
     color: rgba(255, 255, 255, 0.75);
+}
+
+.instructor-access {
+    background: #fff;
+    padding: 3rem 0;
+}
+
+.instructor-access__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.75rem 2rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    box-shadow: 0 16px 30px rgba(8, 9, 10, 0.08);
+    background: var(--color-light);
+}
+
+.admin-launcher {
+    border: none;
+    border-radius: 999px;
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(120deg, var(--color-primary), #8b0c14);
+    box-shadow: 0 1rem 2rem rgba(216, 31, 38, 0.25);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-launcher:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1.25rem 2.25rem rgba(216, 31, 38, 0.32);
 }
 
 .faq-item a {

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
 </head>
-<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
+<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-key="AraTKDPortalKey">
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -356,13 +356,28 @@
                 </div>
             </div>
         </section>
+        <section class="section instructor-access" aria-label="Instructor Access">
+            <div class="container instructor-access__inner">
+                <div>
+                    <p class="eyebrow">Instructor Tools</p>
+                    <p>Master Ara can review portal activity privately. Students will never see this data.</p>
+                </div>
+                <button type="button" class="admin-launcher" id="admin-launcher">
+                    Open Instructor Dashboard
+                </button>
+            </div>
+        </section>
+    </main>
 
-        <section class="section portal-admin" id="portal-admin-section">
-            <div class="container">
+    <div class="admin-modal" id="admin-modal" hidden>
+        <div class="admin-modal__backdrop" id="admin-modal-backdrop"></div>
+        <div class="admin-modal__panel">
+            <button class="admin-modal__close text-link-btn" id="admin-close" aria-label="Close dashboard">Close ✕</button>
+            <section class="portal-admin" id="portal-admin-section">
                 <div class="section-heading">
                     <p class="eyebrow">Instructor Access</p>
                     <h2>Master Ara Dashboard</h2>
-                    <p>Sign in below to see student login streaks, certificate uploads, and belt activity in real time.</p>
+                    <p>Use the MasterAra credentials to unlock live belt + login data.</p>
                 </div>
                 <div class="admin-panel">
                     <form class="admin-auth" id="admin-auth-form" autocomplete="off">
@@ -374,8 +389,17 @@
                             <label for="admin-password">Password</label>
                             <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" required>
                         </div>
+                        <div class="admin-key-toggle">
+                            <button type="button" class="text-link-btn" id="admin-key-toggle" aria-expanded="false">
+                                Need to enter the portal key?
+                            </button>
+                        </div>
+                        <div class="admin-key-field" id="admin-key-field" hidden>
+                            <label for="admin-key">Portal Key</label>
+                            <input type="password" id="admin-key" name="adminKey" placeholder="Portal key from developer">
+                        </div>
                         <button type="submit" class="cta-btn">Sign In</button>
-                        <p class="form-status" id="admin-status" aria-live="polite">Use your MasterAra credentials.</p>
+                        <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD to unlock.</p>
                     </form>
                     <div class="admin-dashboard" id="admin-dashboard" hidden>
                         <div class="admin-summary">
@@ -411,9 +435,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
+            </section>
+        </div>
+    </div>
 
     <footer class="site-footer">
         <div class="container footer-grid">

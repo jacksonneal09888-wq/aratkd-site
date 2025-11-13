@@ -13,7 +13,7 @@ Keep it simple: before requesting a test, make sure **two numbers** and **four s
 ## Step 2 · Hit the Numbers
 
 - `lessons_required` = minimum classes for that belt (see table).
-- `target_attendance` scales from **70 %** up to **90 %** as lesson counts climb.
+- `target_attendance` scales from **70 %** up to **90 %**—each belt nudges both numbers up a little so expectations grow with the student.
 
 ```
 target_attendance = clamp(
@@ -29,16 +29,16 @@ target_attendance = clamp(
 
 | Belt | Lessons | Attendance Target |
 | --- | ---: | ---: |
-| **White** | 25 | 70 % |
-| **High White** | 25 | 70 % |
-| **Yellow** | 25 | 70 % |
-| **High Yellow** | 25 | 70 % |
-| **Green** | 25 | 70 % |
-| **High Green** | 30 | 74 % |
-| **Blue** | 30 | 74 % |
-| **High Blue** | 32 | 76 % |
-| **Red** | 42 | 85 % |
-| **High Red** | 48 | 90 % |
+| **White** | 25 | 70.0 % |
+| **High White** | 27 | 71.7 % |
+| **Yellow** | 29 | 73.5 % |
+| **High Yellow** | 31 | 75.2 % |
+| **Green** | 33 | 77.0 % |
+| **High Green** | 35 | 78.7 % |
+| **Blue** | 37 | 80.4 % |
+| **High Blue** | 39 | 82.2 % |
+| **Red** | 42 | 84.8 % |
+| **High Red** | 48 | 90.0 % |
 
 ## Step 3 · Earn All Four Stripes
 
@@ -52,8 +52,8 @@ When **lessons ≥ minimum**, **attendance ≥ target**, and **all four stripes*
 ### Quick Example
 
 - Offered: 36 classes · Attended: 31 → Attendance = 86 %.
-- Belt goal: Red → Need 42 lessons + ≥ 84.8 %.
-- Result: Student still needs 11 more lessons before requesting a date.
+- Belt goal: High Yellow → Needs 31 lessons + ≥ 75.2 %, so this student can unlock High Yellow.
+- Belt goal: Red → Needs 42 lessons + ≥ 84.8 %, so the same student must bank 11 more classes before requesting a date.
 
 ### In the Student Portal
 
