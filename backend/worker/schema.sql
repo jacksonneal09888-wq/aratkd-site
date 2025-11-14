@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS students (
   birth_date TEXT NOT NULL,
   phone TEXT,
   current_belt TEXT,
+  is_suspended INTEGER NOT NULL DEFAULT 0,
+  suspended_reason TEXT,
+  suspended_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

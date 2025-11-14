@@ -7,6 +7,9 @@ interface Env {
   ADMIN_PORTAL_KEY?: string;
   KIOSK_PORTAL_KEY?: string;
   PORTAL_JWT_SECRET?: string;
+  ADMIN_MASTER_USERNAME?: string;
+  ADMIN_MASTER_PASSWORD?: string;
+  ADMIN_MASTER_PIN?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -40,6 +43,11 @@ const TOKEN_TTL_SECONDS = 60 * 60 * 24;
 
 const getJwtSecret = (env: Env) => env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || 'change-me';
 const getKioskSecret = (env: Env) => env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || 'kiosk-dev-key';
+const getAdminCredentials = (env: Env) => ({
+  username: env.ADMIN_MASTER_USERNAME || 'MasterAra',
+  password: env.ADMIN_MASTER_PASSWORD || 'AraTKD',
+  pin: env.ADMIN_MASTER_PIN || ''
+});
 
 const kioskClassCatalog = [
   {
@@ -95,7 +103,12 @@ const sanitizeStudentRecord = (row: any) => {
   return {
     id: row.id,
     name: row.name,
-    currentBelt: row.current_belt || 'White Belt'
+    currentBelt: row.current_belt || 'White Belt',
+    birthDate: row.birth_date || null,
+    phone: row.phone || null,
+    isSuspended: Boolean(row.is_suspended),
+    suspendedReason: row.suspended_reason || null,
+    suspendedAt: row.suspended_at || null
   };
 };
 
@@ -103,7 +116,7 @@ const fetchStudentById = (db: D1Database, studentId: string) => {
   const lookup = studentId.trim().toLowerCase();
   return db
     .prepare(
-      `SELECT id, name, birth_date, phone, current_belt
+      `SELECT id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at
        FROM students
        WHERE LOWER(id) = ?1
        LIMIT 1`
@@ -179,6 +192,19 @@ const issuePortalToken = async (studentId: string, env: Env) => {
   );
 };
 
+const issueAdminToken = async (env: Env, subject = 'master-ara') => {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return sign(
+    {
+      sub: subject,
+      scope: 'admin',
+      iat: nowSeconds,
+      exp: nowSeconds + TOKEN_TTL_SECONDS
+    },
+    getJwtSecret(env)
+  );
+};
+
 type AuthResult =
   | {
       studentId: string;
@@ -205,6 +231,24 @@ const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthR
       return { error: c.json({ error: 'Session expired' }, 401) };
     }
     return { error: c.json({ error: 'Unauthorized' }, 401) };
+  }
+};
+
+const authenticateAdminRequest = async (c: Context<{ Bindings: Env }>) => {
+  const authHeader = c.req.header('Authorization') || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'Admin authorization required' }, 401);
+  }
+  const token = authHeader.slice(7).trim();
+  try {
+    const payload: any = await verify(token, getJwtSecret(c.env));
+    if (payload.scope !== 'admin') {
+      throw new Error('Invalid scope');
+    }
+    return null;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unauthorized';
+    return c.json({ error: message }, 401);
   }
 };
 
@@ -289,17 +333,31 @@ const buildAttendanceSummary = async (
   };
 };
 
-const hasValidAdminKey = (c: Context<{ Bindings: Env }>) => {
-  const expected = c.env.ADMIN_PORTAL_KEY;
-  if (!expected) {
-    return true;
-  }
-  const headerKey = c.req.header('X-Admin-Key');
-  const queryKey = c.req.query('adminKey');
-  return expected === headerKey || expected === queryKey;
-};
-
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
+
+app.post('/portal/admin/login', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const username = (body.username || '').trim();
+  const password = (body.password || '').trim();
+  const pin = (body.pin || '').trim();
+
+  const expected = getAdminCredentials(c.env);
+  if (!username || !password) {
+    return c.json({ error: 'Username and password are required' }, 400);
+  }
+  if (
+    username !== expected.username ||
+    password !== expected.password ||
+    (expected.pin && pin !== expected.pin)
+  ) {
+    return c.json({ error: 'Invalid admin credentials' }, 401);
+  }
+
+  const token = await issueAdminToken(c.env, username);
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_SECONDS * 1000).toISOString();
+
+  return c.json({ token, expiresAt });
+});
 
 app.post('/portal/login-event', async (c) => {
   const body = await c.req.json().catch(() => ({}));
@@ -328,6 +386,16 @@ app.post('/portal/login-event', async (c) => {
     }
 
     canonicalId = student.id;
+    if (student.is_suspended) {
+      return c.json(
+        {
+          error: 'Account suspended',
+          reason: student.suspended_reason || 'Contact the studio to resolve billing.'
+        },
+        403
+      );
+    }
+
     const storedBirthDate = normalizeBirthDate(student.birth_date);
     if (!storedBirthDate || storedBirthDate !== birthDate) {
       return c.json({ error: 'Invalid credentials' }, 401);
@@ -525,8 +593,9 @@ app.get('/portal/attendance/:studentId', async (c) => {
 });
 
 app.get('/portal/admin/activity', async (c) => {
-  if (!hasValidAdminKey(c)) {
-    return c.json({ error: 'Unauthorized' }, 401);
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
   }
 
   let limit = 200;
@@ -550,6 +619,11 @@ app.get('/portal/admin/activity', async (c) => {
   const summaryQuery = await c.env.PORTAL_DB.prepare(
     `SELECT
        le.student_id,
+       MAX(s.name) AS student_name,
+       MAX(s.current_belt) AS student_belt,
+       MAX(s.is_suspended) AS is_suspended,
+       MAX(s.suspended_reason) AS suspended_reason,
+       MAX(s.suspended_at) AS suspended_at,
        COUNT(*) AS total_events,
        SUM(CASE WHEN le.action = 'login' THEN 1 ELSE 0 END) AS login_events,
        MAX(le.created_at) AS last_event,
@@ -568,6 +642,7 @@ app.get('/portal/admin/activity', async (c) => {
          LIMIT 1
        ) AS latest_belt_uploaded
      FROM login_events le
+     LEFT JOIN students s ON s.id = le.student_id
      GROUP BY le.student_id
      ORDER BY datetime(last_event) DESC`
   ).all();
@@ -581,6 +656,11 @@ app.get('/portal/admin/activity', async (c) => {
 
   const summary = (summaryQuery.results || []).map((row: any) => ({
     studentId: row.student_id,
+    name: row.student_name,
+    currentBelt: row.student_belt,
+    isSuspended: row.is_suspended,
+    suspendedReason: row.suspended_reason,
+    suspendedAt: row.suspended_at,
     totalEvents: row.total_events,
     loginEvents: row.login_events,
     lastEventAt: row.last_event,
@@ -596,8 +676,9 @@ app.get('/portal/admin/activity', async (c) => {
 });
 
 app.get('/portal/admin/attendance', async (c) => {
-  if (!hasValidAdminKey(c)) {
-    return c.json({ error: 'Unauthorized' }, 401);
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
   }
 
   let limit = 50;
@@ -645,6 +726,88 @@ app.get('/portal/admin/attendance', async (c) => {
   return c.json({
     sessions,
     generatedAt: new Date().toISOString()
+  });
+});
+
+app.post('/portal/admin/suspensions', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const studentId = (body.studentId || '').trim();
+  const action = (body.action || '').trim().toLowerCase();
+  const reasonInput = (body.reason || '').trim();
+
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+  if (!['suspend', 'resume'].includes(action)) {
+    return c.json({ error: 'action must be suspend or resume' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const suspend = action === 'suspend';
+  const timestamp = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE students
+     SET is_suspended = ?1,
+         suspended_reason = ?2,
+         suspended_at = ?3,
+         updated_at = ?4
+     WHERE id = ?5`
+  )
+    .bind(
+      suspend ? 1 : 0,
+      suspend ? reasonInput || 'Billing issue' : null,
+      suspend ? timestamp : null,
+      timestamp,
+      student.id
+    )
+    .run();
+
+  const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
+  return c.json({
+    ok: true,
+    student: sanitizeStudentRecord(updated)
+  });
+});
+
+app.get('/portal/admin/report-card/:studentId', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const summary = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    student.id,
+    student.current_belt || ''
+  );
+  const progress = await fetchPortalProgress(c.env.PORTAL_DB, student.id);
+
+  return c.json({
+    student: sanitizeStudentRecord(student),
+    attendance: summary,
+    progress: {
+      records: progress,
+      generatedAt: new Date().toISOString()
+    }
   });
 });
 

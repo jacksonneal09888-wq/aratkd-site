@@ -70,6 +70,9 @@ def init_db():
                 birth_date TEXT NOT NULL,
                 phone TEXT,
                 current_belt TEXT,
+                is_suspended INTEGER NOT NULL DEFAULT 0,
+                suspended_reason TEXT,
+                suspended_at TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -86,7 +89,7 @@ def find_student_record(student_id):
     with get_db_connection() as conn:
         row = conn.execute(
             """
-            SELECT id, name, birth_date, phone, current_belt
+            SELECT id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at
             FROM students
             WHERE LOWER(id) = ?
             LIMIT 1
@@ -100,7 +103,10 @@ def find_student_record(student_id):
             "name": row["name"],
             "birthDate": row["birth_date"],
             "phone": row["phone"],
-            "currentBelt": row["current_belt"]
+            "currentBelt": row["current_belt"],
+            "isSuspended": bool(row["is_suspended"]),
+            "suspendedReason": row["suspended_reason"],
+            "suspendedAt": row["suspended_at"]
         }
 
 
@@ -110,7 +116,8 @@ def sanitize_student_record(student):
     return {
         "id": student.get("id"),
         "name": student.get("name"),
-        "currentBelt": student.get("currentBelt")
+        "currentBelt": student.get("currentBelt"),
+        "isSuspended": bool(student.get("isSuspended"))
     }
 
 

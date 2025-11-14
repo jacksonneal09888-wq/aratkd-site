@@ -51,6 +51,9 @@ def load_students(path: Path) -> List[Dict[str, Any]]:
                     "birth_date": birth_date,
                     "phone": (entry.get("phone") or "").strip() or None,
                     "current_belt": (entry.get("currentBelt") or "").strip() or None,
+                    "is_suspended": 1 if entry.get("isSuspended") else 0,
+                    "suspended_reason": (entry.get("suspendedReason") or "").strip() or None,
+                    "suspended_at": (entry.get("suspendedAt") or "").strip() or None,
                 }
             )
         return normalized
@@ -71,6 +74,9 @@ def import_students(roster: List[Dict[str, Any]], db_path: Path, truncate: bool 
                 birth_date TEXT NOT NULL,
                 phone TEXT,
                 current_belt TEXT,
+                is_suspended INTEGER NOT NULL DEFAULT 0,
+                suspended_reason TEXT,
+                suspended_at TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -85,13 +91,16 @@ def import_students(roster: List[Dict[str, Any]], db_path: Path, truncate: bool 
         for record in roster:
             conn.execute(
                 """
-                INSERT INTO students (id, name, birth_date, phone, current_belt, created_at, updated_at)
-                VALUES (:id, :name, :birth_date, :phone, :current_belt, :created_at, :updated_at)
+                INSERT INTO students (id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)
+                VALUES (:id, :name, :birth_date, :phone, :current_belt, :is_suspended, :suspended_reason, :suspended_at, :created_at, :updated_at)
                 ON CONFLICT(id) DO UPDATE SET
                     name=excluded.name,
                     birth_date=excluded.birth_date,
                     phone=excluded.phone,
                     current_belt=excluded.current_belt,
+                    is_suspended=excluded.is_suspended,
+                    suspended_reason=excluded.suspended_reason,
+                    suspended_at=excluded.suspended_at,
                     updated_at=excluded.updated_at
                 """,
                 {
@@ -122,14 +131,18 @@ def emit_d1_sql(roster: List[Dict[str, Any]], sql_path: Path, truncate: bool = F
         lines.append("DELETE FROM students;")
     for record in roster:
         lines.append(
-            "INSERT INTO students (id, name, birth_date, phone, current_belt, created_at, updated_at)"
+            "INSERT INTO students (id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)"
             f" VALUES ({sql_value(record['id'])}, {sql_value(record['name'])}, {sql_value(record['birth_date'])},"
-            f" {sql_value(record['phone'])}, {sql_value(record['current_belt'])}, {sql_value(now)}, {sql_value(now)})"
+            f" {sql_value(record['phone'])}, {sql_value(record['current_belt'])}, {sql_value(record['is_suspended'])},"
+            f" {sql_value(record['suspended_reason'])}, {sql_value(record['suspended_at'])}, {sql_value(now)}, {sql_value(now)})"
             " ON CONFLICT(id) DO UPDATE SET"
             " name=excluded.name,"
             " birth_date=excluded.birth_date,"
             " phone=excluded.phone,"
             " current_belt=excluded.current_belt,"
+            " is_suspended=excluded.is_suspended,"
+            " suspended_reason=excluded.suspended_reason,"
+            " suspended_at=excluded.suspended_at,"
             " updated_at=excluded.updated_at;"
         )
     sql_path.parent.mkdir(parents=True, exist_ok=True)

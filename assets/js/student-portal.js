@@ -6,7 +6,7 @@ const STORAGE_KEYS = {
     profile: "araStudentProfile"
 };
 
-const ADMIN_STORAGE_KEY = "araPortalAdminKey";
+const ADMIN_STORAGE_KEY = "araPortalAdminSession";
 const API_BASE_URL = (() => {
     const globalValue = typeof window !== "undefined" ? window.PORTAL_API_BASE : "";
     const bodyValue = typeof document !== "undefined" && document.body ? document.body.dataset.apiBase : "";
@@ -36,7 +36,6 @@ const IS_ADMIN_MODE = PORTAL_MODE === "admin";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // Allow certificate uploads up to 10MB
 const ACCEPTED_TYPES = [
-    "application/pdf",
     "image/png",
     "image/jpeg",
     "image/jpg",
@@ -44,14 +43,13 @@ const ACCEPTED_TYPES = [
     "image/heif"
 ];
 
-const ADMIN_MASTER_USERNAME = "MasterAra";
-const ADMIN_MASTER_PASSWORD = "AraTKD";
-const ADMIN_STATIC_KEY =
-    (typeof document !== "undefined" && document.body?.dataset?.adminKey?.trim()) ||
-    "AraTKDPortalKey";
-const ADMIN_PIN =
-    (typeof document !== "undefined" && document.body?.dataset?.adminPin?.trim()) ||
-    "";
+const CERTIFICATE_KEYWORDS = [
+    "certificate of rank",
+    "master antonio ara",
+    "ara's martial arts",
+    "belt",
+    "date of examination"
+];
 
 const STRIPE_LABELS = {
     poomsae: "Forms/Poomsae",
@@ -407,17 +405,18 @@ const portalEls = {
     adminForm: document.getElementById("admin-auth-form"),
     adminUsername: document.getElementById("admin-username"),
     adminPassword: document.getElementById("admin-password"),
+    adminPin: document.getElementById("admin-pin"),
     adminStatus: document.getElementById("admin-status"),
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
     adminEventsList: document.getElementById("admin-events-list"),
     adminRefresh: document.getElementById("admin-refresh"),
+    adminExpand: document.getElementById("admin-expand"),
+    adminSummaryDownload: document.getElementById("admin-summary-download"),
     adminLauncher: document.getElementById("admin-launcher"),
     adminModal: document.getElementById("admin-modal"),
     adminBackdrop: document.getElementById("admin-modal-backdrop"),
     adminClose: document.getElementById("admin-close"),
-    adminKeyInput: document.getElementById("admin-key"),
-    adminKeyField: document.getElementById("admin-key-field"),
     readinessWrapper: document.getElementById("portal-readiness"),
     readinessTargetLabel: document.getElementById("readiness-target-label"),
     readinessReadyPill: document.getElementById("readiness-ready-pill"),
@@ -436,7 +435,11 @@ const portalEls = {
     adminGeneratedAt: document.getElementById("admin-generated-at"),
     adminAttendance: document.getElementById("admin-attendance"),
     adminAttendanceBody: document.getElementById("admin-attendance-body"),
-    adminAttendanceRefresh: document.getElementById("admin-attendance-refresh")
+    adminAttendanceRefresh: document.getElementById("admin-attendance-refresh"),
+    reportCardModal: document.getElementById("admin-report-card"),
+    reportCardClose: document.getElementById("report-card-close"),
+    reportCardBody: document.getElementById("report-card-body"),
+    reportCardDownload: document.getElementById("report-card-download")
 };
 
 const portalState = {
@@ -449,15 +452,16 @@ const portalState = {
     currentReadiness: null,
     attendanceSummary: {},
     admin: {
-        key: null,
+        token: null,
         isLoading: false,
         summary: [],
         events: [],
         generatedAt: null,
         attendance: [],
-        isAuthorized: false
-    },
-    adminPinUnlocked: ADMIN_PIN ? false : true
+        isAuthorized: false,
+        isExpanded: false,
+        reportCard: null
+    }
 };
 
 normalizeStoredCertificates();
@@ -465,7 +469,6 @@ migrateLegacyCertificates();
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
-    prefillAdminKeyField();
     if (!IS_ADMIN_MODE) {
         if (HAS_REMOTE_API) {
             attemptRestoreSession();
@@ -502,7 +505,7 @@ function attachHandlers() {
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
-    portalEls.adminLauncher?.addEventListener("click", handleAdminLauncherClick);
+    portalEls.adminLauncher?.addEventListener("click", openAdminModal);
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
     document.addEventListener("keydown", (event) => {
@@ -511,6 +514,16 @@ function attachHandlers() {
         }
     });
     portalEls.adminAttendanceRefresh?.addEventListener("click", loadAdminAttendance);
+    portalEls.adminSummaryDownload?.addEventListener("click", downloadAdminSummary);
+    portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
+    portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
+    portalEls.reportCardClose?.addEventListener("click", closeReportCard);
+    portalEls.reportCardDownload?.addEventListener("click", downloadReportCard);
+    portalEls.reportCardModal?.addEventListener("click", (event) => {
+        if (event.target === portalEls.reportCardModal) {
+            closeReportCard();
+        }
+    });
 }
 
 async function handleLogin(event) {
@@ -586,33 +599,11 @@ function handleLogout() {
     setStatus("You have signed out. Come back soon!", "success");
 }
 
-function handleAdminLauncherClick() {
-    if (ensureAdminPinAccess()) {
-        openAdminModal();
-    }
-}
-
-function ensureAdminPinAccess() {
-    if (!ADMIN_PIN) {
-        portalState.adminPinUnlocked = true;
-        return true;
-    }
-    if (portalState.adminPinUnlocked) {
-        return true;
-    }
-    const attempt = window.prompt("Enter Master PIN");
-    if (attempt === null) {
-        return false;
-    }
-    if (attempt.trim() === ADMIN_PIN) {
-        portalState.adminPinUnlocked = true;
-        return true;
-    }
-    window.alert("Incorrect PIN.");
-    return false;
-}
-
 function openAdminModal() {
+    if (!HAS_REMOTE_API) {
+        window.alert("Connect the portal API before using the instructor dashboard.");
+        return;
+    }
     if (!portalEls.adminModal) return;
     portalEls.adminModal.hidden = false;
     document.body.classList.add("admin-modal-open");
@@ -623,23 +614,27 @@ function closeAdminModal() {
     if (!portalEls.adminModal) return;
     portalEls.adminModal.hidden = true;
     document.body.classList.remove("admin-modal-open");
-    portalState.adminPinUnlocked = ADMIN_PIN ? false : true;
-}
-
-function prefillAdminKeyField() {
-    if (!portalEls.adminKeyInput) return;
-    const stored = portalState.admin.key || ADMIN_STATIC_KEY;
-    if (stored) {
-        portalEls.adminKeyInput.value = stored;
-    }
+    closeReportCard();
 }
 
 function resetAdminModalState() {
-    prefillAdminKeyField();
     if (portalEls.adminForm) {
-        portalEls.adminForm.hidden = false;
+        portalEls.adminForm.hidden = portalState.admin.isAuthorized;
     }
-    portalEls.adminUsername?.focus();
+    if (portalEls.adminDashboard) {
+        portalEls.adminDashboard.hidden = !portalState.admin.isAuthorized;
+    }
+    if (!portalState.admin.isAuthorized) {
+        portalEls.adminUsername?.focus();
+    }
+}
+
+function getAdminAuthHeaders(base = {}) {
+    const headers = { ...base };
+    if (portalState.admin.token) {
+        headers.Authorization = `Bearer ${portalState.admin.token}`;
+    }
+    return headers;
 }
 
 async function attemptRestoreSession() {
@@ -1064,31 +1059,50 @@ function handleAdminLogin(event) {
         return;
     }
 
-    if (!portalState.adminPinUnlocked) {
-        setAdminStatus("Enter the Master PIN first.");
-        return;
-    }
-
     const username = portalEls.adminUsername.value.trim();
     const password = portalEls.adminPassword.value.trim();
+    const pin = portalEls.adminPin?.value.trim() || "";
 
-    if (username !== ADMIN_MASTER_USERNAME || password !== ADMIN_MASTER_PASSWORD) {
-        setAdminStatus("Incorrect username or password.");
+    if (!username || !password) {
+        setAdminStatus("Enter your username and password.");
         return;
     }
 
-    const resolvedKey =
-        portalEls.adminKeyInput?.value.trim() ||
-        portalState.admin.key ||
-        ADMIN_STATIC_KEY;
-
-    portalState.admin.isAuthorized = true;
-    portalState.admin.key = resolvedKey;
-    rememberAdminSession(resolvedKey === ADMIN_STATIC_KEY ? "" : resolvedKey);
-
-    setAdminStatus("Loading activity...", "progress");
+    setAdminStatus("Verifying credentials...", "progress");
     setAdminLoadingState(true);
-    loadAdminActivity(resolvedKey);
+
+    const url = buildApiUrl("/portal/admin/login");
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password, pin })
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Invalid credentials.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            portalState.admin.isAuthorized = true;
+            portalState.admin.token = data.token;
+            persistAdminToken(data.token);
+            setAdminStatus("Dashboard unlocked.", "success");
+            resetAdminModalState();
+            loadAdminActivity();
+        })
+        .catch((error) => {
+            console.error("Admin login error:", error);
+            setAdminStatus(error.message || "Unable to sign in.", "error");
+            portalState.admin.isAuthorized = false;
+            portalState.admin.token = null;
+            persistAdminToken(null);
+        })
+        .finally(() => {
+            setAdminLoadingState(false);
+        });
 }
 
 function handleAdminRefresh() {
@@ -1105,47 +1119,36 @@ function handleAdminRefresh() {
     }
     setAdminStatus("Refreshing activity...", "progress");
     setAdminLoadingState(true);
-    const keyToUse = portalState.admin.key || ADMIN_STATIC_KEY;
-    loadAdminActivity(keyToUse);
+    loadAdminActivity();
 }
 
 function attemptRestoreAdminSession() {
     if (!HAS_REMOTE_API) {
         return;
     }
-    try {
-        const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
-        if (!stored) {
-            return;
-        }
-        let payload = null;
-        try {
-            payload = JSON.parse(stored);
-        } catch (error) {
-            console.warn("Unable to parse admin session payload.", error);
-            return;
-        }
-        if (payload?.authorized) {
-            portalState.admin.isAuthorized = true;
-            const restoredKey = payload.key || ADMIN_STATIC_KEY;
-            portalState.admin.key = restoredKey;
-            if (portalEls.adminKeyInput) {
-                portalEls.adminKeyInput.value = restoredKey;
-            }
-            loadAdminActivity(restoredKey, { silent: true });
-        }
-    } catch (error) {
-        console.warn("Unable to restore admin session:", error);
+    const storedToken = readStoredAdminToken();
+    if (!storedToken) {
+        return;
     }
+    portalState.admin.token = storedToken;
+    portalState.admin.isAuthorized = true;
+    loadAdminActivity({ silent: true }).catch(() => {
+        portalState.admin.token = null;
+        portalState.admin.isAuthorized = false;
+        clearAdminSession();
+    });
 }
 
-function rememberAdminSession(customKey = "") {
+function persistAdminToken(token) {
     try {
+        if (!token) {
+            sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+            return;
+        }
         sessionStorage.setItem(
             ADMIN_STORAGE_KEY,
             JSON.stringify({
-                authorized: true,
-                key: customKey || ""
+                token
             })
         );
     } catch (error) {
@@ -1153,23 +1156,35 @@ function rememberAdminSession(customKey = "") {
     }
 }
 
-function clearAdminSession() {
+function readStoredAdminToken() {
     try {
-        sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+        const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
+        if (!stored) {
+            return null;
+        }
+        const payload = JSON.parse(stored);
+        return payload?.token || null;
     } catch (error) {
-        console.warn("Unable to clear admin session:", error);
+        console.warn("Unable to read admin session:", error);
+        return null;
     }
 }
 
-function loadAdminActivity(adminKey, options = {}) {
+function clearAdminSession() {
+    portalState.admin.token = null;
+    portalState.admin.isAuthorized = false;
+    persistAdminToken(null);
+}
+
+function loadAdminActivity(options = {}) {
     const { silent = false } = options;
     if (!HAS_REMOTE_API) {
         setAdminStatus("Admin dashboard is disabled until the portal API is connected.");
         setAdminLoadingState(false);
         return;
     }
-    const resolvedKey = adminKey || portalState.admin.key || ADMIN_STATIC_KEY;
-    if (!resolvedKey) {
+    if (!portalState.admin.token) {
+        setAdminStatus("Sign in to load analytics.");
         setAdminLoadingState(false);
         return;
     }
@@ -1179,15 +1194,13 @@ function loadAdminActivity(adminKey, options = {}) {
 
     fetch(url, {
         method: "GET",
-        headers: {
-            "X-Admin-Key": resolvedKey
-        },
+        headers: getAdminAuthHeaders(),
         mode: "cors",
         credentials: "omit"
     })
         .then((response) => {
             if (response.status === 401) {
-                throw new Error("Invalid admin key.");
+                throw new Error("Admin session expired.");
             }
             if (!response.ok) {
                 throw new Error(`Failed to load activity (${response.status})`);
@@ -1195,14 +1208,19 @@ function loadAdminActivity(adminKey, options = {}) {
             return response.json();
         })
         .then((data) => {
-            portalState.admin.key = resolvedKey;
+            portalState.admin.isAuthorized = true;
             portalState.admin.summary = (Array.isArray(data.summary) ? data.summary : []).map((entry) => ({
                 studentId: entry.studentId ?? entry.student_id,
+                name: entry.name ?? entry.student_name ?? "",
+                currentBelt: entry.currentBelt ?? entry.current_belt ?? "",
                 totalEvents: entry.totalEvents ?? entry.total_events ?? 0,
                 loginEvents: entry.loginEvents ?? entry.login_events ?? 0,
                 lastEventAt: entry.lastEventAt ?? entry.last_event ?? null,
                 latestBelt: entry.latestBelt ?? entry.latest_belt ?? null,
-                latestBeltUploadedAt: entry.latestBeltUploadedAt ?? entry.latest_belt_uploaded ?? null
+                latestBeltUploadedAt: entry.latestBeltUploadedAt ?? entry.latest_belt_uploaded ?? null,
+                isSuspended: Boolean(entry.isSuspended ?? entry.is_suspended),
+                suspendedReason: entry.suspendedReason ?? entry.suspended_reason ?? null,
+                suspendedAt: entry.suspendedAt ?? entry.suspended_at ?? null
             }));
             portalState.admin.events = (Array.isArray(data.events) ? data.events : []).map((event) => ({
                 studentId: event.studentId ?? event.student_id,
@@ -1211,7 +1229,6 @@ function loadAdminActivity(adminKey, options = {}) {
                 recordedAt: event.recordedAt ?? event.created_at ?? null
             }));
             portalState.admin.generatedAt = data.generatedAt ?? null;
-            rememberAdminSession(resolvedKey === ADMIN_STATIC_KEY ? "" : resolvedKey);
             renderAdminDashboard();
             loadAdminAttendance();
             if (!silent) {
@@ -1228,7 +1245,7 @@ function loadAdminActivity(adminKey, options = {}) {
             if (!silent) {
                 setAdminStatus(error.message || "Unable to load activity right now.");
             }
-            portalState.admin.key = null;
+            portalState.admin.token = null;
             portalState.admin.summary = [];
             portalState.admin.events = [];
             portalState.admin.generatedAt = null;
@@ -1238,10 +1255,6 @@ function loadAdminActivity(adminKey, options = {}) {
             }
             if (portalEls.adminGeneratedAt) {
                 portalEls.adminGeneratedAt.textContent = "—";
-            }
-            if (portalEls.adminKeyInput) {
-                portalEls.adminKeyInput.value = "";
-                portalEls.adminKeyInput.focus();
             }
             clearAdminSession();
         })
@@ -1260,20 +1273,17 @@ function loadAdminAttendance(event) {
         setAdminStatus("Sign in first.");
         return;
     }
-    const key = portalState.admin.key || ADMIN_STATIC_KEY;
     const url = buildApiUrl("/portal/admin/attendance");
     if (!url) return;
     fetch(url, {
         method: "GET",
-        headers: {
-            "X-Admin-Key": key
-        },
+        headers: getAdminAuthHeaders(),
         mode: "cors",
         credentials: "omit"
     })
         .then((res) => {
             if (res.status === 401) {
-                throw new Error("Invalid admin key.");
+                throw new Error("Admin session expired.");
             }
             if (!res.ok) {
                 throw new Error("Unable to load attendance feed.");
@@ -1290,7 +1300,7 @@ function loadAdminAttendance(event) {
         .catch((error) => {
             console.warn("loadAdminAttendance error:", error);
             if (portalEls.adminAttendanceBody) {
-                portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="4">${error.message || "Unable to load attendance."}</td></tr>`;
+                portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="5">${error.message || "Unable to load attendance."}</td></tr>`;
             }
         });
 }
@@ -1311,6 +1321,12 @@ function renderAdminDashboard() {
     }
 
     portalEls.adminDashboard.hidden = false;
+    portalEls.adminDashboard.classList.toggle("is-expanded", portalState.admin.isExpanded);
+    if (portalEls.adminExpand) {
+        portalEls.adminExpand.textContent = portalState.admin.isExpanded
+            ? "Collapse Panel"
+            : "Expand Panel";
+    }
 
     if (portalEls.adminGeneratedAt) {
         portalEls.adminGeneratedAt.textContent = portalState.admin.generatedAt
@@ -1324,7 +1340,7 @@ function renderAdminDashboard() {
     if (!portalState.admin.summary.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 5;
+        cell.colSpan = 7;
         cell.textContent = "No student activity has been recorded yet.";
         row.appendChild(cell);
         summaryBody.appendChild(row);
@@ -1332,7 +1348,13 @@ function renderAdminDashboard() {
         portalState.admin.summary.forEach((entry) => {
             const row = document.createElement("tr");
             const studentCell = document.createElement("td");
-            studentCell.textContent = entry.studentId;
+            studentCell.innerHTML = `<strong>${entry.studentId}</strong>`;
+            if (entry.name) {
+                const meta = document.createElement("div");
+                meta.className = "certificate-meta";
+                meta.textContent = entry.name;
+                studentCell.appendChild(meta);
+            }
 
             const totalCell = document.createElement("td");
             totalCell.textContent = String(entry.totalEvents ?? 0);
@@ -1358,7 +1380,39 @@ function renderAdminDashboard() {
             const lastCell = document.createElement("td");
             lastCell.textContent = entry.lastEventAt ? formatDateTime(entry.lastEventAt) : "—";
 
-            row.append(studentCell, totalCell, loginCell, latestCell, lastCell);
+            const statusCell = document.createElement("td");
+            const statusPill = document.createElement("span");
+            statusPill.className = `admin-status-pill ${
+                entry.isSuspended ? "is-suspended" : "is-active"
+            }`;
+            statusPill.textContent = entry.isSuspended ? "Suspended" : "Active";
+            statusCell.appendChild(statusPill);
+            if (entry.isSuspended && entry.suspendedReason) {
+                const note = document.createElement("div");
+                note.className = "certificate-meta";
+                note.textContent = entry.suspendedReason;
+                statusCell.appendChild(note);
+            }
+
+            const actionsCell = document.createElement("td");
+            const actionsWrap = document.createElement("div");
+            actionsWrap.className = "admin-row-actions";
+            const reportBtn = document.createElement("button");
+            reportBtn.type = "button";
+            reportBtn.className = "text-link-btn";
+            reportBtn.dataset.action = "report";
+            reportBtn.dataset.studentId = entry.studentId;
+            reportBtn.textContent = "Report Card";
+            const suspendBtn = document.createElement("button");
+            suspendBtn.type = "button";
+            suspendBtn.className = "text-link-btn";
+            suspendBtn.dataset.action = entry.isSuspended ? "resume" : "suspend";
+            suspendBtn.dataset.studentId = entry.studentId;
+            suspendBtn.textContent = entry.isSuspended ? "Reinstate" : "Suspend";
+            actionsWrap.append(reportBtn, suspendBtn);
+            actionsCell.appendChild(actionsWrap);
+
+            row.append(studentCell, totalCell, loginCell, latestCell, lastCell, statusCell, actionsCell);
             summaryBody.appendChild(row);
         });
     }
@@ -1396,7 +1450,7 @@ function renderAdminAttendance() {
     if (!sessions.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 4;
+        cell.colSpan = 5;
         cell.textContent = "No attendance has been logged yet.";
         row.appendChild(cell);
         portalEls.adminAttendanceBody.appendChild(row);
@@ -1447,6 +1501,252 @@ function setAdminLoadingState(isLoading) {
     if (portalEls.adminRefresh) {
         portalEls.adminRefresh.disabled = Boolean(isLoading);
     }
+}
+
+function toggleAdminPanelSize() {
+    portalState.admin.isExpanded = !portalState.admin.isExpanded;
+    if (portalEls.adminDashboard) {
+        portalEls.adminDashboard.classList.toggle("is-expanded", portalState.admin.isExpanded);
+    }
+    if (portalEls.adminExpand) {
+        portalEls.adminExpand.textContent = portalState.admin.isExpanded
+            ? "Collapse Panel"
+            : "Expand Panel";
+    }
+}
+
+function downloadAdminSummary() {
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    if (!portalState.admin.summary.length) {
+        setAdminStatus("No data to download yet.");
+        return;
+    }
+    const headers = [
+        "Student ID",
+        "Name",
+        "Current Belt",
+        "Total Events",
+        "Logins",
+        "Last Activity",
+        "Latest Belt",
+        "Latest Upload",
+        "Status",
+        "Suspended Reason"
+    ];
+    const rows = portalState.admin.summary.map((entry) => [
+        entry.studentId,
+        entry.name || "",
+        entry.currentBelt || "",
+        entry.totalEvents ?? 0,
+        entry.loginEvents ?? 0,
+        entry.lastEventAt ? formatDateTime(entry.lastEventAt) : "",
+        entry.latestBelt || "",
+        entry.latestBeltUploadedAt ? formatDateTime(entry.latestBeltUploadedAt) : "",
+        entry.isSuspended ? "Suspended" : "Active",
+        entry.suspendedReason || ""
+    ]);
+    const csv = [headers, ...rows]
+        .map((cols) =>
+            cols
+                .map((value) => {
+                    const safe = value ?? "";
+                    if (typeof safe === "string" && safe.includes(",")) {
+                        return `"${safe.replace(/"/g, '""')}"`;
+                    }
+                    return safe;
+                })
+                .join(",")
+        )
+        .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `portal-summary-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+function handleAdminSummaryAction(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const studentId = button.dataset.studentId;
+    const action = button.dataset.action;
+    if (!studentId || !action) return;
+    if (action === "report") {
+        openReportCard(studentId);
+        return;
+    }
+    const suspend = action === "suspend";
+    let reason = "";
+    if (suspend) {
+        reason = window.prompt("Enter suspension reason", "Billing issue") || "";
+    }
+    updateStudentSuspension(studentId, suspend, reason);
+}
+
+function updateStudentSuspension(studentId, suspend, reason = "") {
+    if (!HAS_REMOTE_API) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const url = buildApiUrl("/portal/admin/suspensions");
+    if (!url) return;
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({
+            "Content-Type": "application/json"
+        }),
+        body: JSON.stringify({
+            studentId,
+            action: suspend ? "suspend" : "resume",
+            reason
+        })
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Unable to update suspension.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            const updated = data.student;
+            const record = portalState.admin.summary.find(
+                (entry) => entry.studentId?.toLowerCase() === studentId.toLowerCase()
+            );
+            if (record && updated) {
+                record.isSuspended = Boolean(updated.isSuspended);
+                record.suspendedReason = updated.suspendedReason || null;
+                record.suspendedAt = updated.suspendedAt || null;
+            }
+            setAdminStatus(
+                suspend ? `${studentId} suspended.` : `${studentId} reinstated.`,
+                "success"
+            );
+            renderAdminDashboard();
+        })
+        .catch((error) => {
+            console.error("updateStudentSuspension error:", error);
+            setAdminStatus(error.message || "Unable to update account.", "error");
+        });
+}
+
+function openReportCard(studentId) {
+    if (!HAS_REMOTE_API || !studentId) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const url = buildApiUrl(`/portal/admin/report-card/${encodeURIComponent(studentId)}`);
+    if (!url) return;
+    setAdminStatus("Generating report card...", "progress");
+    fetch(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error("Unable to load report card.");
+            }
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.reportCard = data;
+            renderReportCard();
+            setAdminStatus(`Report card ready for ${data.student?.id || ""}.`, "success");
+        })
+        .catch((error) => {
+            console.error("openReportCard error:", error);
+            setAdminStatus(error.message || "Unable to load report card.", "error");
+        });
+}
+
+function renderReportCard() {
+    if (!portalEls.reportCardModal || !portalEls.reportCardBody) return;
+    const report = portalState.admin.reportCard;
+    if (!report) {
+        portalEls.reportCardBody.innerHTML = "<p>Select a student to view report card details.</p>";
+        portalEls.reportCardModal.hidden = true;
+        return;
+    }
+    const student = report.student || {};
+    const attendance = report.attendance || {};
+    const progress = report.progress?.records || [];
+    const summaryHtml = `
+        <div class="report-card-section">
+            <h4>Student</h4>
+            <p><strong>${student.name || student.id}</strong><br>ID: ${
+        student.id
+    }<br>Current Belt: ${student.currentBelt || "—"}</p>
+        </div>
+        <div class="report-card-section">
+            <h4>Attendance (Last 60 days)</h4>
+            <p>Sessions: ${attendance.totals?.sessions ?? 0} • Percent of Goal: ${
+        attendance.attendancePercent ?? 0
+    }%</p>
+            <ul>
+                ${(attendance.recent || [])
+                    .map(
+                        (session) =>
+                            `<li>${formatDateTime(session.checkInAt)} — ${session.classType} (${session.classLevel || "All Levels"})</li>`
+                    )
+                    .join("") || "<li>No recent check-ins.</li>"}
+            </ul>
+        </div>
+        <div class="report-card-section">
+            <h4>Belt Progress</h4>
+            <ul>
+                ${
+                    progress.length
+                        ? progress
+                              .map(
+                                  (record) =>
+                                      `<li>${record.beltSlug} • ${record.fileName || "Certificate"} • ${formatDateTime(record.uploadedAt)}</li>`
+                              )
+                              .join("")
+                        : "<li>No certificates uploaded yet.</li>"
+                }
+            </ul>
+        </div>
+    `;
+    portalEls.reportCardBody.innerHTML = summaryHtml;
+    portalEls.reportCardModal.hidden = false;
+}
+
+function closeReportCard() {
+    if (!portalEls.reportCardModal) return;
+    portalEls.reportCardModal.hidden = true;
+    portalState.admin.reportCard = null;
+}
+
+function downloadReportCard() {
+    const report = portalState.admin.reportCard;
+    if (!report) {
+        setAdminStatus("Load a report card first.");
+        return;
+    }
+    const payload = JSON.stringify(report, null, 2);
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `report-card-${report.student?.id || "student"}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
 async function loadAttendanceSummary(studentId) {
@@ -1930,16 +2230,68 @@ function resolveAttendanceTargets(slug) {
     return BELT_ATTENDANCE_TARGETS[slug] || BELT_ATTENDANCE_TARGETS.default;
 }
 
+async function validateCertificateFile(file) {
+    if (!file) {
+        setStatus("Select a certificate to upload.", "error");
+        return false;
+    }
+    if (!file.type.startsWith("image/")) {
+        setStatus(
+            "Upload a clear photo (JPG or PNG) of the official Ara TKD certificate.",
+            "error"
+        );
+        return false;
+    }
+    if (typeof Tesseract === "undefined") {
+        console.warn("Tesseract unavailable, skipping certificate validation.");
+        return true;
+    }
+    setStatus("Validating certificate design...", "progress");
+    const ocrText = await runCertificateOcr(file);
+    const normalized = ocrText.toLowerCase();
+    const hits = CERTIFICATE_KEYWORDS.filter((keyword) => normalized.includes(keyword));
+    if (hits.length < Math.ceil(CERTIFICATE_KEYWORDS.length / 2)) {
+        setStatus(
+            "We couldn't verify that document. Please upload the official Certificate of Rank.",
+            "error"
+        );
+        return false;
+    }
+    return true;
+}
+
+function runCertificateOcr(file) {
+    return new Promise((resolve, reject) => {
+        if (typeof Tesseract === "undefined") {
+            resolve("");
+            return;
+        }
+        Tesseract.recognize(file, "eng")
+            .then((result) => resolve(result?.data?.text || ""))
+            .catch((error) => reject(error));
+    });
+}
+
 async function handleCertificateUpload(file, belt, beltIndex) {
     if (!portalState.activeStudent) return;
 
     if (file.size > MAX_FILE_SIZE) {
-        setStatus("Files up to 10MB please. Compress large photos or PDFs if needed.", "error");
+        setStatus("Files up to 10MB please. Compress large photos if needed.", "error");
+        return;
+    }
+
+    if (file.type === "application/pdf") {
+        setStatus("Upload a photo of the certificate instead of a PDF.", "error");
         return;
     }
 
     if (file.type && !ACCEPTED_TYPES.includes(file.type)) {
-        setStatus("Use PDF or image formats (JPG, PNG, HEIC).", "error");
+        setStatus("Use photo formats (JPG, PNG, HEIC).", "error");
+        return;
+    }
+
+    const isValid = await validateCertificateFile(file);
+    if (!isValid) {
         return;
     }
 

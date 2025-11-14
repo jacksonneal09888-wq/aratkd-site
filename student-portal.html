@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
 </head>
-<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-key="AraTKDPortalKey" data-admin-pin="1453">
+<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -350,7 +350,7 @@
                     </details>
                     <details class="faq-item">
                         <summary>What file types can I upload?</summary>
-                        <p>PDFs, PNG, JPG, HEIC, and HEIF files up to 10MB are accepted. For videos, paste a share link in the certificate notes section.</p>
+                        <p>Upload a clear JPG or PNG photo of the official Certificate of Rank (up to 10MB). This helps the system verify authentic paperwork automatically.</p>
                     </details>
                     <details class="faq-item">
                         <summary>What happens after I submit a belt test request?</summary>
@@ -392,10 +392,9 @@
                             <label for="admin-password">Password</label>
                             <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" required>
                         </div>
-                        <div class="admin-key-field" id="admin-key-field">
-                            <label for="admin-key">Portal Key</label>
-                            <input type="text" id="admin-key" name="adminKey" placeholder="Enter portal key">
-                            <p class="admin-key-note">This key lives in the portal API (ADMIN_PORTAL_KEY). Update the value above if Master Ara rotates it.</p>
+                        <div>
+                            <label for="admin-pin">Security PIN</label>
+                            <input type="password" id="admin-pin" name="adminPin" placeholder="Optional extra factor">
                         </div>
                         <button type="submit" class="cta-btn">Sign In</button>
                         <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD to unlock.</p>
@@ -404,7 +403,11 @@
                         <div class="admin-summary">
                             <div class="admin-summary__header">
                                 <h3>Usage Overview</h3>
-                                <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                                <div class="admin-summary__actions">
+                                    <button type="button" class="text-link-btn" id="admin-expand">Expand Panel</button>
+                                    <button type="button" class="text-link-btn" id="admin-summary-download">Download CSV</button>
+                                    <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                                </div>
                             </div>
                             <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
                             <div class="admin-table-wrap">
@@ -416,11 +419,13 @@
                                         <th scope="col">Logins</th>
                                         <th scope="col">Latest Belt</th>
                                         <th scope="col">Last Activity</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="admin-summary-body">
                                         <tr>
-                                            <td colspan="5">Sign in to load analytics.</td>
+                                            <td colspan="7">Sign in to load analytics.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -462,6 +467,21 @@
         </div>
     </div>
 
+    <div class="admin-report-card" id="admin-report-card" hidden>
+        <div class="admin-report-card__dialog" role="dialog" aria-modal="true" aria-labelledby="report-card-title">
+            <button type="button" class="admin-report-card__close" id="report-card-close" aria-label="Close report card">&times;</button>
+            <div id="report-card-content">
+                <h3 id="report-card-title">Report Card</h3>
+                <div id="report-card-body">
+                    <p>Select a student to view report card details.</p>
+                </div>
+            </div>
+            <div class="report-card-actions">
+                <button type="button" class="secondary-btn" id="report-card-download">Download Report Card</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>
@@ -488,6 +508,7 @@
         <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
     <script type="module" src="assets/js/student-portal.js?v=20241027" defer></script>
     <script src="assets/js/main.js?v=20241027" defer></script>
     <script src="assets/js/translate.js"></script>
