@@ -969,6 +969,21 @@ function applyServerProgressRecords(student, records, options = {}) {
     let serverUnlocked = defaultUnlocked;
 
     const existingCertificates = portalState.certificates[student.id] ?? {};
+    const pendingAwardIndex = Object.values(existingCertificates).reduce((highest, record) => {
+        if (!record || !record.pendingSync) {
+            return highest;
+        }
+        const belt =
+            resolveBeltDataBySlug(record.beltSlug) ||
+            resolveBeltDataByName(record.belt) ||
+            null;
+        if (!belt) {
+            return highest;
+        }
+        const beltIndex = resolveBeltIndex(belt.name);
+        return Math.max(highest, beltIndex);
+    }, baseIndex);
+    const pendingUnlockIndex = Math.min(pendingAwardIndex + 1, lastIndex);
     const serverCertificates = {};
 
     entries.forEach((record) => {
@@ -1017,12 +1032,17 @@ function applyServerProgressRecords(student, records, options = {}) {
     persistCertificates();
 
     const existingProgress = portalState.progress[student.id] ?? {};
-    const mergedUnlocked = Math.max(
-        defaultUnlocked,
-        existingProgress.unlockedIndex ?? defaultUnlocked,
-        serverUnlocked
-    );
-    const mergedAwarded = Math.max(existingProgress.awardedIndex ?? baseIndex, serverAwarded);
+    const hasServerData = entries.length > 0;
+    const mergedUnlocked = hasServerData
+        ? Math.max(serverUnlocked, pendingUnlockIndex)
+        : Math.max(
+              defaultUnlocked,
+              existingProgress.unlockedIndex ?? defaultUnlocked,
+              pendingUnlockIndex
+          );
+    const mergedAwarded = hasServerData
+        ? Math.max(serverAwarded, pendingAwardIndex, baseIndex)
+        : Math.max(existingProgress.awardedIndex ?? baseIndex, pendingAwardIndex, baseIndex);
 
     portalState.progress[student.id] = {
         unlockedIndex: mergedUnlocked,
