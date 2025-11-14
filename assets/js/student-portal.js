@@ -1377,9 +1377,12 @@ function renderAdminAttendance() {
         classCell.innerHTML = `<strong>${session.classLevel || session.classType}</strong>`;
         const kioskCell = document.createElement("td");
         kioskCell.textContent = session.kioskId || "—";
+        const percentCell = document.createElement("td");
+        percentCell.textContent =
+            typeof session.percentOfGoal === "number" ? `${session.percentOfGoal}%` : "—";
         const timeCell = document.createElement("td");
         timeCell.textContent = session.checkInAt ? formatDateTime(session.checkInAt) : "—";
-        row.append(studentCell, classCell, kioskCell, timeCell);
+        row.append(studentCell, classCell, kioskCell, percentCell, timeCell);
         portalEls.adminAttendanceBody.appendChild(row);
     });
 }
@@ -1445,50 +1448,17 @@ function updateAttendanceSummaryDisplay(studentId) {
         }
         return;
     }
-    const sessions = summary?.totals?.sessions || 0;
-    const last =
-        summary?.totals?.lastSession && summary.totals.lastSession !== ""
-            ? new Date(summary.totals.lastSession)
-            : null;
-    const lastLabel = last ? last.toLocaleDateString() : "no visits yet";
-    const daysSince = last ? Math.floor((Date.now() - last.getTime()) / 86400000) : null;
-    const penalty = daysSince !== null && daysSince >= 7;
-    summary.penalty = penalty;
-    summary.penaltyMessage = penalty
-        ? `Attendance gap: last check-in ${daysSince} days ago.`
-        : "";
-
-    portalEls.readinessAutoSummary.textContent = penalty
-        ? `Auto log: ${sessions} check-ins · Last visit ${lastLabel} — penalty applied`
-        : `Auto log: ${sessions} check-ins in this cycle · Last visit ${lastLabel}`;
-
-    if (!portalEls.readinessAttendance) return;
-    const breakdown = summary?.breakdown || [];
-    const recent = summary?.recent || [];
-    const list = document.createElement("div");
-    list.innerHTML = `
-        <strong>Class Breakdown</strong>
-        <ul>
-            ${breakdown
-                .map((item) => `<li><span>${item.classType || "Class"}</span><span>${item.sessions}</span></li>`)
-                .join("") || "<li>No sessions recorded.</li>"}
-        </ul>
-        <strong>Last Visits</strong>
-        <ul>
-            ${recent
-                .map(
-                    (entry) =>
-                        `<li><span>${entry.classLevel || entry.classType}</span><span>${formatDateTime(entry.checkInAt)}</span></li>`
-                )
-                .join("") || "<li>No recent visits logged.</li>"}
-        </ul>
-    `;
-    portalEls.readinessAttendance.innerHTML = "";
-    portalEls.readinessAttendance.appendChild(list);
-
-    if (portalState.activeStudent && portalState.activeStudent.id === studentId) {
-        const target = resolveUpcomingBelt(portalState.activeStudent);
-        renderReadinessCard(portalState.activeStudent, target);
+    const percent = typeof summary.attendancePercent === "number" ? summary.attendancePercent : 0;
+    portalEls.readinessPercentDisplay.textContent = `${percent}%`;
+    portalEls.readinessAutoSummary.textContent = `Attendance goal progress: ${percent}%`;
+    if (portalEls.readinessLessonDisplay) {
+        portalEls.readinessLessonDisplay.style.display = "none";
+    }
+    if (portalEls.readinessChecklist) {
+        portalEls.readinessChecklist.style.display = "none";
+    }
+    if (portalEls.readinessAttendance) {
+        portalEls.readinessAttendance.innerHTML = "";
     }
 }
 
@@ -1704,7 +1674,7 @@ function renderReadinessCard(student, targetBelt) {
     const entry = readinessState.entry;
 
     if (portalEls.readinessTargetLabel) {
-        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: ${readinessState.goals.lessons} classes · ${formatPercent(readinessState.goals.percent)}`;
+        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: attendance goal`;
     }
 
     if (portalEls.readinessReadyPill) {
@@ -1713,66 +1683,16 @@ function renderReadinessCard(student, targetBelt) {
         portalEls.readinessReadyPill.classList.toggle("is-missing", !readinessState.isReady);
     }
 
-    if (portalEls.readinessClassesOffered) {
-        portalEls.readinessClassesOffered.value = entry.classesOffered ?? "";
-    }
-
-    if (portalEls.readinessClassesAttended) {
-        portalEls.readinessClassesAttended.value = entry.classesAttended ?? "";
-    }
-
-    if (portalEls.readinessStripeInputs?.length) {
-        portalEls.readinessStripeInputs.forEach((input) => {
-            const key = input.dataset.stripeField;
-            if (!key) return;
-            input.checked = Boolean(entry.stripes?.[key]);
-        });
-    }
-
     if (portalEls.readinessPercentDisplay) {
-        portalEls.readinessPercentDisplay.textContent = entry.classesOffered
-            ? formatPercent(readinessState.attendancePercent)
-            : "0%";
+        portalEls.readinessPercentDisplay.textContent = formatPercent(readinessState.attendancePercent);
     }
 
     if (portalEls.readinessLessonDisplay) {
-        portalEls.readinessLessonDisplay.textContent = `${entry.classesAttended} / ${readinessState.goals.lessons}`;
+        portalEls.readinessLessonDisplay.style.display = "none";
     }
 
     if (portalEls.readinessChecklist) {
-        portalEls.readinessChecklist.innerHTML = "";
-        const checklistItems = [
-            {
-                label: "Lesson Minimum",
-                value: `${entry.classesAttended}/${readinessState.goals.lessons}`,
-                met: readinessState.lessonsMet
-            },
-            {
-                label: "Attendance %",
-                value: entry.classesOffered
-                    ? `${formatPercent(readinessState.attendancePercent)} / ${formatPercent(readinessState.goals.percent)}`
-                    : "Add classes offered",
-                met: readinessState.percentMet
-            },
-            {
-                label: "All 4 Stripes",
-                value: `${readinessState.earnedStripes}/${Object.keys(STRIPE_LABELS).length}`,
-                met: readinessState.stripesMet
-            }
-        ];
-
-        checklistItems.forEach((item) => {
-            const li = document.createElement("li");
-            const labelSpan = document.createElement("span");
-            labelSpan.textContent = item.label;
-            const valueSpan = document.createElement("span");
-            valueSpan.className = "readiness-pill";
-            valueSpan.classList.toggle("is-ready", item.met);
-            valueSpan.classList.toggle("is-missing", !item.met);
-            valueSpan.textContent = item.value;
-            li.append(labelSpan, valueSpan);
-            portalEls.readinessChecklist.append(li);
-        });
+        portalEls.readinessChecklist.style.display = "none";
     }
 
     if (portalEls.readinessStatus) {

@@ -142,7 +142,12 @@ async function submitAttendance() {
     }
     state.studentId = "";
     updateStudentInput();
-    setStatus(`Check-in recorded for ${data.student?.name || "student"} at ${new Date(data.recordedAt).toLocaleTimeString()}`, "success");
+    const percent = typeof data.attendancePercent === "number" ? data.attendancePercent : null;
+    const percentMessage = percent !== null ? `Attendance ${percent}% toward goal.` : "";
+    setStatus(
+      `Check-in recorded for ${data.student?.name || "student"} · ${percentMessage}`,
+      "success"
+    );
   } catch (error) {
     console.error(error);
     if (error.message?.toLowerCase().includes("failed to fetch") && isLocalFile) {

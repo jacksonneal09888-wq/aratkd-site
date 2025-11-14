@@ -62,6 +62,34 @@ const kioskClassCatalog = [
   }
 ];
 
+const BELT_ATTENDANCE_TARGETS: Record<string, number> = {
+  white: 25,
+  'high-white': 27,
+  yellow: 29,
+  'high-yellow': 31,
+  green: 33,
+  'high-green': 35,
+  blue: 37,
+  'high-blue': 39,
+  red: 42,
+  'high-red': 48,
+  black: 50
+};
+
+const BELT_ORDER = [
+  'white',
+  'high-white',
+  'yellow',
+  'high-yellow',
+  'green',
+  'high-green',
+  'blue',
+  'high-blue',
+  'red',
+  'high-red',
+  'black'
+];
+
 const sanitizeStudentRecord = (row: any) => {
   if (!row) return null;
   return {
@@ -82,6 +110,40 @@ const fetchStudentById = (db: D1Database, studentId: string) => {
     )
     .bind(lookup)
     .first<any>();
+};
+
+const normalizeBeltSlug = (name: string) => {
+  const slug = (name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/belt/g, '')
+    .replace(/dan/g, '')
+    .replace(/degree/g, '')
+    .replace(/[^a-z- ]/g, '')
+    .replace(/\s+/g, '-');
+  if (!slug) {
+    return 'white';
+  }
+  if (slug.includes('high-yellow')) return 'high-yellow';
+  if (slug.includes('high-white')) return 'high-white';
+  if (slug.includes('high-green')) return 'high-green';
+  if (slug.includes('high-blue')) return 'high-blue';
+  if (slug.includes('high-red')) return 'high-red';
+  if (slug.includes('white')) return 'white';
+  if (slug.includes('yellow')) return 'yellow';
+  if (slug.includes('green')) return 'green';
+  if (slug.includes('blue')) return 'blue';
+  if (slug.includes('red')) return 'red';
+  if (slug.includes('black')) return 'black';
+  return slug;
+};
+
+const resolveLessonsRequired = (currentBelt: string) => {
+  const slug = normalizeBeltSlug(currentBelt);
+  const index = BELT_ORDER.indexOf(slug);
+  const nextSlug =
+    index >= 0 && index < BELT_ORDER.length - 1 ? BELT_ORDER[index + 1] : slug;
+  return BELT_ATTENDANCE_TARGETS[nextSlug] || 25;
 };
 
 const fetchPortalProgress = async (db: D1Database, studentId: string) => {
@@ -153,6 +215,78 @@ const requireKioskAuth = (c: Context<{ Bindings: Env }>) => {
     return c.json({ error: 'Unauthorized kiosk' }, 401);
   }
   return null;
+};
+
+const buildAttendanceSummary = async (
+  db: D1Database,
+  studentId: string,
+  currentBelt: string,
+  options?: { sinceIso?: string }
+) => {
+  const sinceIso =
+    options?.sinceIso ||
+    new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+
+  const totals = await db
+    .prepare(
+      `SELECT
+         COUNT(*) AS total_sessions,
+         MIN(created_at) AS first_session,
+         MAX(created_at) AS last_session
+       FROM attendance_sessions
+       WHERE student_id = ?1
+         AND datetime(created_at) >= datetime(?2)`
+    )
+    .bind(studentId, sinceIso)
+    .first<any>();
+
+  const breakdownQuery = await db
+    .prepare(
+      `SELECT class_type, COUNT(*) AS count
+       FROM attendance_sessions
+       WHERE student_id = ?1
+         AND datetime(created_at) >= datetime(?2)
+       GROUP BY class_type`
+    )
+    .bind(studentId, sinceIso)
+    .all();
+
+  const recentQuery = await db
+    .prepare(
+      `SELECT class_type, class_level, created_at
+       FROM attendance_sessions
+       WHERE student_id = ?1
+       ORDER BY datetime(created_at) DESC
+       LIMIT 10`
+    )
+    .bind(studentId)
+    .all();
+
+  const lessonsRequired = resolveLessonsRequired(currentBelt || '');
+  const sessionCount = totals?.total_sessions || 0;
+  const attendancePercent = lessonsRequired
+    ? Number(Math.min(1, sessionCount / lessonsRequired) * 100).toFixed(1)
+    : '0.0';
+
+  return {
+    since: sinceIso,
+    totals: {
+      sessions: sessionCount,
+      firstSession: totals?.first_session || null,
+      lastSession: totals?.last_session || null
+    },
+    breakdown: (breakdownQuery.results || []).map((row: any) => ({
+      classType: row.class_type,
+      sessions: row.count
+    })),
+    recent: (recentQuery.results || []).map((row: any) => ({
+      classType: row.class_type,
+      classLevel: row.class_level,
+      checkInAt: row.created_at
+    })),
+    targetLessons: lessonsRequired,
+    attendancePercent: Number(attendancePercent)
+  };
 };
 
 const hasValidAdminKey = (c: Context<{ Bindings: Env }>) => {
@@ -338,21 +472,29 @@ app.post('/kiosk/check-in', async (c) => {
     return c.json({ error: 'Unknown student ID' }, 404);
   }
 
+  const canonicalId = student.id;
   const timestamp = new Date().toISOString();
   await c.env.PORTAL_DB.prepare(
     `INSERT INTO attendance_sessions
        (id, student_id, class_type, class_level, kiosk_id, source, created_at)
      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
   )
-    .bind(crypto.randomUUID(), student.id, classType, classLevel || null, kioskId || null, source, timestamp)
+    .bind(crypto.randomUUID(), canonicalId, classType, classLevel || null, kioskId || null, source, timestamp)
     .run();
+
+  const summary = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    canonicalId,
+    student.current_belt || ''
+  );
 
   return c.json({
     ok: true,
     recordedAt: timestamp,
     student: sanitizeStudentRecord(student),
     classType,
-    classLevel: classLevel || null
+    classLevel: classLevel || null,
+    attendancePercent: summary.attendancePercent
   });
 });
 
@@ -371,58 +513,15 @@ app.get('/portal/attendance/:studentId', async (c) => {
   }
 
   const sinceQuery = c.req.query('since');
-  const defaultSince = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-  const sinceIso = sinceQuery ? new Date(sinceQuery).toISOString() : defaultSince;
+  const student = await fetchStudentById(c.env.PORTAL_DB, paramId);
+  const summary = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    paramId,
+    student?.current_belt || '',
+    { sinceIso: sinceQuery }
+  );
 
-  const totals = await c.env.PORTAL_DB.prepare(
-    `SELECT
-        COUNT(*) AS total_sessions,
-        MIN(created_at) AS first_session,
-        MAX(created_at) AS last_session
-     FROM attendance_sessions
-     WHERE student_id = ?1
-       AND datetime(created_at) >= datetime(?2)`
-  )
-    .bind(paramId, sinceIso)
-    .first<any>();
-
-  const breakdownQuery = await c.env.PORTAL_DB.prepare(
-    `SELECT class_type, COUNT(*) AS count
-     FROM attendance_sessions
-     WHERE student_id = ?1
-       AND datetime(created_at) >= datetime(?2)
-     GROUP BY class_type`
-  )
-    .bind(paramId, sinceIso)
-    .all();
-
-  const recentSessions = await c.env.PORTAL_DB.prepare(
-    `SELECT class_type, class_level, created_at
-     FROM attendance_sessions
-     WHERE student_id = ?1
-     ORDER BY datetime(created_at) DESC
-     LIMIT 10`
-  )
-    .bind(paramId)
-    .all();
-
-  return c.json({
-    since: sinceIso,
-    totals: {
-      sessions: totals?.total_sessions || 0,
-      firstSession: totals?.first_session || null,
-      lastSession: totals?.last_session || null
-    },
-    breakdown: (breakdownQuery.results || []).map((row: any) => ({
-      classType: row.class_type,
-      sessions: row.count
-    })),
-    recent: (recentSessions.results || []).map((row: any) => ({
-      classType: row.class_type,
-      classLevel: row.class_level,
-      checkInAt: row.created_at
-    }))
-  });
+  return c.json(summary);
 });
 
 app.get('/portal/admin/activity', async (c) => {
@@ -519,14 +618,32 @@ app.get('/portal/admin/attendance', async (c) => {
     .bind(limit)
     .all();
 
-  return c.json({
-    sessions: (results || []).map((row: any) => ({
+  const percentCache = new Map<string, number>();
+  const sessions = [];
+  for (const row of results || []) {
+    let percent = percentCache.get(row.student_id);
+    if (percent === undefined) {
+      const student = await fetchStudentById(c.env.PORTAL_DB, row.student_id);
+      const summary = await buildAttendanceSummary(
+        c.env.PORTAL_DB,
+        row.student_id,
+        student?.current_belt || ''
+      );
+      percent = summary.attendancePercent;
+      percentCache.set(row.student_id, percent);
+    }
+    sessions.push({
       studentId: row.student_id,
       classType: row.class_type,
       classLevel: row.class_level,
       kioskId: row.kiosk_id,
-      checkInAt: row.created_at
-    })),
+      checkInAt: row.created_at,
+      percentOfGoal: percent
+    });
+  }
+
+  return c.json({
+    sessions,
     generatedAt: new Date().toISOString()
   });
 });
