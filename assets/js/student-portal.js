@@ -874,6 +874,10 @@ function recordCertificateProgress(studentId, belt, certificate) {
             }
             return response.json();
         })
+        .then((data) => {
+            markCertificateSynced(studentId, belt.slug, data?.uploadedAt || payload.uploadedAt);
+            return data;
+        })
         .catch((error) => {
             if (error?.code === "UNAUTHORIZED") {
                 portalState.sessionToken = null;
@@ -964,7 +968,8 @@ function applyServerProgressRecords(student, records, options = {}) {
     let serverAwarded = baseIndex;
     let serverUnlocked = defaultUnlocked;
 
-    const certificateMap = portalState.certificates[student.id] ?? {};
+    const existingCertificates = portalState.certificates[student.id] ?? {};
+    const serverCertificates = {};
 
     entries.forEach((record) => {
         const belt = resolveBeltDataBySlug(record.beltSlug);
@@ -973,11 +978,11 @@ function applyServerProgressRecords(student, records, options = {}) {
         serverAwarded = Math.max(serverAwarded, beltIndex);
         serverUnlocked = Math.max(serverUnlocked, Math.min(beltIndex + 1, lastIndex));
 
-        const existing = certificateMap[belt.name] ?? {};
+        const existing = existingCertificates[belt.name] ?? {};
         const hasLocalFile = Boolean(
             existing.storageKey || existing.dataUrl || existing.hasFile
         );
-        certificateMap[belt.name] = {
+        serverCertificates[belt.name] = {
             belt: belt.name,
             beltSlug: belt.slug,
             uploadedAt: record.uploadedAt,
@@ -990,11 +995,25 @@ function applyServerProgressRecords(student, records, options = {}) {
             storageKey: existing.storageKey || null,
             dataUrl: hasLocalFile && !existing.storageKey ? existing.dataUrl || null : null,
             hasFile: hasLocalFile,
-            source: hasLocalFile ? existing.source || "local" : "server"
+            source: "server",
+            pendingSync: false
         };
     });
 
-    portalState.certificates[student.id] = certificateMap;
+    Object.entries(existingCertificates).forEach(([beltName, record]) => {
+        if (serverCertificates[beltName]) {
+            return;
+        }
+        if (record && record.pendingSync) {
+            serverCertificates[beltName] = { ...record };
+            return;
+        }
+        if (record?.storageKey && certificateStorage.isAvailable) {
+            certificateStorage.remove(record.storageKey).catch(() => {});
+        }
+    });
+
+    portalState.certificates[student.id] = serverCertificates;
     persistCertificates();
 
     const existingProgress = portalState.progress[student.id] ?? {};
@@ -2064,10 +2083,41 @@ function storeCertificate(studentId, certificate) {
             existing.storageKey ||
             existing.dataUrl
         ),
-        source: certificate.source || existing.source || "local"
+        source: certificate.source || existing.source || "local",
+        pendingSync:
+            typeof certificate.pendingSync === "boolean"
+                ? certificate.pendingSync
+                : true
     };
 
     portalState.certificates[studentId][beltName] = merged;
+    persistCertificates();
+}
+
+function markCertificateSynced(studentId, beltSlug, uploadedAt) {
+    if (!studentId || !beltSlug) return;
+    const certificates = portalState.certificates[studentId];
+    if (!certificates) return;
+    const beltData = resolveBeltDataBySlug(beltSlug);
+    let beltName = beltData?.name || null;
+    if (!beltName) {
+        beltName =
+            Object.keys(certificates).find((name) => {
+                const record = certificates[name];
+                if (!record) return false;
+                if (record.beltSlug && record.beltSlug === beltSlug) {
+                    return true;
+                }
+                const normalized = slugifyBeltName(name);
+                return normalized === beltSlug;
+            }) || null;
+    }
+    if (!beltName || !certificates[beltName]) return;
+    certificates[beltName].pendingSync = false;
+    certificates[beltName].source = "server";
+    if (uploadedAt) {
+        certificates[beltName].uploadedAt = uploadedAt;
+    }
     persistCertificates();
 }
 
@@ -2522,7 +2572,8 @@ function sanitizeCertificateRecord(record) {
                 : null,
         storageKey: record.storageKey || null,
         hasFile: Boolean(record.hasFile || record.storageKey || record.dataUrl),
-        source: record.source || "local"
+        source: record.source || "local",
+        pendingSync: Boolean(record.pendingSync)
     };
 
     if (!sanitized.storageKey && record.dataUrl) {
@@ -2555,6 +2606,7 @@ function normalizeStoredCertificates() {
                 typeof record.fileSize === "number" && !Number.isNaN(record.fileSize)
                     ? record.fileSize
                     : null;
+            record.pendingSync = Boolean(record.pendingSync);
         });
     });
 }
