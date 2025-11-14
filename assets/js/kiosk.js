@@ -1,6 +1,7 @@
 const apiBase = document.body.dataset.apiBase || "";
 const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
+const isLocalFile = window.location.protocol === "file:";
 
 const state = {
   selectedClass: null,
@@ -111,6 +112,10 @@ async function submitAttendance() {
     setStatus("Kiosk is not configured. Contact the front desk.", "error");
     return;
   }
+  if (isLocalFile) {
+    setStatus("This kiosk must run from https://aratkd.com/kiosk.html to sync attendance.", "error");
+    return;
+  }
   setStatus("Logging attendance...", "progress");
   try {
     const cleanedId = state.studentId.trim().toUpperCase();
@@ -140,7 +145,11 @@ async function submitAttendance() {
     setStatus(`Check-in recorded for ${data.student?.name || "student"} at ${new Date(data.recordedAt).toLocaleTimeString()}`, "success");
   } catch (error) {
     console.error(error);
-    setStatus(error.message || "Unable to reach the kiosk service.", "error");
+    if (error.message?.toLowerCase().includes("failed to fetch") && isLocalFile) {
+      setStatus("Unable to reach the portal API. Load this kiosk from your website (not a local file).", "error");
+    } else {
+      setStatus(error.message || "Unable to reach the kiosk service.", "error");
+    }
   }
 }
 
@@ -195,6 +204,10 @@ if (els.studentId) {
 renderKeypad();
 loadClasses();
 updateWeekTheme();
+
+if (isLocalFile) {
+  setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
+}
 
 function updateWeekTheme() {
   const now = new Date();

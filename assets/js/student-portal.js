@@ -1448,9 +1448,19 @@ function updateAttendanceSummaryDisplay(studentId) {
     const sessions = summary?.totals?.sessions || 0;
     const last =
         summary?.totals?.lastSession && summary.totals.lastSession !== ""
-            ? new Date(summary.totals.lastSession).toLocaleDateString()
-            : "no visits yet";
-    portalEls.readinessAutoSummary.textContent = `Auto log: ${sessions} check-ins in this cycle · Last visit ${last}`;
+            ? new Date(summary.totals.lastSession)
+            : null;
+    const lastLabel = last ? last.toLocaleDateString() : "no visits yet";
+    const daysSince = last ? Math.floor((Date.now() - last.getTime()) / 86400000) : null;
+    const penalty = daysSince !== null && daysSince >= 7;
+    summary.penalty = penalty;
+    summary.penaltyMessage = penalty
+        ? `Attendance gap: last check-in ${daysSince} days ago.`
+        : "";
+
+    portalEls.readinessAutoSummary.textContent = penalty
+        ? `Auto log: ${sessions} check-ins · Last visit ${lastLabel} — penalty applied`
+        : `Auto log: ${sessions} check-ins in this cycle · Last visit ${lastLabel}`;
 
     if (!portalEls.readinessAttendance) return;
     const breakdown = summary?.breakdown || [];
@@ -1475,6 +1485,11 @@ function updateAttendanceSummaryDisplay(studentId) {
     `;
     portalEls.readinessAttendance.innerHTML = "";
     portalEls.readinessAttendance.appendChild(list);
+
+    if (portalState.activeStudent && portalState.activeStudent.id === studentId) {
+        const target = resolveUpcomingBelt(portalState.activeStudent);
+        renderReadinessCard(portalState.activeStudent, target);
+    }
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {
@@ -1679,6 +1694,12 @@ function renderReadinessCard(student, targetBelt) {
     portalEls.readinessWrapper.hidden = false;
 
     const readinessState = computeReadinessState(student, targetBelt);
+    const attendancePenalty = portalState.attendanceSummary[student.id]?.penalty;
+    const penaltyMessage = portalState.attendanceSummary[student.id]?.penaltyMessage;
+    if (attendancePenalty && penaltyMessage) {
+        readinessState.missing.push(penaltyMessage);
+        readinessState.isReady = false;
+    }
     portalState.currentReadiness = readinessState;
     const entry = readinessState.entry;
 
