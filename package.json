@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "bash scripts/build.sh",
-    "deploy:worker": "wrangler deploy"
+    "deploy:worker": "wrangler deploy --config backend/worker/wrangler.jsonc"
   },
   "devDependencies": {
     "wrangler": "^4.45.3"

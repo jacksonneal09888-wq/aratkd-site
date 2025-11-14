@@ -26,7 +26,7 @@ const WEEK_THEMES = [
   },
   {
     label: "Sparring Week",
-    message: "Gear up! Footwork + contact drills.",
+    message: "Gloves on! Focus on footwork, timing, and controlled contact.",
     isActive: (weekNumber) => weekNumber % 2 !== 0
   }
 ];
@@ -182,7 +182,7 @@ const kioskClassCatalogFallback = [
   {
     id: "basic",
     name: "Basic Class",
-    focus: "White–High Yellow • starts 5:00 PM",
+    focus: "White–Yellow • starts 5:00 PM",
     schedule: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"]
   },
   {
@@ -204,6 +204,7 @@ if (els.studentId) {
 renderKeypad();
 loadClasses();
 updateWeekTheme();
+fetchWeekTheme();
 
 if (isLocalFile) {
   setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
@@ -218,6 +219,22 @@ function updateWeekTheme() {
   }
   if (els.weekMessage) {
     els.weekMessage.textContent = theme.message;
+  }
+}
+
+async function fetchWeekTheme() {
+  try {
+    const res = await fetch("assets/data/week-theme.json?v=" + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data?.label && els.weekLabel) {
+      els.weekLabel.textContent = data.label;
+    }
+    if (data?.message && els.weekMessage) {
+      els.weekMessage.textContent = data.message;
+    }
+  } catch (error) {
+    console.warn("Unable to load custom week theme:", error);
   }
 }
 
