@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "bash scripts/build.sh"
+    "build": "bash scripts/build.sh",
+    "deploy:worker": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.45.3"

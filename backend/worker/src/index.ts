@@ -5,6 +5,7 @@ import { sign, verify, type JWTPayload } from 'hono/jwt';
 interface Env {
   PORTAL_DB: D1Database;
   ADMIN_PORTAL_KEY?: string;
+  KIOSK_PORTAL_KEY?: string;
   PORTAL_JWT_SECRET?: string;
 }
 
@@ -38,6 +39,28 @@ app.options('*', (c) =>
 const TOKEN_TTL_SECONDS = 60 * 60 * 24;
 
 const getJwtSecret = (env: Env) => env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || 'change-me';
+const getKioskSecret = (env: Env) => env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || 'kiosk-dev-key';
+
+const kioskClassCatalog = [
+  {
+    id: 'little-ninjas',
+    name: 'Little Ninjas',
+    focus: 'Ages 4-6 • starts 4:30 PM',
+    schedule: ['Mon 4:30 PM', 'Wed 4:30 PM', 'Fri 4:30 PM']
+  },
+  {
+    id: 'basic',
+    name: 'Basic Class',
+    focus: 'White–High Yellow • starts 5:00 PM',
+    schedule: ['Mon 5:00 PM', 'Wed 5:00 PM', 'Fri 5:00 PM']
+  },
+  {
+    id: 'advanced',
+    name: 'Advanced Class',
+    focus: 'High Yellow–Black • starts 6:00 PM',
+    schedule: ['Mon 6:00 PM', 'Wed 6:00 PM', 'Fri 6:00 PM']
+  }
+];
 
 const sanitizeStudentRecord = (row: any) => {
   if (!row) return null;
@@ -121,6 +144,25 @@ const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthR
     }
     return { error: c.json({ error: 'Unauthorized' }, 401) };
   }
+};
+
+const requireKioskAuth = (c: Context<{ Bindings: Env }>) => {
+  const provided = c.req.header('X-Kiosk-Key') || '';
+  const expected = getKioskSecret(c.env);
+  if (!expected || provided !== expected) {
+    return c.json({ error: 'Unauthorized kiosk' }, 401);
+  }
+  return null;
+};
+
+const hasValidAdminKey = (c: Context<{ Bindings: Env }>) => {
+  const expected = c.env.ADMIN_PORTAL_KEY;
+  if (!expected) {
+    return true;
+  }
+  const headerKey = c.req.header('X-Admin-Key');
+  const queryKey = c.req.query('adminKey');
+  return expected === headerKey || expected === queryKey;
 };
 
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
@@ -264,12 +306,127 @@ app.get('/portal/profile', async (c) => {
   return c.json({ student: sanitizeStudentRecord(student) });
 });
 
-app.get('/portal/admin/activity', async (c) => {
-  const headerKey = c.req.header('X-Admin-Key');
-  const queryKey = c.req.query('adminKey');
-  const expected = c.env.ADMIN_PORTAL_KEY;
+app.get('/kiosk/classes', (c) =>
+  c.json({
+    classes: kioskClassCatalog,
+    generatedAt: new Date().toISOString()
+  })
+);
 
-  if (expected && expected !== headerKey && expected !== queryKey) {
+app.post('/kiosk/check-in', async (c) => {
+  const authError = requireKioskAuth(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const studentId = (body.studentId || '').trim();
+  const classType = (body.classType || '').trim();
+  const classLevel = (body.classLevel || '').trim();
+  const kioskId = (body.kioskId || 'front-desk').trim();
+  const source = (body.source || 'kiosk').toString();
+
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+  if (!classType) {
+    return c.json({ error: 'classType is required' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Unknown student ID' }, 404);
+  }
+
+  const timestamp = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO attendance_sessions
+       (id, student_id, class_type, class_level, kiosk_id, source, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+  )
+    .bind(crypto.randomUUID(), student.id, classType, classLevel || null, kioskId || null, source, timestamp)
+    .run();
+
+  return c.json({
+    ok: true,
+    recordedAt: timestamp,
+    student: sanitizeStudentRecord(student),
+    classType,
+    classLevel: classLevel || null
+  });
+});
+
+app.get('/portal/attendance/:studentId', async (c) => {
+  const auth = await authenticateRequest(c);
+  if ('error' in auth) {
+    return auth.error;
+  }
+
+  const paramId = c.req.param('studentId').trim();
+  if (!paramId) {
+    return c.json({ error: 'Invalid student id' }, 400);
+  }
+  if (paramId.toLowerCase() !== auth.studentId.toLowerCase()) {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const sinceQuery = c.req.query('since');
+  const defaultSince = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const sinceIso = sinceQuery ? new Date(sinceQuery).toISOString() : defaultSince;
+
+  const totals = await c.env.PORTAL_DB.prepare(
+    `SELECT
+        COUNT(*) AS total_sessions,
+        MIN(created_at) AS first_session,
+        MAX(created_at) AS last_session
+     FROM attendance_sessions
+     WHERE student_id = ?1
+       AND datetime(created_at) >= datetime(?2)`
+  )
+    .bind(paramId, sinceIso)
+    .first<any>();
+
+  const breakdownQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT class_type, COUNT(*) AS count
+     FROM attendance_sessions
+     WHERE student_id = ?1
+       AND datetime(created_at) >= datetime(?2)
+     GROUP BY class_type`
+  )
+    .bind(paramId, sinceIso)
+    .all();
+
+  const recentSessions = await c.env.PORTAL_DB.prepare(
+    `SELECT class_type, class_level, created_at
+     FROM attendance_sessions
+     WHERE student_id = ?1
+     ORDER BY datetime(created_at) DESC
+     LIMIT 10`
+  )
+    .bind(paramId)
+    .all();
+
+  return c.json({
+    since: sinceIso,
+    totals: {
+      sessions: totals?.total_sessions || 0,
+      firstSession: totals?.first_session || null,
+      lastSession: totals?.last_session || null
+    },
+    breakdown: (breakdownQuery.results || []).map((row: any) => ({
+      classType: row.class_type,
+      sessions: row.count
+    })),
+    recent: (recentSessions.results || []).map((row: any) => ({
+      classType: row.class_type,
+      classLevel: row.class_level,
+      checkInAt: row.created_at
+    }))
+  });
+});
+
+app.get('/portal/admin/activity', async (c) => {
+  if (!hasValidAdminKey(c)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
@@ -335,6 +492,41 @@ app.get('/portal/admin/activity', async (c) => {
   return c.json({
     events,
     summary,
+    generatedAt: new Date().toISOString()
+  });
+});
+
+app.get('/portal/admin/attendance', async (c) => {
+  if (!hasValidAdminKey(c)) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  let limit = 50;
+  const queryLimit = c.req.query('limit');
+  if (queryLimit) {
+    const parsed = parseInt(queryLimit, 10);
+    if (!Number.isNaN(parsed)) {
+      limit = Math.min(Math.max(parsed, 1), 200);
+    }
+  }
+
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT student_id, class_type, class_level, kiosk_id, created_at
+     FROM attendance_sessions
+     ORDER BY datetime(created_at) DESC
+     LIMIT ?1`
+  )
+    .bind(limit)
+    .all();
+
+  return c.json({
+    sessions: (results || []).map((row: any) => ({
+      studentId: row.student_id,
+      classType: row.class_type,
+      classLevel: row.class_level,
+      kioskId: row.kiosk_id,
+      checkInAt: row.created_at
+    })),
     generatedAt: new Date().toISOString()
   });
 });

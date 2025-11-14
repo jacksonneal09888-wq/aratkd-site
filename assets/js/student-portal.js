@@ -428,10 +428,15 @@ const portalEls = {
     readinessChecklist: document.getElementById("readiness-checklist"),
     readinessPercentDisplay: document.getElementById("readiness-percent-display"),
     readinessLessonDisplay: document.getElementById("readiness-lesson-display"),
+    readinessAutoSummary: document.getElementById("readiness-auto-summary"),
+    readinessAttendance: document.getElementById("readiness-attendance"),
     readinessStripeInputs: document.querySelectorAll("[data-stripe-field]"),
     beltTestCard: document.getElementById("belt-test-card"),
     beltTestHint: document.getElementById("belt-test-hint"),
-    adminGeneratedAt: document.getElementById("admin-generated-at")
+    adminGeneratedAt: document.getElementById("admin-generated-at"),
+    adminAttendance: document.getElementById("admin-attendance"),
+    adminAttendanceBody: document.getElementById("admin-attendance-body"),
+    adminAttendanceRefresh: document.getElementById("admin-attendance-refresh")
 };
 
 const portalState = {
@@ -442,12 +447,14 @@ const portalState = {
     sessionToken: readAuthToken(),
     readiness: loadReadinessStore(),
     currentReadiness: null,
+    attendanceSummary: {},
     admin: {
         key: null,
         isLoading: false,
         summary: [],
         events: [],
         generatedAt: null,
+        attendance: [],
         isAuthorized: false
     },
     adminPinUnlocked: ADMIN_PIN ? false : true
@@ -503,6 +510,7 @@ function attachHandlers() {
             closeAdminModal();
         }
     });
+    portalEls.adminAttendanceRefresh?.addEventListener("click", loadAdminAttendance);
 }
 
 async function handleLogin(event) {
@@ -716,6 +724,10 @@ function renderPortal() {
     const readinessState = renderReadinessCard(student, nextBelt);
     updateBeltTestAvailability(nextBelt, readinessState);
     toggleBeltTestForm(false); // Hide form on portal render
+
+    if (HAS_REMOTE_API && student?.id) {
+        loadAttendanceSummary(student.id);
+    }
 }
 
 async function authenticateStudent(studentId, birthDate) {
@@ -1162,6 +1174,7 @@ function loadAdminActivity(adminKey, options = {}) {
             portalState.admin.generatedAt = data.generatedAt ?? null;
             rememberAdminSession(resolvedKey === ADMIN_STATIC_KEY ? "" : resolvedKey);
             renderAdminDashboard();
+            loadAdminAttendance();
             if (!silent) {
                 setAdminStatus(
                     portalState.admin.summary.length
@@ -1196,6 +1209,50 @@ function loadAdminActivity(adminKey, options = {}) {
         .finally(() => {
             portalState.admin.isLoading = false;
             setAdminLoadingState(false);
+        });
+}
+
+function loadAdminAttendance(event) {
+    event?.preventDefault();
+    if (!HAS_REMOTE_API) {
+        return;
+    }
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const key = portalState.admin.key || ADMIN_STATIC_KEY;
+    const url = buildApiUrl("/portal/admin/attendance");
+    if (!url) return;
+    fetch(url, {
+        method: "GET",
+        headers: {
+            "X-Admin-Key": key
+        },
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (res.status === 401) {
+                throw new Error("Invalid admin key.");
+            }
+            if (!res.ok) {
+                throw new Error("Unable to load attendance feed.");
+            }
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.attendance = Array.isArray(data.sessions) ? data.sessions : [];
+            renderAdminAttendance();
+            if (portalEls.adminAttendance) {
+                portalEls.adminAttendance.hidden = false;
+            }
+        })
+        .catch((error) => {
+            console.warn("loadAdminAttendance error:", error);
+            if (portalEls.adminAttendanceBody) {
+                portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="4">${error.message || "Unable to load attendance."}</td></tr>`;
+            }
         });
 }
 
@@ -1287,6 +1344,44 @@ function renderAdminDashboard() {
             eventsList.appendChild(item);
         });
     }
+
+    renderAdminAttendance();
+}
+
+function renderAdminAttendance() {
+    if (!portalEls.adminAttendanceBody) {
+        return;
+    }
+    const sessions = portalState.admin.attendance || [];
+    portalEls.adminAttendanceBody.innerHTML = "";
+    if (!sessions.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.textContent = "No attendance has been logged yet.";
+        row.appendChild(cell);
+        portalEls.adminAttendanceBody.appendChild(row);
+        if (portalEls.adminAttendance) {
+            portalEls.adminAttendance.hidden = true;
+        }
+        return;
+    }
+    if (portalEls.adminAttendance) {
+        portalEls.adminAttendance.hidden = false;
+    }
+    sessions.forEach((session) => {
+        const row = document.createElement("tr");
+        const studentCell = document.createElement("td");
+        studentCell.textContent = session.studentId;
+        const classCell = document.createElement("td");
+        classCell.innerHTML = `<strong>${session.classLevel || session.classType}</strong>`;
+        const kioskCell = document.createElement("td");
+        kioskCell.textContent = session.kioskId || "—";
+        const timeCell = document.createElement("td");
+        timeCell.textContent = session.checkInAt ? formatDateTime(session.checkInAt) : "—";
+        row.append(studentCell, classCell, kioskCell, timeCell);
+        portalEls.adminAttendanceBody.appendChild(row);
+    });
 }
 
 function setAdminStatus(message, variant = "error") {
@@ -1310,6 +1405,76 @@ function setAdminLoadingState(isLoading) {
     if (portalEls.adminRefresh) {
         portalEls.adminRefresh.disabled = Boolean(isLoading);
     }
+}
+
+async function loadAttendanceSummary(studentId) {
+    if (!HAS_REMOTE_API || !studentId) {
+        return;
+    }
+    const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+    const url = buildApiUrl(
+        `/portal/attendance/${encodeURIComponent(studentId)}?since=${encodeURIComponent(since)}`
+    );
+    if (!url) return;
+
+    try {
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${portalState.sessionToken || readAuthToken()}`
+            }
+        });
+        if (!res.ok) {
+            throw new Error("Unable to load attendance summary.");
+        }
+        const data = await res.json();
+        portalState.attendanceSummary[studentId] = data;
+        updateAttendanceSummaryDisplay(studentId);
+    } catch (error) {
+        console.warn("loadAttendanceSummary error:", error);
+    }
+}
+
+function updateAttendanceSummaryDisplay(studentId) {
+    if (!portalEls.readinessAutoSummary) return;
+    const summary = portalState.attendanceSummary?.[studentId];
+    if (!summary) {
+        portalEls.readinessAutoSummary.textContent = "";
+        if (portalEls.readinessAttendance) {
+            portalEls.readinessAttendance.innerHTML = "";
+        }
+        return;
+    }
+    const sessions = summary?.totals?.sessions || 0;
+    const last =
+        summary?.totals?.lastSession && summary.totals.lastSession !== ""
+            ? new Date(summary.totals.lastSession).toLocaleDateString()
+            : "no visits yet";
+    portalEls.readinessAutoSummary.textContent = `Auto log: ${sessions} check-ins in this cycle · Last visit ${last}`;
+
+    if (!portalEls.readinessAttendance) return;
+    const breakdown = summary?.breakdown || [];
+    const recent = summary?.recent || [];
+    const list = document.createElement("div");
+    list.innerHTML = `
+        <strong>Class Breakdown</strong>
+        <ul>
+            ${breakdown
+                .map((item) => `<li><span>${item.classType || "Class"}</span><span>${item.sessions}</span></li>`)
+                .join("") || "<li>No sessions recorded.</li>"}
+        </ul>
+        <strong>Last Visits</strong>
+        <ul>
+            ${recent
+                .map(
+                    (entry) =>
+                        `<li><span>${entry.classLevel || entry.classType}</span><span>${formatDateTime(entry.checkInAt)}</span></li>`
+                )
+                .join("") || "<li>No recent visits logged.</li>"}
+        </ul>
+    `;
+    portalEls.readinessAttendance.innerHTML = "";
+    portalEls.readinessAttendance.appendChild(list);
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {

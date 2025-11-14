@@ -203,6 +203,8 @@
                                         Download the Attendance Guide (PDF)
                                     </a>
                                 </p>
+                                <p class="readiness-note" id="readiness-auto-summary"></p>
+                                <div class="readiness-attendance" id="readiness-attendance" aria-live="polite"></div>
                             </div>
                         </article>
                         <article class="portal-card belt-test-card" id="belt-test-card" hidden>
@@ -428,6 +430,29 @@
                             <ul class="admin-event-list" id="admin-events-list">
                                 <li>No events yet.</li>
                             </ul>
+                        </div>
+                        <div class="admin-attendance" id="admin-attendance" hidden>
+                            <div class="admin-summary__header">
+                                <h3>Latest Attendance Check-ins</h3>
+                                <button type="button" class="text-link-btn" id="admin-attendance-refresh">Refresh</button>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Recent attendance">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Student ID</th>
+                                            <th scope="col">Class</th>
+                                            <th scope="col">Kiosk</th>
+                                            <th scope="col">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-attendance-body">
+                                        <tr>
+                                            <td colspan="4">No attendance logs yet.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

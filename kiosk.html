@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara TKD | Attendance Kiosk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20241113">
+    <style>
+        :root {
+            --kiosk-bg: #050709;
+            --kiosk-panel: rgba(255,255,255,0.05);
+        }
+        .kiosk-header {
+            padding: 1.5rem 2rem;
+        }
+        .kiosk-brand {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .kiosk-logo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.4);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.5);
+        }
+        .kiosk-brand h1 {
+            margin: 0;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.08em;
+        }
+        .kiosk-week-label {
+            margin: 0.25rem 0 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f43f5e;
+        }
+        .kiosk-week-message {
+            display: block;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.75);
+        }
+        body.kiosk-body {
+            background: var(--kiosk-bg);
+            color: #f9fafb;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        .kiosk-wrap {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .kiosk-panel {
+            background: var(--kiosk-panel);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 2rem;
+            box-shadow: 0 2rem 3rem rgba(0,0,0,0.45);
+        }
+        .kiosk-panel h1,
+        .kiosk-panel h2,
+        .kiosk-panel h3 {
+            margin-top: 0;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.08em;
+        }
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .class-card {
+            border-radius: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.07);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: border 0.2s ease, transform 0.2s ease;
+        }
+        .class-card.active {
+            border-color: #f43f5e;
+            transform: translateY(-3px);
+        }
+        .class-card h3 {
+            margin: 0 0 0.5rem;
+        }
+        .class-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.65);
+        }
+        .kiosk-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .kiosk-keypad button {
+            font-size: 1.5rem;
+            padding: 1rem;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .kiosk-keypad button:hover {
+            background: rgba(244,63,94,0.85);
+            transform: translateY(-2px);
+        }
+        .kiosk-input {
+            font-size: 2rem;
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            border: none;
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            letter-spacing: 0.15em;
+        }
+        .kiosk-status {
+            min-height: 2rem;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+        .kiosk-status.success {
+            color: #4ade80;
+        }
+        .kiosk-status.error {
+            color: #f87171;
+        }
+        @media (max-width: 960px) {
+            .kiosk-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="kiosk-body" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-key="ara-kiosk-2024-11" data-kiosk-id="front-desk">
+    <header class="kiosk-header">
+        <div class="kiosk-brand">
+            <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo">
+            <div>
+                <h1>ARA TKD Attendance Kiosk</h1>
+                <p id="kiosk-week-label" class="kiosk-week-label">Welcome</p>
+                <span id="kiosk-week-message" class="kiosk-week-message">Select your class to check in.</span>
+            </div>
+        </div>
+    </header>
+    <main class="kiosk-wrap">
+        <section class="kiosk-panel">
+            <h2>Select Class</h2>
+            <div class="class-grid" id="kiosk-class-grid"></div>
+        </section>
+        <section class="kiosk-panel">
+            <h2>Enter Student ID</h2>
+            <p style="margin-top:0;color:rgba(255,255,255,0.7);">Type the full ID (letters + numbers). Tap “ARA” to auto-fill the prefix if needed.</p>
+            <input type="text" id="kiosk-student-id" class="kiosk-input" placeholder="ARA001" inputmode="text" autocapitalize="characters" maxlength="12">
+            <div class="kiosk-keypad" id="kiosk-keypad"></div>
+            <div class="kiosk-status" id="kiosk-status">Tap your class, enter ID, then press ✓</div>
+        </section>
+    </main>
+    <script type="module" src="assets/js/kiosk.js?v=20241114" defer></script>
+</body>
+</html>
