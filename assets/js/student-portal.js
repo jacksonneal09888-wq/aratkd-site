@@ -415,7 +415,6 @@ const portalEls = {
     adminClose: document.getElementById("admin-close"),
     adminKeyInput: document.getElementById("admin-key"),
     adminKeyField: document.getElementById("admin-key-field"),
-    adminKeyToggle: document.getElementById("admin-key-toggle"),
     readinessWrapper: document.getElementById("portal-readiness"),
     readinessTargetLabel: document.getElementById("readiness-target-label"),
     readinessReadyPill: document.getElementById("readiness-ready-pill"),
@@ -455,6 +454,7 @@ migrateLegacyCertificates();
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
+    prefillAdminKeyField();
     if (!IS_ADMIN_MODE) {
         if (HAS_REMOTE_API) {
             attemptRestoreSession();
@@ -494,7 +494,6 @@ function attachHandlers() {
     portalEls.adminLauncher?.addEventListener("click", openAdminModal);
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
-    portalEls.adminKeyToggle?.addEventListener("click", toggleAdminKeyField);
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && portalEls.adminModal && !portalEls.adminModal.hidden) {
             closeAdminModal();
@@ -588,29 +587,11 @@ function closeAdminModal() {
     document.body.classList.remove("admin-modal-open");
 }
 
-function toggleAdminKeyField() {
-    if (!portalEls.adminKeyField || !portalEls.adminKeyToggle || !portalEls.adminKeyInput) return;
-    const isHidden = portalEls.adminKeyField.hidden;
-    portalEls.adminKeyField.hidden = !isHidden;
-    portalEls.adminKeyToggle.setAttribute("aria-expanded", String(!isHidden));
-    if (!isHidden) {
-        portalEls.adminKeyInput.value = "";
-    } else {
-        if (!portalEls.adminKeyInput.value) {
-            portalEls.adminKeyInput.value = ADMIN_STATIC_KEY;
-        }
-        portalEls.adminKeyInput.focus();
-    }
-}
-
-function showAdminKeyField() {
-    if (!portalEls.adminKeyField || !portalEls.adminKeyToggle || !portalEls.adminKeyInput) return;
-    if (portalEls.adminKeyField.hidden) {
-        portalEls.adminKeyField.hidden = false;
-        portalEls.adminKeyToggle.setAttribute("aria-expanded", "true");
-        if (!portalEls.adminKeyInput.value) {
-            portalEls.adminKeyInput.value = ADMIN_STATIC_KEY;
-        }
+function prefillAdminKeyField() {
+    if (!portalEls.adminKeyInput) return;
+    const stored = portalState.admin.key || ADMIN_STATIC_KEY;
+    if (stored) {
+        portalEls.adminKeyInput.value = stored;
     }
 }
 
@@ -1053,9 +1034,8 @@ function attemptRestoreAdminSession() {
             portalState.admin.isAuthorized = true;
             const restoredKey = payload.key || ADMIN_STATIC_KEY;
             portalState.admin.key = restoredKey;
-            if (payload.key && portalEls.adminKeyInput) {
-                portalEls.adminKeyInput.value = payload.key;
-                showAdminKeyField();
+            if (portalEls.adminKeyInput) {
+                portalEls.adminKeyInput.value = restoredKey;
             }
             loadAdminActivity(restoredKey, { silent: true });
         }
@@ -1163,7 +1143,10 @@ function loadAdminActivity(adminKey, options = {}) {
             if (portalEls.adminGeneratedAt) {
                 portalEls.adminGeneratedAt.textContent = "—";
             }
-            showAdminKeyField();
+            if (portalEls.adminKeyInput) {
+                portalEls.adminKeyInput.value = "";
+                portalEls.adminKeyInput.focus();
+            }
             clearAdminSession();
         })
         .finally(() => {

@@ -389,14 +389,10 @@
                             <label for="admin-password">Password</label>
                             <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" required>
                         </div>
-                        <div class="admin-key-toggle">
-                            <button type="button" class="text-link-btn" id="admin-key-toggle" aria-expanded="false">
-                                Need to enter the portal key?
-                            </button>
-                        </div>
-                        <div class="admin-key-field" id="admin-key-field" hidden>
+                        <div class="admin-key-field" id="admin-key-field">
                             <label for="admin-key">Portal Key</label>
-                            <input type="password" id="admin-key" name="adminKey" placeholder="Portal key from developer">
+                            <input type="text" id="admin-key" name="adminKey" placeholder="Enter portal key">
+                            <p class="admin-key-note">This key lives in the portal API (ADMIN_PORTAL_KEY). Update the value above if Master Ara rotates it.</p>
                         </div>
                         <button type="submit" class="cta-btn">Sign In</button>
                         <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD to unlock.</p>

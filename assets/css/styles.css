@@ -2467,15 +2467,15 @@ body.admin-modal-open {
     outline: none;
 }
 
-.admin-key-toggle {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: -0.25rem;
-}
-
 .admin-key-field {
     display: grid;
     gap: 0.4rem;
+}
+
+.admin-key-note {
+    font-size: 0.85rem;
+    color: rgba(8, 9, 10, 0.55);
+    margin: 0;
 }
 
 .admin-dashboard {
