@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
 </head>
-<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-key="AraTKDPortalKey">
+<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-key="AraTKDPortalKey" data-admin-pin="1453">
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -380,7 +380,14 @@
                     <p>Use the MasterAra credentials to unlock live belt + login data.</p>
                 </div>
                 <div class="admin-panel">
-                    <form class="admin-auth" id="admin-auth-form" autocomplete="off">
+                    <form class="admin-pin" id="admin-pin-form" autocomplete="off">
+                        <h3>Secure Access</h3>
+                        <p>Enter the 4-digit Master PIN to open instructor tools.</p>
+                        <input type="password" id="admin-pin-input" name="adminPin" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Master PIN" required>
+                        <button type="submit" class="secondary-btn">Unlock</button>
+                        <p class="form-status" id="admin-pin-status" aria-live="polite">PIN provided by Master Ara.</p>
+                    </form>
+                    <form class="admin-auth" id="admin-auth-form" autocomplete="off" hidden>
                         <div>
                             <label for="admin-username">Username</label>
                             <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" required>

@@ -49,6 +49,9 @@ const ADMIN_MASTER_PASSWORD = "AraTKD";
 const ADMIN_STATIC_KEY =
     (typeof document !== "undefined" && document.body?.dataset?.adminKey?.trim()) ||
     "AraTKDPortalKey";
+const ADMIN_PIN =
+    (typeof document !== "undefined" && document.body?.dataset?.adminPin?.trim()) ||
+    "";
 
 const STRIPE_LABELS = {
     poomsae: "Forms/Poomsae",
@@ -404,6 +407,9 @@ const portalEls = {
     adminForm: document.getElementById("admin-auth-form"),
     adminUsername: document.getElementById("admin-username"),
     adminPassword: document.getElementById("admin-password"),
+    adminPinForm: document.getElementById("admin-pin-form"),
+    adminPinInput: document.getElementById("admin-pin-input"),
+    adminPinStatus: document.getElementById("admin-pin-status"),
     adminStatus: document.getElementById("admin-status"),
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
@@ -446,7 +452,8 @@ const portalState = {
         events: [],
         generatedAt: null,
         isAuthorized: false
-    }
+    },
+    adminPinUnlocked: ADMIN_PIN ? false : true
 };
 
 normalizeStoredCertificates();
@@ -491,6 +498,7 @@ function attachHandlers() {
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
+    portalEls.adminPinForm?.addEventListener("submit", handleAdminPinSubmit);
     portalEls.adminLauncher?.addEventListener("click", openAdminModal);
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
@@ -578,13 +586,14 @@ function openAdminModal() {
     if (!portalEls.adminModal) return;
     portalEls.adminModal.hidden = false;
     document.body.classList.add("admin-modal-open");
-    portalEls.adminUsername?.focus();
+    resetAdminModalState();
 }
 
 function closeAdminModal() {
     if (!portalEls.adminModal) return;
     portalEls.adminModal.hidden = true;
     document.body.classList.remove("admin-modal-open");
+    portalState.adminPinUnlocked = ADMIN_PIN ? false : true;
 }
 
 function prefillAdminKeyField() {
@@ -592,6 +601,31 @@ function prefillAdminKeyField() {
     const stored = portalState.admin.key || ADMIN_STATIC_KEY;
     if (stored) {
         portalEls.adminKeyInput.value = stored;
+    }
+}
+
+function resetAdminModalState() {
+    prefillAdminKeyField();
+    if (!ADMIN_PIN) {
+        portalState.adminPinUnlocked = true;
+        if (portalEls.adminPinForm) {
+            portalEls.adminPinForm.hidden = true;
+        }
+        if (portalEls.adminForm) {
+            portalEls.adminForm.hidden = false;
+        }
+        portalEls.adminUsername?.focus();
+        return;
+    }
+
+    portalState.adminPinUnlocked = false;
+    if (portalEls.adminPinForm) {
+        portalEls.adminPinForm.hidden = false;
+        portalEls.adminPinInput.value = "";
+        portalEls.adminPinStatus.textContent = "PIN provided by Master Ara.";
+    }
+    if (portalEls.adminForm) {
+        portalEls.adminForm.hidden = true;
     }
 }
 
@@ -971,6 +1005,11 @@ function handleAdminLogin(event) {
 
     if (!HAS_REMOTE_API) {
         setAdminStatus("Connect the portal API before using admin tools.");
+        return;
+    }
+
+    if (!portalState.adminPinUnlocked) {
+        setAdminStatus("Enter the Master PIN first.");
         return;
     }
 
@@ -2537,4 +2576,33 @@ function migrateLegacyCertificates() {
     Promise.allSettled(tasks).finally(() => {
         persistCertificates();
     });
+}
+function handleAdminPinSubmit(event) {
+    event.preventDefault();
+    if (!portalEls.adminPinInput) return;
+    const value = (portalEls.adminPinInput.value || "").trim();
+    if (!ADMIN_PIN) {
+        portalState.adminPinUnlocked = true;
+    } else if (value === ADMIN_PIN) {
+        portalState.adminPinUnlocked = true;
+    } else {
+        portalState.adminPinUnlocked = false;
+        if (portalEls.adminPinStatus) {
+            portalEls.adminPinStatus.textContent = "Incorrect PIN.";
+        }
+        portalEls.adminPinInput.focus();
+        portalEls.adminPinInput.select();
+        return;
+    }
+
+    if (portalEls.adminPinForm) {
+        portalEls.adminPinForm.hidden = true;
+    }
+    if (portalEls.adminForm) {
+        portalEls.adminForm.hidden = false;
+    }
+    if (portalEls.adminPinStatus) {
+        portalEls.adminPinStatus.textContent = "PIN accepted.";
+    }
+    portalEls.adminUsername?.focus();
 }

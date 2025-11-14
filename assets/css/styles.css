@@ -2478,6 +2478,34 @@ body.admin-modal-open {
     margin: 0;
 }
 
+.admin-pin {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    box-shadow: 0 1rem 2rem rgba(8, 9, 10, 0.08);
+    background: #fff3f3;
+}
+
+.admin-pin h3 {
+    margin: 0;
+}
+
+.admin-pin input {
+    padding: 0.75rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(8, 9, 10, 0.12);
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    text-align: center;
+    font-weight: 700;
+}
+
+.admin-pin .form-status {
+    margin: 0;
+}
+
 .admin-dashboard {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
