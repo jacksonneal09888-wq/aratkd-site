@@ -407,9 +407,6 @@ const portalEls = {
     adminForm: document.getElementById("admin-auth-form"),
     adminUsername: document.getElementById("admin-username"),
     adminPassword: document.getElementById("admin-password"),
-    adminPinForm: document.getElementById("admin-pin-form"),
-    adminPinInput: document.getElementById("admin-pin-input"),
-    adminPinStatus: document.getElementById("admin-pin-status"),
     adminStatus: document.getElementById("admin-status"),
     adminDashboard: document.getElementById("admin-dashboard"),
     adminSummaryBody: document.getElementById("admin-summary-body"),
@@ -498,8 +495,7 @@ function attachHandlers() {
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
-    portalEls.adminPinForm?.addEventListener("submit", handleAdminPinSubmit);
-    portalEls.adminLauncher?.addEventListener("click", openAdminModal);
+    portalEls.adminLauncher?.addEventListener("click", handleAdminLauncherClick);
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
     document.addEventListener("keydown", (event) => {
@@ -582,6 +578,32 @@ function handleLogout() {
     setStatus("You have signed out. Come back soon!", "success");
 }
 
+function handleAdminLauncherClick() {
+    if (ensureAdminPinAccess()) {
+        openAdminModal();
+    }
+}
+
+function ensureAdminPinAccess() {
+    if (!ADMIN_PIN) {
+        portalState.adminPinUnlocked = true;
+        return true;
+    }
+    if (portalState.adminPinUnlocked) {
+        return true;
+    }
+    const attempt = window.prompt("Enter Master PIN");
+    if (attempt === null) {
+        return false;
+    }
+    if (attempt.trim() === ADMIN_PIN) {
+        portalState.adminPinUnlocked = true;
+        return true;
+    }
+    window.alert("Incorrect PIN.");
+    return false;
+}
+
 function openAdminModal() {
     if (!portalEls.adminModal) return;
     portalEls.adminModal.hidden = false;
@@ -606,27 +628,10 @@ function prefillAdminKeyField() {
 
 function resetAdminModalState() {
     prefillAdminKeyField();
-    if (!ADMIN_PIN) {
-        portalState.adminPinUnlocked = true;
-        if (portalEls.adminPinForm) {
-            portalEls.adminPinForm.hidden = true;
-        }
-        if (portalEls.adminForm) {
-            portalEls.adminForm.hidden = false;
-        }
-        portalEls.adminUsername?.focus();
-        return;
-    }
-
-    portalState.adminPinUnlocked = false;
-    if (portalEls.adminPinForm) {
-        portalEls.adminPinForm.hidden = false;
-        portalEls.adminPinInput.value = "";
-        portalEls.adminPinStatus.textContent = "PIN provided by Master Ara.";
-    }
     if (portalEls.adminForm) {
-        portalEls.adminForm.hidden = true;
+        portalEls.adminForm.hidden = false;
     }
+    portalEls.adminUsername?.focus();
 }
 
 async function attemptRestoreSession() {
@@ -2576,33 +2581,4 @@ function migrateLegacyCertificates() {
     Promise.allSettled(tasks).finally(() => {
         persistCertificates();
     });
-}
-function handleAdminPinSubmit(event) {
-    event.preventDefault();
-    if (!portalEls.adminPinInput) return;
-    const value = (portalEls.adminPinInput.value || "").trim();
-    if (!ADMIN_PIN) {
-        portalState.adminPinUnlocked = true;
-    } else if (value === ADMIN_PIN) {
-        portalState.adminPinUnlocked = true;
-    } else {
-        portalState.adminPinUnlocked = false;
-        if (portalEls.adminPinStatus) {
-            portalEls.adminPinStatus.textContent = "Incorrect PIN.";
-        }
-        portalEls.adminPinInput.focus();
-        portalEls.adminPinInput.select();
-        return;
-    }
-
-    if (portalEls.adminPinForm) {
-        portalEls.adminPinForm.hidden = true;
-    }
-    if (portalEls.adminForm) {
-        portalEls.adminForm.hidden = false;
-    }
-    if (portalEls.adminPinStatus) {
-        portalEls.adminPinStatus.textContent = "PIN accepted.";
-    }
-    portalEls.adminUsername?.focus();
 }
