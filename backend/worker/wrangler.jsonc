@@ -14,7 +14,8 @@
 		{
 			"binding": "PORTAL_DB",
 			"database_name": "portal-db",
-			"database_id": "754122b8-d641-40ae-8ad7-e52985997112"
+			"database_id": "754122b8-d641-40ae-8ad7-e52985997112",
+			"migrations_dir": "db/migrations"
 		}
 	],
 	"observability": {

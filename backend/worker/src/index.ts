@@ -69,6 +69,7 @@ const kioskClassCatalog = [
     schedule: ['Mon 6:00 PM', 'Wed 6:00 PM', 'Fri 6:00 PM']
   }
 ];
+const KIOSK_ALLOWED_DAYS = new Set([1, 2, 3]); // 1=Monday, 3=Wednesday
 
 const BELT_ATTENDANCE_TARGETS: Record<string, number> = {
   white: 25,
@@ -533,6 +534,11 @@ app.post('/kiosk/check-in', async (c) => {
   }
   if (!classType) {
     return c.json({ error: 'classType is required' }, 400);
+  }
+  const today = new Date();
+  const weekday = today.getUTCDay() === 0 ? 7 : today.getUTCDay();
+  if (!KIOSK_ALLOWED_DAYS.has(weekday)) {
+    return c.json({ error: 'Kiosk check-ins are limited to Monday–Wednesday. See the front desk.' }, 403);
   }
 
   const student = await fetchStudentById(c.env.PORTAL_DB, studentId);

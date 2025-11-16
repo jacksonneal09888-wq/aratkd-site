@@ -505,7 +505,14 @@ function attachHandlers() {
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
-    portalEls.adminLauncher?.addEventListener("click", openAdminModal);
+    portalEls.adminLauncher?.addEventListener("click", (event) => {
+        const keyEvent = event.type === "keydown";
+        if (keyEvent && event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
+        event.preventDefault();
+        openAdminModal();
+    });
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
     document.addEventListener("keydown", (event) => {

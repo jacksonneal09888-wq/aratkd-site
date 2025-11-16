@@ -2,6 +2,7 @@ const apiBase = document.body.dataset.apiBase || "";
 const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
+const ALLOWED_DAYS = [1, 2, 3]; // Monday=1 ... Sunday=0
 
 const state = {
   selectedClass: null,
@@ -116,6 +117,10 @@ async function submitAttendance() {
     setStatus("This kiosk must run from https://aratkd.com/kiosk.html to sync attendance.", "error");
     return;
   }
+  if (!isAllowedDay()) {
+    setStatus("Attendance check-ins open Mon–Wed only. Please see the front desk.", "error");
+    return;
+  }
   setStatus("Logging attendance...", "progress");
   try {
     const cleanedId = state.studentId.trim().toUpperCase();
@@ -156,6 +161,11 @@ async function submitAttendance() {
       setStatus(error.message || "Unable to reach the kiosk service.", "error");
     }
   }
+}
+
+function isAllowedDay(date = new Date()) {
+  const day = date.getDay();
+  return ALLOWED_DAYS.includes(day === 0 ? 7 : day);
 }
 
 async function loadClasses() {
