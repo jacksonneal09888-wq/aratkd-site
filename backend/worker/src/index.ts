@@ -535,8 +535,10 @@ app.post('/kiosk/check-in', async (c) => {
   if (!classType) {
     return c.json({ error: 'classType is required' }, 400);
   }
-  const today = new Date();
-  const weekday = today.getUTCDay() === 0 ? 7 : today.getUTCDay();
+  const nowEastern = new Date(
+    new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+  );
+  const weekday = nowEastern.getDay() === 0 ? 7 : nowEastern.getDay();
   if (!KIOSK_ALLOWED_DAYS.has(weekday)) {
     return c.json({ error: 'Kiosk check-ins are limited to Monday–Wednesday. See the front desk.' }, 403);
   }

@@ -17,6 +17,11 @@ const API_BASE_URL = (() => {
     return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
 })();
 const HAS_REMOTE_API = Boolean(API_BASE_URL);
+const ADMIN_TRIGGER_PIN =
+    (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
+    "";
+let hiddenKeyStreak = 0;
+let hiddenKeyLastTime = 0;
 
 function buildApiUrl(path) {
     if (!HAS_REMOTE_API) {
@@ -436,6 +441,7 @@ const portalEls = {
     adminAttendance: document.getElementById("admin-attendance"),
     adminAttendanceBody: document.getElementById("admin-attendance-body"),
     adminAttendanceRefresh: document.getElementById("admin-attendance-refresh"),
+    adminTrigger: document.getElementById("admin-trigger"),
     reportCardModal: document.getElementById("admin-report-card"),
     reportCardClose: document.getElementById("report-card-close"),
     reportCardBody: document.getElementById("report-card-body"),
@@ -506,12 +512,12 @@ function attachHandlers() {
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
     portalEls.adminLauncher?.addEventListener("click", (event) => {
-        const keyEvent = event.type === "keydown";
-        if (keyEvent && event.key !== "Enter" && event.key !== " ") {
-            return;
-        }
         event.preventDefault();
-        openAdminModal();
+        requestAdminAccess();
+    });
+    portalEls.adminTrigger?.addEventListener("click", (event) => {
+        event.preventDefault();
+        requestAdminAccess();
     });
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
@@ -520,6 +526,7 @@ function attachHandlers() {
             closeAdminModal();
         }
     });
+    document.addEventListener("keydown", handleHiddenKeySequence);
     portalEls.adminAttendanceRefresh?.addEventListener("click", loadAdminAttendance);
     portalEls.adminSummaryDownload?.addEventListener("click", downloadAdminSummary);
     portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
@@ -604,6 +611,49 @@ function handleLogout() {
     clearSession();
     togglePortal(false);
     setStatus("You have signed out. Come back soon!", "success");
+}
+
+function requestAdminAccess() {
+    if (!HAS_REMOTE_API) {
+        window.alert("Connect the portal API before using instructor tools.");
+        return;
+    }
+    if (!verifyAdminTriggerPin()) {
+        return;
+    }
+    openAdminModal();
+}
+
+function verifyAdminTriggerPin() {
+    if (!ADMIN_TRIGGER_PIN) {
+        return true;
+    }
+    const attempt = window.prompt("Enter instructor PIN");
+    if (attempt === null) {
+        return false;
+    }
+    if (attempt.trim() !== ADMIN_TRIGGER_PIN) {
+        window.alert("Incorrect PIN.");
+        return false;
+    }
+    return true;
+}
+
+function handleHiddenKeySequence(event) {
+    if (event.key?.toLowerCase() === "a" && event.shiftKey) {
+        const now = Date.now();
+        if (now - hiddenKeyLastTime > 1200) {
+            hiddenKeyStreak = 0;
+        }
+        hiddenKeyLastTime = now;
+        hiddenKeyStreak += 1;
+        if (hiddenKeyStreak >= 3) {
+            hiddenKeyStreak = 0;
+            requestAdminAccess();
+        }
+        return;
+    }
+    hiddenKeyStreak = 0;
 }
 
 function openAdminModal() {

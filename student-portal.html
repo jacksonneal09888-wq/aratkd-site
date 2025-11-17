@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
 </head>
-<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
+<body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-trigger-pin="1453">
     <header class="site-header">
         <div class="container">
             <div class="brand">
@@ -359,17 +359,6 @@
                 </div>
             </div>
         </section>
-        <section class="section instructor-access" aria-label="Instructor Access">
-            <div class="container instructor-access__inner">
-                <div>
-                    <p class="eyebrow">Instructor Tools</p>
-                    <p>Master Ara can review portal activity privately. Students will never see this data.</p>
-                </div>
-                <button type="button" class="admin-launcher" id="admin-launcher" aria-label="Open instructor dashboard" data-hidden-launcher>
-                    Instructor Sign-In
-                </button>
-            </div>
-        </section>
     </main>
 
     <div class="admin-modal" id="admin-modal" hidden>
@@ -507,6 +496,8 @@
         </div>
         <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
     </footer>
+
+    <button type="button" class="admin-trigger" id="admin-trigger" aria-hidden="true" tabindex="-1">Instructor Access</button>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
     <script type="module" src="assets/js/student-portal.js?v=20241027" defer></script>
