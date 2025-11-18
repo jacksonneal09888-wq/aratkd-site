@@ -57,6 +57,8 @@ CREATE INDEX IF NOT EXISTS idx_attendance_student_at
 | `GET` | `/portal/attendance/:studentId` | Bearer token (student) | Returns totals + breakdown for the student (default last 90 days, `?since=` override). |
 | `GET` | `/portal/admin/attendance` | `X-Admin-Key` | Lists the latest check-ins for staff dashboards. |
 
+> ℹ️ Check-ins are limited to Monday, Wednesday, and Friday by default. Update `ALLOWED_DAYS` in `assets/js/kiosk.js` and `KIOSK_ALLOWED_DAYS` in `backend/worker/src/index.ts` if the training calendar changes.
+
 ## Kiosk UX Flow
 
 1. Student taps their class card (Little Ninjas 4:30, Basic 5:00, or Advanced 6:00).

@@ -422,6 +422,12 @@ const portalEls = {
     adminModal: document.getElementById("admin-modal"),
     adminBackdrop: document.getElementById("admin-modal-backdrop"),
     adminClose: document.getElementById("admin-close"),
+    adminEnroll: document.getElementById("admin-enroll"),
+    adminEnrollForm: document.getElementById("admin-enroll-form"),
+    adminEnrollStatus: document.getElementById("admin-enroll-status"),
+    adminEnrollResult: document.getElementById("admin-enroll-result"),
+    adminEnrollDetails: document.getElementById("admin-enroll-details"),
+    adminEnrollAttendance: document.getElementById("admin-enroll-attendance"),
     readinessWrapper: document.getElementById("portal-readiness"),
     readinessTargetLabel: document.getElementById("readiness-target-label"),
     readinessReadyPill: document.getElementById("readiness-ready-pill"),
@@ -466,7 +472,9 @@ const portalState = {
         attendance: [],
         isAuthorized: false,
         isExpanded: false,
-        reportCard: null
+        reportCard: null,
+        isCreatingStudent: false,
+        newStudent: null
     }
 };
 
@@ -531,6 +539,7 @@ function attachHandlers() {
     portalEls.adminSummaryDownload?.addEventListener("click", downloadAdminSummary);
     portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
     portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
+    portalEls.adminEnrollForm?.addEventListener("submit", handleAdminEnrollSubmit);
     portalEls.reportCardClose?.addEventListener("click", closeReportCard);
     portalEls.reportCardDownload?.addEventListener("click", downloadReportCard);
     portalEls.reportCardModal?.addEventListener("click", (event) => {
@@ -684,6 +693,7 @@ function resetAdminModalState() {
     if (!portalState.admin.isAuthorized) {
         portalEls.adminUsername?.focus();
     }
+    renderAdminEnrollSection();
 }
 
 function getAdminAuthHeaders(base = {}) {
@@ -1179,6 +1189,96 @@ function handleAdminRefresh() {
     loadAdminActivity();
 }
 
+function handleAdminEnrollSubmit(event) {
+    event.preventDefault();
+    if (!portalEls.adminEnrollForm) return;
+    if (!HAS_REMOTE_API) {
+        setAdminEnrollStatus("Connect the portal API before adding students.");
+        return;
+    }
+    if (!portalState.admin.isAuthorized || !portalState.admin.token) {
+        setAdminEnrollStatus("Unlock the admin dashboard first.");
+        return;
+    }
+    if (portalState.admin.isCreatingStudent) {
+        return;
+    }
+
+    const formData = new FormData(portalEls.adminEnrollForm);
+    const name = (formData.get("name") || "").toString().trim();
+    const birthDate = (formData.get("birthDate") || "").toString().trim();
+    const email = (formData.get("email") || "").toString().trim();
+    const phone = (formData.get("phone") || "").toString().trim();
+    const currentBelt = (formData.get("belt") || "White Belt").toString().trim() || "White Belt";
+    const classType = (formData.get("classType") || "basic").toString().trim() || "basic";
+    const attendanceValue = (formData.get("initialAttendanceDays") || "0").toString();
+    const attendanceDays = Number.parseInt(attendanceValue, 10);
+
+    if (!name || !birthDate) {
+        setAdminEnrollStatus("Enter the student's name and birth date.");
+        return;
+    }
+
+    const payload = {
+        name,
+        birthDate,
+        email: email || undefined,
+        phone: phone || undefined,
+        currentBelt,
+        classType,
+        initialAttendanceDays: Number.isFinite(attendanceDays) ? attendanceDays : 0
+    };
+
+    const url = buildApiUrl("/portal/admin/students");
+    if (!url) {
+        setAdminEnrollStatus("Missing portal API base URL.");
+        return;
+    }
+
+    setAdminEnrollStatus("Creating student...", "progress");
+    portalState.admin.isCreatingStudent = true;
+    syncAdminEnrollButtonState();
+
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({
+            "Content-Type": "application/json"
+        }),
+        body: JSON.stringify(payload)
+    })
+        .then((response) =>
+            response.json().then((data) => {
+                if (!response.ok) {
+                    const message = data?.error || "Unable to create student.";
+                    throw new Error(message);
+                }
+                return data;
+            })
+        )
+        .then((data) => {
+            portalState.admin.newStudent = {
+                student: data.student,
+                login: data.login,
+                attendanceSeeded: data.attendanceSeeded ?? 0
+            };
+            setAdminEnrollStatus("Student created successfully.", "success");
+            renderAdminEnrollSection();
+            portalEls.adminEnrollForm?.reset();
+            if (portalEls.adminEnrollAttendance) {
+                portalEls.adminEnrollAttendance.value = "3";
+            }
+            handleAdminRefresh();
+        })
+        .catch((error) => {
+            console.error("Admin enrollment error:", error);
+            setAdminEnrollStatus(error.message || "Unable to create student.", "error");
+        })
+        .finally(() => {
+            portalState.admin.isCreatingStudent = false;
+            syncAdminEnrollButtonState();
+        });
+}
+
 function attemptRestoreAdminSession() {
     if (!HAS_REMOTE_API) {
         return;
@@ -1230,6 +1330,7 @@ function readStoredAdminToken() {
 function clearAdminSession() {
     portalState.admin.token = null;
     portalState.admin.isAuthorized = false;
+    portalState.admin.newStudent = null;
     persistAdminToken(null);
 }
 
@@ -1307,6 +1408,7 @@ function loadAdminActivity(options = {}) {
             portalState.admin.events = [];
             portalState.admin.generatedAt = null;
             portalState.admin.isAuthorized = false;
+            portalState.admin.newStudent = null;
             if (portalEls.adminDashboard) {
                 portalEls.adminDashboard.hidden = true;
             }
@@ -1314,6 +1416,7 @@ function loadAdminActivity(options = {}) {
                 portalEls.adminGeneratedAt.textContent = "—";
             }
             clearAdminSession();
+            renderAdminEnrollSection();
         })
         .finally(() => {
             portalState.admin.isLoading = false;
@@ -1500,6 +1603,7 @@ function renderAdminDashboard() {
 
 function renderAdminAttendance() {
     if (!portalEls.adminAttendanceBody) {
+        renderAdminEnrollSection();
         return;
     }
     const sessions = portalState.admin.attendance || [];
@@ -1514,6 +1618,7 @@ function renderAdminAttendance() {
         if (portalEls.adminAttendance) {
             portalEls.adminAttendance.hidden = true;
         }
+        renderAdminEnrollSection();
         return;
     }
     if (portalEls.adminAttendance) {
@@ -1535,6 +1640,73 @@ function renderAdminAttendance() {
         row.append(studentCell, classCell, kioskCell, percentCell, timeCell);
         portalEls.adminAttendanceBody.appendChild(row);
     });
+
+    renderAdminEnrollSection();
+}
+
+function renderAdminEnrollSection() {
+    if (!portalEls.adminEnroll) {
+        return;
+    }
+    const isAuthorized = portalState.admin.isAuthorized;
+    portalEls.adminEnroll.hidden = !isAuthorized;
+    if (!isAuthorized) {
+        if (portalEls.adminEnrollResult) {
+            portalEls.adminEnrollResult.hidden = true;
+        }
+        if (portalEls.adminEnrollDetails) {
+            portalEls.adminEnrollDetails.innerHTML = "";
+        }
+        setAdminEnrollStatus("");
+        syncAdminEnrollButtonState();
+        return;
+    }
+    const summary = portalState.admin.newStudent;
+    if (!summary || !summary.student) {
+        if (portalEls.adminEnrollResult) {
+            portalEls.adminEnrollResult.hidden = true;
+        }
+        if (portalEls.adminEnrollDetails) {
+            portalEls.adminEnrollDetails.innerHTML = "";
+        }
+    } else if (portalEls.adminEnrollResult && portalEls.adminEnrollDetails) {
+        const student = summary.student || {};
+        const login = summary.login || {};
+        const attendanceSeeded = Number(summary.attendanceSeeded ?? 0);
+        const birthDate = login.birthDate || student.birthDate || "—";
+        const contactParts = [student.email, student.phone].filter(Boolean);
+        const cards = [
+            { label: "Student ID", value: student.id || "—" },
+            { label: "Birth Date", value: birthDate },
+            {
+                label: "Portal Login",
+                value: student.id ? `${student.id} + DOB (${birthDate})` : "ID + DOB"
+            },
+            {
+                label: "Attendance",
+                value: attendanceSeeded
+                    ? `${attendanceSeeded} session${attendanceSeeded === 1 ? "" : "s"}`
+                    : "No sessions seeded"
+            },
+            {
+                label: "Contact",
+                value: contactParts.length ? contactParts.join(" · ") : "—"
+            }
+        ];
+        portalEls.adminEnrollDetails.innerHTML = "";
+        cards.forEach((card) => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "admin-enroll__detail";
+            const label = document.createElement("span");
+            label.textContent = card.label;
+            const value = document.createElement("strong");
+            value.textContent = card.value;
+            wrapper.append(label, value);
+            portalEls.adminEnrollDetails.appendChild(wrapper);
+        });
+        portalEls.adminEnrollResult.hidden = false;
+    }
+    syncAdminEnrollButtonState();
 }
 
 function setAdminStatus(message, variant = "error") {
@@ -1550,6 +1722,13 @@ function setAdminStatus(message, variant = "error") {
     portalEls.adminStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function setAdminEnrollStatus(message, variant = "error") {
+    if (!portalEls.adminEnrollStatus) return;
+    portalEls.adminEnrollStatus.textContent = message || "";
+    portalEls.adminEnrollStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminEnrollStatus.classList.toggle("is-progress", variant === "progress");
+}
+
 function setAdminLoadingState(isLoading) {
     const submitBtn = portalEls.adminForm?.querySelector("button[type='submit']");
     if (submitBtn) {
@@ -1558,6 +1737,16 @@ function setAdminLoadingState(isLoading) {
     if (portalEls.adminRefresh) {
         portalEls.adminRefresh.disabled = Boolean(isLoading);
     }
+    syncAdminEnrollButtonState();
+}
+
+function syncAdminEnrollButtonState() {
+    const enrollButton = portalEls.adminEnrollForm?.querySelector("button[type='submit']");
+    if (!enrollButton) return;
+    const disabled = Boolean(
+        portalState.admin.isLoading || portalState.admin.isCreatingStudent || !portalState.admin.isAuthorized
+    );
+    enrollButton.disabled = disabled;
 }
 
 function toggleAdminPanelSize() {

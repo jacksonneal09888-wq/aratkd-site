@@ -2,7 +2,7 @@ const apiBase = document.body.dataset.apiBase || "";
 const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
-const ALLOWED_DAYS = [1, 2, 3]; // Monday=1 ... Sunday=0
+const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
 
 const state = {
   selectedClass: null,
@@ -118,7 +118,7 @@ async function submitAttendance() {
     return;
   }
   if (!isAllowedDay()) {
-    setStatus("Attendance check-ins open Mon–Wed only. Please see the front desk.", "error");
+    setStatus("Attendance check-ins open Mon/Wed/Fri only. Please see the front desk.", "error");
     return;
   }
   setStatus("Logging attendance...", "progress");

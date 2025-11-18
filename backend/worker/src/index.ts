@@ -69,7 +69,93 @@ const kioskClassCatalog = [
     schedule: ['Mon 6:00 PM', 'Wed 6:00 PM', 'Fri 6:00 PM']
   }
 ];
-const KIOSK_ALLOWED_DAYS = new Set([1, 2, 3]); // 1=Monday, 3=Wednesday
+const KIOSK_ALLOWED_DAYS = new Set([1, 3, 5]); // 1=Monday, 3=Wednesday, 5=Friday
+
+const getEasternDate = () =>
+  new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+
+const resolveClassLevelLabel = (classType: string) => {
+  const normalized = (classType || '').toLowerCase();
+  if (normalized.includes('advanced')) {
+    return 'Advanced Class';
+  }
+  if (normalized.includes('ninja') || normalized.includes('little')) {
+    return 'Little Ninjas';
+  }
+  return 'Basic Class';
+};
+
+const computeSeedAttendanceDates = (count: number) => {
+  const results: string[] = [];
+  if (!count || count <= 0) {
+    return results;
+  }
+  let cursor = getEasternDate();
+  cursor.setHours(18, 0, 0, 0);
+  while (results.length < count) {
+    const weekday = cursor.getDay() === 0 ? 7 : cursor.getDay();
+    if (KIOSK_ALLOWED_DAYS.has(weekday)) {
+      results.push(new Date(cursor).toISOString());
+    }
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return results.reverse();
+};
+
+const generateStudentId = async (db: D1Database) => {
+  const row = await db
+    .prepare(
+      `SELECT id
+       FROM students
+       WHERE id LIKE 'ARA%'
+       ORDER BY CAST(SUBSTR(id, 4) AS INTEGER) DESC
+       LIMIT 1`
+    )
+    .first<{ id?: string }>();
+  const numeric = row?.id ? parseInt(row.id.replace(/[^0-9]/g, ''), 10) : 0;
+  const nextNumber = Number.isFinite(numeric) ? numeric + 1 : 1;
+  return `ARA${String(nextNumber).padStart(3, '0')}`;
+};
+
+const seedAttendanceSessions = async (
+  db: D1Database,
+  studentId: string,
+  options?: {
+    count?: number;
+    dates?: string[];
+    classType?: string;
+    classLevel?: string;
+    kioskId?: string;
+    source?: string;
+  }
+) => {
+  const requestedDates =
+    options?.dates
+      ?.map((value) => (value || '').toString().trim())
+      .filter((value) => value && !Number.isNaN(new Date(value).getTime())) ?? [];
+  const timestamps =
+    requestedDates.length > 0
+      ? requestedDates
+      : computeSeedAttendanceDates(options?.count ?? 0);
+  if (!timestamps.length) {
+    return 0;
+  }
+  const classType = (options?.classType || 'basic').trim() || 'basic';
+  const classLevel = options?.classLevel || resolveClassLevelLabel(classType);
+  const kioskId = options?.kioskId || 'admin-seed';
+  const source = options?.source || 'admin-seed';
+  for (const createdAt of timestamps) {
+    await db
+      .prepare(
+        `INSERT INTO attendance_sessions
+           (id, student_id, class_type, class_level, kiosk_id, source, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+      )
+      .bind(crypto.randomUUID(), studentId, classType, classLevel, kioskId, source, createdAt)
+      .run();
+  }
+  return timestamps.length;
+};
 
 const BELT_ATTENDANCE_TARGETS: Record<string, number> = {
   white: 25,
@@ -107,6 +193,7 @@ const sanitizeStudentRecord = (row: any) => {
     currentBelt: row.current_belt || 'White Belt',
     birthDate: row.birth_date || null,
     phone: row.phone || null,
+    email: row.email || null,
     isSuspended: Boolean(row.is_suspended),
     suspendedReason: row.suspended_reason || null,
     suspendedAt: row.suspended_at || null
@@ -117,7 +204,7 @@ const fetchStudentById = (db: D1Database, studentId: string) => {
   const lookup = studentId.trim().toLowerCase();
   return db
     .prepare(
-      `SELECT id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at
+      `SELECT id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at
        FROM students
        WHERE LOWER(id) = ?1
        LIMIT 1`
@@ -535,12 +622,13 @@ app.post('/kiosk/check-in', async (c) => {
   if (!classType) {
     return c.json({ error: 'classType is required' }, 400);
   }
-  const nowEastern = new Date(
-    new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
-  );
+  const nowEastern = getEasternDate();
   const weekday = nowEastern.getDay() === 0 ? 7 : nowEastern.getDay();
   if (!KIOSK_ALLOWED_DAYS.has(weekday)) {
-    return c.json({ error: 'Kiosk check-ins are limited to Monday–Wednesday. See the front desk.' }, 403);
+    return c.json(
+      { error: 'Kiosk check-ins are limited to Monday, Wednesday, and Friday. See the front desk.' },
+      403
+    );
   }
 
   const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
@@ -734,6 +822,64 @@ app.get('/portal/admin/attendance', async (c) => {
   return c.json({
     sessions,
     generatedAt: new Date().toISOString()
+  });
+});
+
+app.post('/portal/admin/students', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const name = (body.name || '').toString().trim();
+  const birthDate = normalizeBirthDate(body.birthDate || '');
+  const phone = (body.phone || '').toString().trim() || null;
+  const email = (body.email || '').toString().trim() || null;
+  const currentBelt = (body.currentBelt || '').toString().trim() || 'White Belt';
+  const classTypeInput = (body.classType || '').toString().trim().toLowerCase();
+  const classType = classTypeInput || 'basic';
+  const classLevel = body.classLevel
+    ? (body.classLevel || '').toString().trim()
+    : resolveClassLevelLabel(classType);
+  const rawCount = parseInt((body.initialAttendanceDays || '').toString(), 10);
+  const attendanceCount = Number.isFinite(rawCount) ? Math.min(Math.max(rawCount, 0), 10) : 0;
+  const attendanceDates = Array.isArray(body.attendanceDates) ? body.attendanceDates : [];
+
+  if (!name || !birthDate) {
+    return c.json({ error: 'name and birthDate are required' }, 400);
+  }
+
+  const studentId = await generateStudentId(c.env.PORTAL_DB);
+  const timestamp = new Date().toISOString();
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO students
+       (id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, NULL, NULL, ?7, ?7)`
+  )
+    .bind(studentId, name, birthDate, phone, email, currentBelt, timestamp)
+    .run();
+
+  let attendanceSeeded = 0;
+  if (attendanceCount > 0 || attendanceDates.length) {
+    attendanceSeeded = await seedAttendanceSessions(c.env.PORTAL_DB, studentId, {
+      count: attendanceCount,
+      dates: attendanceDates,
+      classType,
+      classLevel
+    });
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  return c.json({
+    ok: true,
+    student: sanitizeStudentRecord(student),
+    login: {
+      studentId,
+      birthDate
+    },
+    attendanceSeeded
   });
 });
 

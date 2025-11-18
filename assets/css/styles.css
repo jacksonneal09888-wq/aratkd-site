@@ -2529,6 +2529,101 @@ body.admin-modal-open {
     box-shadow: 0 16px 28px rgba(8, 9, 10, 0.08);
 }
 
+.admin-enroll {
+    background: var(--color-light);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    box-shadow: 0 16px 28px rgba(8, 9, 10, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.admin-enroll__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-enroll__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.admin-enroll__grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.admin-enroll__grid input,
+.admin-enroll__grid select {
+    width: 100%;
+    padding: 0.7rem 0.85rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(8, 9, 10, 0.15);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.admin-enroll__grid input:focus,
+.admin-enroll__grid select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.15);
+}
+
+.admin-enroll__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-enroll__result {
+    border-radius: 1rem;
+    border: 1px dashed rgba(8, 9, 10, 0.2);
+    padding: 1.25rem;
+    background: rgba(216, 31, 38, 0.04);
+}
+
+.admin-enroll__result-title {
+    margin: 0 0 0.65rem;
+    font-weight: 700;
+}
+
+.admin-enroll__result-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.65rem;
+}
+
+.admin-enroll__detail {
+    background: #fff;
+    border-radius: 0.85rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.admin-enroll__detail span {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(8, 9, 10, 0.55);
+}
+
+.admin-enroll__detail strong {
+    font-size: 1rem;
+}
+
 .admin-summary h3,
 .admin-events h3,
 .admin-attendance h3 {

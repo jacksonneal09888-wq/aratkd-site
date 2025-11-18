@@ -5,14 +5,15 @@ Utility script to import or update student roster records in the portal database
 Usage:
     python backend/scripts/import_students.py /path/to/private/students.json
 
-The JSON file should contain an array of objects with at least:
-    {
-        "id": "ARA001",
-        "name": "Student Name",
-        "birthDate": "YYYY-MM-DD",
-        "phone": "optional",
-        "currentBelt": "High White Belt"
-    }
+    The JSON file should contain an array of objects with at least:
+        {
+            "id": "ARA001",
+            "name": "Student Name",
+            "birthDate": "YYYY-MM-DD",
+            "phone": "optional",
+            "email": "optional",
+            "currentBelt": "High White Belt"
+        }
 
 Keep the JSON file outside of the repository so sensitive data never lands in git.
 """
@@ -50,6 +51,7 @@ def load_students(path: Path) -> List[Dict[str, Any]]:
                     "name": name,
                     "birth_date": birth_date,
                     "phone": (entry.get("phone") or "").strip() or None,
+                    "email": (entry.get("email") or "").strip() or None,
                     "current_belt": (entry.get("currentBelt") or "").strip() or None,
                     "is_suspended": 1 if entry.get("isSuspended") else 0,
                     "suspended_reason": (entry.get("suspendedReason") or "").strip() or None,
@@ -73,6 +75,7 @@ def import_students(roster: List[Dict[str, Any]], db_path: Path, truncate: bool 
                 name TEXT NOT NULL,
                 birth_date TEXT NOT NULL,
                 phone TEXT,
+                email TEXT,
                 current_belt TEXT,
                 is_suspended INTEGER NOT NULL DEFAULT 0,
                 suspended_reason TEXT,
@@ -91,12 +94,13 @@ def import_students(roster: List[Dict[str, Any]], db_path: Path, truncate: bool 
         for record in roster:
             conn.execute(
                 """
-                INSERT INTO students (id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)
-                VALUES (:id, :name, :birth_date, :phone, :current_belt, :is_suspended, :suspended_reason, :suspended_at, :created_at, :updated_at)
+                INSERT INTO students (id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)
+                VALUES (:id, :name, :birth_date, :phone, :email, :current_belt, :is_suspended, :suspended_reason, :suspended_at, :created_at, :updated_at)
                 ON CONFLICT(id) DO UPDATE SET
                     name=excluded.name,
                     birth_date=excluded.birth_date,
                     phone=excluded.phone,
+                    email=excluded.email,
                     current_belt=excluded.current_belt,
                     is_suspended=excluded.is_suspended,
                     suspended_reason=excluded.suspended_reason,
@@ -131,14 +135,15 @@ def emit_d1_sql(roster: List[Dict[str, Any]], sql_path: Path, truncate: bool = F
         lines.append("DELETE FROM students;")
     for record in roster:
         lines.append(
-            "INSERT INTO students (id, name, birth_date, phone, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)"
+            "INSERT INTO students (id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at)"
             f" VALUES ({sql_value(record['id'])}, {sql_value(record['name'])}, {sql_value(record['birth_date'])},"
-            f" {sql_value(record['phone'])}, {sql_value(record['current_belt'])}, {sql_value(record['is_suspended'])},"
+            f" {sql_value(record['phone'])}, {sql_value(record['email'])}, {sql_value(record['current_belt'])}, {sql_value(record['is_suspended'])},"
             f" {sql_value(record['suspended_reason'])}, {sql_value(record['suspended_at'])}, {sql_value(now)}, {sql_value(now)})"
             " ON CONFLICT(id) DO UPDATE SET"
             " name=excluded.name,"
             " birth_date=excluded.birth_date,"
             " phone=excluded.phone,"
+            " email=excluded.email,"
             " current_belt=excluded.current_belt,"
             " is_suspended=excluded.is_suspended,"
             " suspended_reason=excluded.suspended_reason,"
