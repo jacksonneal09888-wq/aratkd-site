@@ -637,6 +637,15 @@ app.post('/kiosk/check-in', async (c) => {
   if (!student) {
     return c.json({ error: 'Unknown student ID' }, 404);
   }
+  if (student.is_suspended) {
+    return c.json(
+      {
+        error: 'Account deactivated',
+        reason: student.suspended_reason || 'See the front desk to reactivate.'
+      },
+      403
+    );
+  }
 
   const canonicalId = student.id;
   const timestamp = new Date().toISOString();
