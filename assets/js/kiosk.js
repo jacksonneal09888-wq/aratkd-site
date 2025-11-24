@@ -19,18 +19,30 @@ const els = {
 };
 
 const keypadLayout = ["ARA", "1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "✓"];
-const WEEK_THEMES = [
+const FOCUS_TEMPLATE = [
   {
-    label: "Poomsae Week",
-    message: "Dial in forms, balance, and power.",
-    isActive: (weekNumber) => weekNumber % 2 === 0
+    title: "Focus Week: Poomsae Foundations",
+    description: "Sharpen stances, kihaps, and form details to launch the training month."
   },
   {
-    label: "Sparring Week",
-    message: "Gloves on! Focus on footwork, timing, and controlled contact.",
-    isActive: (weekNumber) => weekNumber % 2 !== 0
+    title: "Focus Week: Breaking Practice & Poomsae",
+    description: "Board breaking mechanics plus form refinement to build precision and power."
+  },
+  {
+    title: "Focus Week: Sparring - Bring Gear",
+    description: "Footwork, ring strategies, and controlled sparring rounds. Full sparring gear required."
+  },
+  {
+    title: "Focus Week: Sparring & Self-Defense",
+    description: "Blend sparring combinations with practical self-defense scenarios."
+  },
+  {
+    title: "Focus Week: Poomsae Spotlight & Testing Prep",
+    description: "Dial in patterns, kihaps, and testing etiquette ahead of evaluations."
   }
 ];
+const FOCUS_RANGE_START = new Date(2025, 8, 1); // 2025-09-01
+const FOCUS_RANGE_END = new Date(2026, 11, 31); // 2026-12-31
 
 function setStatus(message, type = "") {
   if (!els.status) return;
@@ -227,36 +239,36 @@ if (isLocalFile) {
 
 function updateWeekTheme() {
   const now = new Date();
-  const weekNumber = getWeekNumber(now);
-  const theme = WEEK_THEMES.find((entry) => entry.isActive(weekNumber)) || WEEK_THEMES[0];
+  const focus = getFocusForDate(now);
+  const label = focus?.label || "Poomsae Week";
+  const message =
+    focus?.message || "Forms focus: polish stances, kihaps, and sharp sequences across all classes.";
   if (els.weekLabel) {
-    els.weekLabel.textContent = theme.label;
+    els.weekLabel.textContent = label;
   }
   if (els.weekMessage) {
-    els.weekMessage.textContent = theme.message;
+    els.weekMessage.textContent = message;
   }
 }
 
-async function fetchWeekTheme() {
-  try {
-    const res = await fetch("assets/data/week-theme.json?v=" + Date.now());
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data?.label && els.weekLabel) {
-      els.weekLabel.textContent = data.label;
+function getFocusForDate(date) {
+  if (!date || !(date instanceof Date)) return null;
+  if (date < FOCUS_RANGE_START || date > FOCUS_RANGE_END) return null;
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let weekIndex = 0, day = 1; day <= daysInMonth; weekIndex += 1, day += 7) {
+    const start = new Date(year, month, day);
+    const end = new Date(year, month, Math.min(day + 6, daysInMonth));
+    if (date >= start && date <= end) {
+      const templateIndex = Math.min(weekIndex, FOCUS_TEMPLATE.length - 1);
+      const focus = FOCUS_TEMPLATE[templateIndex];
+      const label = (focus.title || "").replace(/Focus Week:\\s*/i, "").trim() || "Focus Week";
+      return {
+        label,
+        message: focus.description || "Stay sharp this week."
+      };
     }
-    if (data?.message && els.weekMessage) {
-      els.weekMessage.textContent = data.message;
-    }
-  } catch (error) {
-    console.warn("Unable to load custom week theme:", error);
   }
-}
-
-function getWeekNumber(date) {
-  const temp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = temp.getUTCDay() || 7;
-  temp.setUTCDate(temp.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(temp.getUTCFullYear(), 0, 1));
-  return Math.ceil(((temp - yearStart) / 86400000 + 1) / 7);
+  return null;
 }
