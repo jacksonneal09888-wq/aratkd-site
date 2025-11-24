@@ -196,7 +196,9 @@ const sanitizeStudentRecord = (row: any) => {
     email: row.email || null,
     isSuspended: Boolean(row.is_suspended),
     suspendedReason: row.suspended_reason || null,
-    suspendedAt: row.suspended_at || null
+    suspendedAt: row.suspended_at || null,
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
   };
 };
 
@@ -821,6 +823,38 @@ app.get('/portal/admin/attendance', async (c) => {
 
   return c.json({
     sessions,
+    generatedAt: new Date().toISOString()
+  });
+});
+
+app.get('/portal/admin/students', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  let limit = 500;
+  const queryLimit = c.req.query('limit');
+  if (queryLimit) {
+    const parsed = parseInt(queryLimit, 10);
+    if (!Number.isNaN(parsed)) {
+      limit = Math.min(Math.max(parsed, 1), 1000);
+    }
+  }
+
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at
+     FROM students
+     ORDER BY name ASC
+     LIMIT ?1`
+  )
+    .bind(limit)
+    .all();
+
+  const students = (results || []).map((row: any) => sanitizeStudentRecord(row));
+
+  return c.json({
+    students,
     generatedAt: new Date().toISOString()
   });
 });
