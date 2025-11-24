@@ -3,6 +3,7 @@ const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
+const themeState = { override: null };
 
 const state = {
   selectedClass: null,
@@ -230,8 +231,8 @@ if (els.studentId) {
 
 renderKeypad();
 loadClasses();
+fetchWeekTheme().finally(updateWeekTheme);
 updateWeekTheme();
-fetchWeekTheme();
 
 if (isLocalFile) {
   setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
@@ -239,7 +240,7 @@ if (isLocalFile) {
 
 function updateWeekTheme() {
   const now = new Date();
-  const focus = getFocusForDate(now);
+  const focus = themeState.override || getFocusForDate(now);
   const label = focus?.label || "Poomsae Week";
   const message =
     focus?.message || "Forms focus: polish stances, kihaps, and sharp sequences across all classes.";
