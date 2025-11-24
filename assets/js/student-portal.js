@@ -1545,7 +1545,7 @@ function renderAdminDashboard() {
             statusPill.className = `admin-status-pill ${
                 entry.isSuspended ? "is-suspended" : "is-active"
             }`;
-            statusPill.textContent = entry.isSuspended ? "Suspended" : "Active";
+            statusPill.textContent = entry.isSuspended ? "Deactivated" : "Active";
             statusCell.appendChild(statusPill);
             if (entry.isSuspended && entry.suspendedReason) {
                 const note = document.createElement("div");
@@ -1568,7 +1568,7 @@ function renderAdminDashboard() {
             suspendBtn.className = "text-link-btn";
             suspendBtn.dataset.action = entry.isSuspended ? "resume" : "suspend";
             suspendBtn.dataset.studentId = entry.studentId;
-            suspendBtn.textContent = entry.isSuspended ? "Reinstate" : "Suspend";
+            suspendBtn.textContent = entry.isSuspended ? "Reactivate" : "Deactivate";
             actionsWrap.append(reportBtn, suspendBtn);
             actionsCell.appendChild(actionsWrap);
 
