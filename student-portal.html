@@ -493,8 +493,54 @@
                                             <option value="Annual">Annual</option>
                                         </select>
                                         <button type="button" class="secondary-btn" id="admin-roster-save">Save Membership</button>
+                                        <button type="button" class="text-link-btn" id="admin-roster-newtab">Open Detail View</button>
                                     </div>
                                 </div>
+                                <div class="admin-roster-actions">
+                                    <button type="button" class="secondary-btn" data-roster-action="report">Report Card</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="note">Add Note</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="payment">Add Payment Note</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="deactivate">Deactivate</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="activate">Reactivate</button>
+                                </div>
+                                <div class="admin-roster-cards">
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Status</p>
+                                        <p class="card-value" id="admin-roster-card-status">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Last 30 days</p>
+                                        <p class="card-value" id="admin-roster-card-30">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Last 60 days</p>
+                                        <p class="card-value" id="admin-roster-card-60">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Membership</p>
+                                        <p class="card-value" id="admin-roster-card-membership">—</p>
+                                    </div>
+                                </div>
+                                <details class="admin-accordion" open>
+                                    <summary>Financial Management</summary>
+                                    <p class="admin-accordion__hint">Use notes to log payments or billing conversations. SwipeSimple transactions can be noted here.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Progress Tracking</summary>
+                                    <p class="admin-accordion__hint">Track readiness, test requests, and belt uploads via the existing report card.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Workout Tracking</summary>
+                                    <p class="admin-accordion__hint">Use notes to capture class feedback or practice assignments.</p>
+                                </details>
+                                <details class="admin-accordion" open>
+                                    <summary>Membership Management</summary>
+                                    <p class="admin-accordion__hint">Set membership type and keep billing notes synced.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Payment Profile Management</summary>
+                                    <p class="admin-accordion__hint">Record SwipeSimple payment confirmations and follow-ups.</p>
+                                </details>
                                 <div class="admin-roster-notes">
                                     <div class="admin-roster-notes__form">
                                         <h4>Notes / Payments</h4>
@@ -639,7 +685,7 @@
     <button type="button" class="admin-trigger" id="admin-trigger" aria-hidden="true" tabindex="-1">Instructor Access</button>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
-    <script type="module" src="assets/js/student-portal.js?v=20241027" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20241124c" defer></script>
     <script src="assets/js/main.js?v=20241027" defer></script>
     <script src="assets/js/translate.js"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>
