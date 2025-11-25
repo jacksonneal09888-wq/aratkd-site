@@ -6,8 +6,11 @@ const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=csv&gid=1471011839";
-const GOOGLE_CALENDAR_DOWNLOAD_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1471011839";
+const GOOGLE_CALENDAR_GID = "1865662509";
+const GOOGLE_CALENDAR_BASE =
+    "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
+const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;
+const GOOGLE_CALENDAR_DOWNLOAD_URL = `${GOOGLE_CALENDAR_BASE}?format=pdf&gid=${GOOGLE_CALENDAR_GID}`;
 
 function getCalendarCsvUrl() {
     return `${GOOGLE_CALENDAR_CSV_URL}&t=${Date.now()}`;
