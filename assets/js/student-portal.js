@@ -668,7 +668,11 @@ function requestAdminAccess() {
         return;
     }
     const pin = (ADMIN_TRIGGER_PIN || "").trim();
-    const url = pin ? `portal-admin.html?pin=${encodeURIComponent(pin)}` : "portal-admin.html";
+    const versionTag = "20241125b";
+    const base = "portal-admin.html";
+    const url = pin
+        ? `${base}?v=${versionTag}&pin=${encodeURIComponent(pin)}`
+        : `${base}?v=${versionTag}`;
     window.open(url, "_blank", "noopener");
 }
 
