@@ -2152,12 +2152,13 @@ function renderReportCard() {
     const student = report.student || {};
     const attendance = report.attendance || {};
     const progress = report.progress?.records || [];
+    const membership = report.membershipType || student.membershipType || "Not set";
     const summaryHtml = `
         <div class="report-card-section">
             <h4>Student</h4>
             <p><strong>${student.name || student.id}</strong><br>ID: ${
         student.id
-    }<br>Current Belt: ${student.currentBelt || "—"}</p>
+    }<br>Current Belt: ${student.currentBelt || "—"}<br>Membership: ${membership}</p>
         </div>
         <div class="report-card-section">
             <h4>Attendance (Last 60 days)</h4>

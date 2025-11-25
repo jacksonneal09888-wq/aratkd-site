@@ -195,6 +195,10 @@ const sanitizeStudentRecord = (row: any) => {
     phone: row.phone || null,
     email: row.email || null,
     membershipType: row.membership_type || null,
+    status: row.status || (row.is_suspended ? 'suspended' : 'active'),
+    parentName: row.parent_name || null,
+    emergencyContact: row.emergency_contact || null,
+    address: row.address || null,
     isSuspended: Boolean(row.is_suspended),
     suspendedReason: row.suspended_reason || null,
     suspendedAt: row.suspended_at || null,
@@ -207,7 +211,7 @@ const fetchStudentById = (db: D1Database, studentId: string) => {
   const lookup = studentId.trim().toLowerCase();
   return db
     .prepare(
-      `SELECT id, name, birth_date, phone, email, current_belt, membership_type, is_suspended, suspended_reason, suspended_at, created_at, updated_at
+      `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at
        FROM students
        WHERE LOWER(id) = ?1
        LIMIT 1`
@@ -638,6 +642,16 @@ app.post('/kiosk/check-in', async (c) => {
   if (!student) {
     return c.json({ error: 'Unknown student ID' }, 404);
   }
+  const status = (student.status || '').toLowerCase();
+  if (student.is_suspended || ['inactive', 'suspended', 'frozen'].includes(status)) {
+    return c.json(
+      {
+        error: 'Account deactivated',
+        reason: student.suspended_reason || 'See the front desk to reactivate.'
+      },
+      403
+    );
+  }
   if (student.is_suspended) {
     return c.json(
       {
@@ -853,7 +867,7 @@ app.get('/portal/admin/students', async (c) => {
   }
 
   const { results } = await c.env.PORTAL_DB.prepare(
-    `SELECT id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at, created_at, updated_at
+    `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at
      FROM students
      ORDER BY name ASC
      LIMIT ?1`
@@ -897,6 +911,191 @@ app.post('/portal/admin/students/membership', async (c) => {
 
   const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
   return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
+});
+
+app.post('/portal/admin/students/full', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const body = await c.req.json().catch(() => ({}));
+  const firstName = (body.firstName || '').toString().trim();
+  const lastName = (body.lastName || '').toString().trim();
+  const name = `${firstName} ${lastName}`.trim();
+  const birthDate = normalizeBirthDate(body.birthDate || '');
+  const phone = (body.phone || '').toString().trim() || null;
+  const email = (body.email || '').toString().trim() || null;
+  const parentName = (body.parentName || '').toString().trim() || null;
+  const emergencyContact = (body.emergencyContact || '').toString().trim() || null;
+  const address = (body.address || '').toString().trim() || null;
+  const status = (body.status || 'active').toString().trim().toLowerCase() || 'active';
+  const currentBelt = (body.currentBelt || 'White Belt').toString().trim() || 'White Belt';
+
+  const membershipType = (body.membershipType || '').toString().trim();
+  const membershipStart = (body.membershipStart || '').toString().trim() || null;
+  const billingCycle = (body.billingCycle || '').toString().trim() || null;
+  const paymentMethod = (body.paymentMethod || '').toString().trim() || null;
+
+  const noteMessage = (body.initialNote || '').toString().trim();
+  const noteType = (body.initialNoteType || 'note').toString().trim() || 'note';
+  const noteAuthor = (body.initialNoteAuthor || 'Admin').toString().trim() || 'Admin';
+
+  if (!name || !birthDate) {
+    return c.json({ error: 'Name and birthDate are required' }, 400);
+  }
+
+  const studentId = await generateStudentId(c.env.PORTAL_DB);
+  const now = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO students
+       (id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 0, NULL, NULL, ?12, ?12)`
+  )
+    .bind(
+      studentId,
+      name,
+      birthDate,
+      phone,
+      email,
+      currentBelt,
+      membershipType || null,
+      status,
+      parentName,
+      emergencyContact,
+      address,
+      now
+    )
+    .run();
+
+  if (membershipType) {
+    await c.env.PORTAL_DB.prepare(
+      `INSERT INTO memberships
+         (id, student_id, membership_type, start_date, end_date, billing_cycle, payment_method, status, created_at)
+       VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, 'active', ?7)`
+    )
+      .bind(crypto.randomUUID(), studentId, membershipType, membershipStart, billingCycle, paymentMethod, now)
+      .run();
+  }
+
+  if (noteMessage) {
+    const safeType = ['note', 'payment', 'message'].includes(noteType) ? noteType : 'note';
+    await c.env.PORTAL_DB.prepare(
+      `INSERT INTO student_notes (id, student_id, note_type, message, author, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
+    )
+      .bind(crypto.randomUUID(), studentId, safeType, noteMessage, noteAuthor, now)
+      .run();
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  return c.json({
+    ok: true,
+    student: sanitizeStudentRecord(student),
+    login: {
+      studentId,
+      birthDate
+    }
+  });
+});
+
+app.post('/portal/admin/students/:studentId/payments', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) return c.json({ error: 'studentId is required' }, 400);
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) return c.json({ error: 'Student not found' }, 404);
+
+  const body = await c.req.json().catch(() => ({}));
+  const amount = Number(body.amount || 0);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return c.json({ error: 'Valid amount is required' }, 400);
+  }
+  const method = (body.method || '').toString().trim() || null;
+  const statusInput = (body.status || 'paid').toString().trim() || 'paid';
+  const note = (body.note || '').toString().trim() || null;
+  const membershipId = (body.membershipId || '').toString().trim() || null;
+  const now = new Date().toISOString();
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO student_payments
+       (id, student_id, amount, method, status, note, created_at, membership_id)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`
+  )
+    .bind(crypto.randomUUID(), studentId, amount, method, statusInput, note, now, membershipId || null)
+    .run();
+
+  return c.json({ ok: true });
+});
+
+app.get('/portal/admin/students/:studentId/profile', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) return c.json({ error: 'studentId is required' }, 400);
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) return c.json({ error: 'Student not found' }, 404);
+
+  const notesQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT id, note_type, message, author, created_at
+     FROM student_notes
+     WHERE student_id = ?1
+     ORDER BY datetime(created_at) DESC
+     LIMIT 50`
+  )
+    .bind(studentId)
+    .all();
+
+  const membershipQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT id, membership_type, start_date, end_date, billing_cycle, payment_method, status, created_at
+     FROM memberships
+     WHERE student_id = ?1
+     ORDER BY datetime(created_at) DESC
+     LIMIT 1`
+  )
+    .bind(studentId)
+    .first();
+
+  const paymentsQuery = await c.env.PORTAL_DB.prepare(
+    `SELECT id, amount, method, status, note, created_at, membership_id
+     FROM student_payments
+     WHERE student_id = ?1
+     ORDER BY datetime(created_at) DESC
+     LIMIT 50`
+  )
+    .bind(studentId)
+    .all();
+
+  return c.json({
+    student: sanitizeStudentRecord(student),
+    membership: membershipQuery
+      ? {
+          id: membershipQuery.id,
+          type: membershipQuery.membership_type,
+          startDate: membershipQuery.start_date,
+          endDate: membershipQuery.end_date,
+          billingCycle: membershipQuery.billing_cycle,
+          paymentMethod: membershipQuery.payment_method,
+          status: membershipQuery.status,
+          createdAt: membershipQuery.created_at
+        }
+      : null,
+    notes: (notesQuery.results || []).map((row: any) => ({
+      id: row.id,
+      noteType: row.note_type,
+      message: row.message,
+      author: row.author,
+      createdAt: row.created_at
+    })),
+    payments: (paymentsQuery.results || []).map((row: any) => ({
+      id: row.id,
+      amount: row.amount,
+      method: row.method,
+      status: row.status,
+      note: row.note,
+      createdAt: row.created_at,
+      membershipId: row.membership_id
+    }))
+  });
 });
 
 app.get('/portal/admin/students/:studentId/notes', async (c) => {
