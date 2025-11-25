@@ -8,6 +8,10 @@ const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
 const GOOGLE_CALENDAR_CSV_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=csv&gid=1471011839";
 const GOOGLE_CALENDAR_DOWNLOAD_URL = "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1471011839";
+
+function getCalendarCsvUrl() {
+    return `${GOOGLE_CALENDAR_CSV_URL}&t=${Date.now()}`;
+}
 const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
 const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
 const EVENT_WHITE_YELLOW = createEvent("Kids & Family Taekwondo", "5:00 - 5:45 PM", "class", "White and yellow belts sharpen basics with family training partners welcome.");
@@ -720,7 +724,7 @@ function initSheetCalendar() {
         });
     });
 
-    fetch(GOOGLE_CALENDAR_CSV_URL, { cache: "no-store", redirect: "follow" })
+    fetch(getCalendarCsvUrl(), { cache: "no-store", redirect: "follow" })
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to load calendar CSV: ${response.status}`);
