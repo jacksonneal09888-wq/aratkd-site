@@ -57,13 +57,17 @@
                 <div class="section-heading">
                     <p class="eyebrow">Master Ara Access</p>
                     <h2 id="portal-admin-dashboard">Admin Activity Dashboard</h2>
-                    <p>Sign in with the admin key to track student logins and practice check-ins.</p>
+                    <p>Sign in with the MasterAra credentials and PIN to track student logins and practice check-ins.</p>
                 </div>
                 <form class="admin-auth" id="admin-auth-form" novalidate>
-                    <label for="admin-key">Admin Key</label>
-                    <input type="password" id="admin-key" name="adminKey" placeholder="Enter admin key" autocomplete="current-password" required>
+                    <label for="admin-username">Username</label>
+                    <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" autocomplete="username" required>
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" autocomplete="current-password" required>
+                    <label for="admin-pin">Security PIN</label>
+                    <input type="password" id="admin-pin" name="adminPin" placeholder="1453" autocomplete="one-time-code">
                     <button type="submit" class="cta-btn">View Activity</button>
-                    <p class="form-status" id="admin-status" aria-live="polite"></p>
+                    <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD + PIN.</p>
                 </form>
                 <div class="admin-dashboard" id="admin-dashboard" hidden>
                     <div class="admin-summary">
