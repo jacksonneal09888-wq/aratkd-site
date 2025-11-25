@@ -460,6 +460,11 @@ const portalEls = {
     adminRosterNoteMessage: document.getElementById("admin-roster-note-message"),
     adminRosterNoteAuthor: document.getElementById("admin-roster-note-author"),
     adminRosterNotesList: document.getElementById("admin-roster-notes-list"),
+    adminRosterNewtab: document.getElementById("admin-roster-newtab"),
+    adminRosterCardStatus: document.getElementById("admin-roster-card-status"),
+    adminRosterCard30: document.getElementById("admin-roster-card-30"),
+    adminRosterCard60: document.getElementById("admin-roster-card-60"),
+    adminRosterCardMembership: document.getElementById("admin-roster-card-membership"),
     adminTrigger: document.getElementById("admin-trigger"),
     reportCardModal: document.getElementById("admin-report-card"),
     reportCardClose: document.getElementById("report-card-close"),
@@ -3574,87 +3579,6 @@ function handleAdminRosterAction(event) {
         reason = window.prompt("Enter suspension reason", "Billing issue") || "";
     }
     updateStudentSuspension(studentId, suspend, reason);
-}
-
-function handleAdminMembershipSave(event) {
-    event?.preventDefault();
-    if (!portalState.admin.rosterSelected) {
-        setAdminStatus("Select a student first.");
-        return;
-    }
-    if (!HAS_REMOTE_API) return;
-    const studentId = portalState.admin.rosterSelected.id;
-    const membershipType = portalEls.adminRosterMembership?.value || "";
-    const url = buildApiUrl("/portal/admin/students/membership");
-    fetch(url, {
-        method: "POST",
-        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ studentId, membershipType })
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to save membership.");
-            return res.json();
-        })
-        .then((data) => {
-            const updated = data.student;
-            if (updated) {
-                const idx = portalState.admin.roster.findIndex(
-                    (s) => s.id?.toLowerCase() === updated.id?.toLowerCase()
-                );
-                if (idx >= 0) {
-                    portalState.admin.roster[idx] = { ...portalState.admin.roster[idx], ...updated };
-                }
-                portalState.admin.rosterSelected = updated;
-                renderAdminRoster();
-                renderRosterDetail();
-            }
-            setAdminStatus("Membership updated.", "success");
-        })
-        .catch((error) => {
-            console.error("membership save", error);
-            setAdminStatus(error.message || "Unable to save membership.", "error");
-        });
-}
-
-function handleAdminNoteSubmit(event) {
-    event?.preventDefault();
-    if (!portalState.admin.rosterSelected) {
-        setAdminStatus("Select a student first.");
-        return;
-    }
-    if (!HAS_REMOTE_API) return;
-    const studentId = portalState.admin.rosterSelected.id;
-    const noteType = portalEls.adminRosterNoteType?.value || "note";
-    const message = portalEls.adminRosterNoteMessage?.value?.trim() || "";
-    const author = portalEls.adminRosterNoteAuthor?.value?.trim() || "Admin";
-    if (!message) {
-        setAdminStatus("Add a message before saving.");
-        return;
-    }
-    const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
-    fetch(url, {
-        method: "POST",
-        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ noteType, message, author })
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to save note.");
-            return res.json();
-        })
-        .then((data) => {
-            if (data.note) {
-                portalState.admin.rosterNotes = [data.note, ...(portalState.admin.rosterNotes || [])];
-                renderRosterNotes();
-            }
-            if (portalEls.adminRosterNoteMessage) {
-                portalEls.adminRosterNoteMessage.value = "";
-            }
-            setAdminStatus("Entry added.", "success");
-        })
-        .catch((error) => {
-            console.error("note submit", error);
-            setAdminStatus(error.message || "Unable to save entry.", "error");
-        });
 }
 
 function handleAdminMembershipSave(event) {
