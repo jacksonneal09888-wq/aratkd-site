@@ -2504,7 +2504,7 @@ body.admin-modal-open {
 
 .admin-dashboard {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: 1fr;
     gap: 2rem;
 }
 
@@ -2519,6 +2519,7 @@ body.admin-modal-open {
     padding: 1.75rem;
     border: 1px solid rgba(8, 9, 10, 0.08);
     box-shadow: 0 16px 28px rgba(8, 9, 10, 0.08);
+    margin-bottom: 1rem;
 }
 
 .admin-attendance {
@@ -2527,6 +2528,7 @@ body.admin-modal-open {
     padding: 1.75rem;
     border: 1px solid rgba(8, 9, 10, 0.08);
     box-shadow: 0 16px 28px rgba(8, 9, 10, 0.08);
+    margin-bottom: 1rem;
 }
 
 .admin-enroll {
@@ -2538,6 +2540,7 @@ body.admin-modal-open {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    margin-bottom: 1rem;
 }
 
 .admin-enroll__form {
