@@ -517,6 +517,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (HAS_REMOTE_API) {
         attemptRestoreAdminSession();
+        if (IS_ADMIN_MODE) {
+            autoLoginFromPin();
+        }
     } else {
         if (portalEls.adminDashboard) {
             portalEls.adminDashboard.hidden = true;
@@ -664,7 +667,9 @@ function requestAdminAccess() {
     if (!verifyAdminTriggerPin()) {
         return;
     }
-    window.open("portal-admin.html", "_blank", "noopener");
+    const pin = (ADMIN_TRIGGER_PIN || "").trim();
+    const url = pin ? `portal-admin.html?pin=${encodeURIComponent(pin)}` : "portal-admin.html";
+    window.open(url, "_blank", "noopener");
 }
 
 function verifyAdminTriggerPin() {
@@ -1349,8 +1354,32 @@ function attemptRestoreAdminSession() {
         .catch(() => {
             portalState.admin.token = null;
             portalState.admin.isAuthorized = false;
-            clearAdminSession();
-        });
+        clearAdminSession();
+    });
+}
+
+function autoLoginFromPin() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const pin = params.get("pin") || "";
+        const triggerPin = (ADMIN_TRIGGER_PIN || "").trim();
+        if (!pin || !triggerPin || pin !== triggerPin) {
+            return;
+        }
+        const username =
+            (document.body.dataset.adminUsername || "MasterAra").trim() || "MasterAra";
+        const password =
+            (document.body.dataset.adminPassword || "AraTKD").trim() || "AraTKD";
+        if (!username || !password) return;
+        portalEls.adminUsername.value = username;
+        portalEls.adminPassword.value = password;
+        if (portalEls.adminPin) {
+            portalEls.adminPin.value = pin;
+        }
+        handleAdminLogin(new Event("submit"));
+    } catch (error) {
+        console.warn("autoLoginFromPin failed", error);
+    }
 }
 
 function persistAdminToken(token) {

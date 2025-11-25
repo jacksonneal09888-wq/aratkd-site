@@ -2939,7 +2939,7 @@ body.admin-modal-open {
 .reminder-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .reminder-card {
@@ -2983,7 +2983,7 @@ body.admin-modal-open {
 .faq-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .faq-item {
@@ -3640,4 +3640,13 @@ body.admin-modal-open {
     color: #fff;
     border-radius: 12px 0 0 0;
     text-indent: -9999px;
+}
+
+@media (max-width: 1100px) {
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+    .faq-item {
+        width: 100%;
+    }
 }
