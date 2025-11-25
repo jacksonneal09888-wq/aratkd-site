@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Student | Ara TKD</title>
+    <link rel="stylesheet" href="assets/css/styles.css?v=20241125b">
+</head>
+<body data-portal-mode="admin" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-trigger-pin="1453" data-admin-username="MasterAra" data-admin-password="AraTKD">
+    <main class="section" style="padding-top:2rem;">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">New Student Panel</p>
+                <h1>Add New Member</h1>
+                <p>Capture personal info, membership tier, billing preferences, status, and first note.</p>
+            </div>
+            <form class="admin-new-student" id="admin-new-student-form">
+                <div class="admin-new-student__grid">
+                    <div class="admin-card">
+                        <h3>Personal Info</h3>
+                        <label>First Name<input type="text" name="firstName" required></label>
+                        <label>Last Name<input type="text" name="lastName" required></label>
+                        <label>Date of Birth<input type="date" name="birthDate" required></label>
+                        <label>Parent/Guardian<input type="text" name="parentName"></label>
+                        <label>Phone<input type="tel" name="phone"></label>
+                        <label>Email<input type="email" name="email"></label>
+                        <label>Address<input type="text" name="address"></label>
+                        <label>Emergency Contact<input type="text" name="emergencyContact"></label>
+                    </div>
+                    <div class="admin-card">
+                        <h3>Membership & Billing</h3>
+                        <label>Membership Type
+                            <select name="membershipType">
+                                <option value="">Select a plan</option>
+                                <option value="Month-to-Month">Month-to-Month</option>
+                                <option value="Tier 1">Tier 1 (1 Year)</option>
+                                <option value="Tier 2">Tier 2 (2 Years)</option>
+                                <option value="Tier 3">Tier 3 (3 Years)</option>
+                            </select>
+                        </label>
+                        <label>Start Date<input type="date" name="membershipStart"></label>
+                        <label>Billing Cycle
+                            <select name="billingCycle">
+                                <option value="">Not set</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Annual">Annual</option>
+                            </select>
+                        </label>
+                        <label>Payment Method
+                            <select name="paymentMethod">
+                                <option value="">Not set</option>
+                                <option value="Card">Card</option>
+                                <option value="Cash">Cash</option>
+                                <option value="ACH">ACH</option>
+                            </select>
+                        </label>
+                        <label>Status
+                            <select name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="frozen">Frozen</option>
+                            </select>
+                        </label>
+                        <label>Current Belt<input type="text" name="currentBelt" value="White Belt"></label>
+                    </div>
+                    <div class="admin-card">
+                        <h3>Notes & Payment Flags</h3>
+                        <label>Initial Note Type
+                            <select name="initialNoteType">
+                                <option value="note">Note</option>
+                                <option value="payment">Payment</option>
+                                <option value="message">Message</option>
+                            </select>
+                        </label>
+                        <label>Initial Note<textarea name="initialNote" rows="4" placeholder="Add onboarding note, payment summary, or behavior note"></textarea></label>
+                        <label>Note Author<input type="text" name="initialNoteAuthor" placeholder="Admin / Miss Fatima"></label>
+                    </div>
+                </div>
+                <div class="admin-actions">
+                    <button type="button" class="secondary-btn" id="admin-new-student-cancel">Cancel</button>
+                    <button type="submit" class="cta-btn">Save Member</button>
+                    <p class="form-status" id="admin-new-student-status" aria-live="polite"></p>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script type="module" src="assets/js/student-portal.js?v=20241125b" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("admin-new-student-form");
+            const statusEl = document.getElementById("admin-new-student-status");
+            const cancelBtn = document.getElementById("admin-new-student-cancel");
+            const setStatus = (msg, variant = "") => {
+                if (!statusEl) return;
+                statusEl.textContent = msg || "";
+                statusEl.classList.toggle("is-success", variant === "success");
+                statusEl.classList.toggle("is-progress", variant === "progress");
+            };
+            cancelBtn?.addEventListener("click", () => {
+                window.location.href = "portal-admin.html";
+            });
+            form?.addEventListener("submit", (event) => {
+                event.preventDefault();
+                if (typeof getAdminAuthHeaders !== "function") {
+                    setStatus("Admin tools not loaded. Refresh the page.", "error");
+                    return;
+                }
+                const data = Object.fromEntries(new FormData(form).entries());
+                const url = buildApiUrl("/portal/admin/students/full");
+                setStatus("Saving student...", "progress");
+                fetch(url, {
+                    method: "POST",
+                    headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(data)
+                })
+                    .then((res) => res.json().then((d) => ({ ok: res.ok, data: d })))
+                    .then(({ ok, data }) => {
+                        if (!ok) throw new Error(data?.error || "Unable to save student.");
+                        setStatus(`Student saved. ID: ${data.login?.studentId || "—"}`, "success");
+                        form.reset();
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        setStatus(err.message || "Unable to save student.", "error");
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
