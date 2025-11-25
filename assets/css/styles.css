@@ -3629,9 +3629,10 @@ body.admin-modal-open {
     background: rgba(8, 9, 10, 0.05);
     border: none;
     padding: 0;
-    opacity: 0.3;
+    opacity: 0.08;
     z-index: 900;
     cursor: pointer;
+    text-indent: -9999px;
 }
 
 .admin-trigger:focus-visible {
