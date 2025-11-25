@@ -39,62 +39,281 @@
     </header>
 
     <main>
-        <section class="hero" style="padding: 4rem 0 3rem;">
-            <div class="container hero-content" style="grid-template-columns: 1fr;">
-                <div class="hero-copy">
-                    <p class="hero-badge" style="align-self:flex-start;">Internal Dashboard</p>
-                    <h1>Master Ara Activity Center</h1>
-                    <p>Review who is logging into the student portal, track recent certificate uploads, and monitor overall engagement. This page is private to Ara staff.</p>
-                    <div class="hero-actions">
-                        <a class="secondary-btn" href="mailto:afetkd@gmail.com?subject=Reset%20admin%20key">Need a key reset?</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="section portal-admin" aria-labelledby="portal-admin-dashboard">
             <div class="container">
                 <div class="section-heading">
                     <p class="eyebrow">Master Ara Access</p>
                     <h2 id="portal-admin-dashboard">Admin Activity Dashboard</h2>
-                    <p>Sign in with the MasterAra credentials and PIN to track student logins and practice check-ins.</p>
+                    <p>Use MasterAra / AraTKD plus PIN to unlock roster, membership, payments, and notes.</p>
                 </div>
-                <form class="admin-auth" id="admin-auth-form" novalidate>
-                    <label for="admin-username">Username</label>
-                    <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" autocomplete="username" required>
-                    <label for="admin-password">Password</label>
-                    <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" autocomplete="current-password" required>
-                    <label for="admin-pin">Security PIN</label>
-                    <input type="password" id="admin-pin" name="adminPin" placeholder="1453" autocomplete="one-time-code">
-                    <button type="submit" class="cta-btn">View Activity</button>
-                    <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD + PIN.</p>
-                </form>
-                <div class="admin-dashboard" id="admin-dashboard" hidden>
-                    <div class="admin-summary">
-                        <h3>Student Summary</h3>
-                        <button type="button" class="text-link-btn" id="admin-refresh">Refresh Data</button>
-                        <table class="admin-table" aria-label="Student engagement summary">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Student ID</th>
-                                    <th scope="col">Total Events</th>
-                                    <th scope="col">Logins</th>
-                                    <th scope="col">Latest Belt</th>
-                                    <th scope="col">Last Activity</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-summary-body">
-                                <tr>
-                                    <td colspan="5">Sign in with the admin key to see data.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="admin-events">
-                        <h3>Recent Activity</h3>
-                        <ul class="admin-event-list" id="admin-events-list" aria-live="polite">
-                            <li>Activity will appear here after sign-in.</li>
-                        </ul>
+                <div class="admin-panel">
+                    <form class="admin-auth" id="admin-auth-form" autocomplete="off">
+                        <div>
+                            <label for="admin-username">Username</label>
+                            <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" required>
+                        </div>
+                        <div>
+                            <label for="admin-password">Password</label>
+                            <input type="password" id="admin-password" name="adminPassword" placeholder="AraTKD" required>
+                        </div>
+                            <div>
+                                <label for="admin-pin">Security PIN</label>
+                                <input type="password" id="admin-pin" name="adminPin" placeholder="1453">
+                            </div>
+                        <button type="submit" class="cta-btn">Sign In</button>
+                        <p class="form-status" id="admin-status" aria-live="polite">Use MasterAra / AraTKD to unlock.</p>
+                    </form>
+                    <div class="admin-dashboard" id="admin-dashboard" hidden>
+                        <div class="admin-summary">
+                            <div class="admin-summary__header">
+                                <h3>Usage Overview</h3>
+                                <div class="admin-summary__actions">
+                                    <button type="button" class="text-link-btn" id="admin-expand">Expand Panel</button>
+                                    <button type="button" class="text-link-btn" id="admin-summary-download">Download CSV</button>
+                                    <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                                    <a class="secondary-btn" href="admin-new-student.html?pin=1453" target="_blank" rel="noopener">Add New Student</a>
+                                </div>
+                            </div>
+                            <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Portal usage summary">
+                                    <thead>
+                                        <tr>
+                                        <th scope="col">Student ID</th>
+                                        <th scope="col">Total Events</th>
+                                        <th scope="col">Logins</th>
+                                        <th scope="col">Latest Belt</th>
+                                        <th scope="col">Last Activity</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-summary-body">
+                                        <tr>
+                                            <td colspan="7">Sign in to load analytics.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="admin-events">
+                            <h3>Recent Portal Events</h3>
+                            <ul class="admin-event-list" id="admin-events-list">
+                                <li>No events yet.</li>
+                            </ul>
+                        </div>
+                        <div class="admin-attendance" id="admin-attendance" hidden>
+                            <div class="admin-summary__header">
+                                <h3>Latest Attendance Check-ins</h3>
+                                <button type="button" class="text-link-btn" id="admin-attendance-refresh">Refresh</button>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Recent attendance">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Student ID</th>
+                                            <th scope="col">Class</th>
+                                            <th scope="col">Kiosk</th>
+                                            <th scope="col">Attendance %</th>
+                                            <th scope="col">Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-attendance-body">
+                                        <tr>
+                                            <td colspan="5">No attendance logs yet.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="admin-attendance" id="admin-roster" hidden>
+                            <div class="admin-summary__header">
+                                <h3>Student Roster</h3>
+                                <div>
+                                    <a class="text-link-btn" href="admin-new-student.html?pin=1453" target="_blank" rel="noopener">Add New Student</a>
+                                    <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
+                                </div>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Student roster">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Membership</th>
+                                            <th scope="col">Belt</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Updated</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-roster-body">
+                                        <tr>
+                                            <td colspan="7">Sign in to load the roster.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="admin-roster-detail" id="admin-roster-detail" hidden>
+                                <div class="admin-roster-detail__head">
+                                    <div>
+                                        <p class="admin-roster-detail__label">Selected Student</p>
+                                        <p class="admin-roster-detail__name" id="admin-roster-student-name">—</p>
+                                        <p class="admin-roster-detail__meta" id="admin-roster-student-meta">—</p>
+                                    </div>
+                                    <div class="admin-roster-detail__membership">
+                                        <label for="admin-roster-membership">Membership Type</label>
+                                        <select id="admin-roster-membership">
+                                            <option value="">Not set</option>
+                                            <option value="Month-to-Month">Month-to-Month</option>
+                                            <option value="Tier 1">Tier 1</option>
+                                            <option value="Tier 2">Tier 2</option>
+                                            <option value="Tier 3">Tier 3</option>
+                                            <option value="Annual">Annual</option>
+                                        </select>
+                                        <button type="button" class="secondary-btn" id="admin-roster-save">Save Membership</button>
+                                        <button type="button" class="text-link-btn" id="admin-roster-newtab">Open Detail View</button>
+                                    </div>
+                                </div>
+                                <div class="admin-roster-actions">
+                                    <button type="button" class="secondary-btn" data-roster-action="report">Report Card</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="note">Add Note</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="payment">Add Payment Note</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="deactivate">Deactivate</button>
+                                    <button type="button" class="secondary-btn" data-roster-action="activate">Reactivate</button>
+                                </div>
+                                <div class="admin-roster-cards">
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Status</p>
+                                        <p class="card-value" id="admin-roster-card-status">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Last 30 days</p>
+                                        <p class="card-value" id="admin-roster-card-30">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Last 60 days</p>
+                                        <p class="card-value" id="admin-roster-card-60">—</p>
+                                    </div>
+                                    <div class="admin-roster-card">
+                                        <p class="card-label">Membership</p>
+                                        <p class="card-value" id="admin-roster-card-membership">—</p>
+                                    </div>
+                                </div>
+                                <details class="admin-accordion" open>
+                                    <summary>Financial Management</summary>
+                                    <p class="admin-accordion__hint">Use notes to log payments or billing conversations. SwipeSimple transactions can be noted here.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Progress Tracking</summary>
+                                    <p class="admin-accordion__hint">Track readiness, test requests, and belt uploads via the report card.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Workout Tracking</summary>
+                                    <p class="admin-accordion__hint">Use notes to capture class feedback or practice assignments.</p>
+                                </details>
+                                <details class="admin-accordion" open>
+                                    <summary>Membership Management</summary>
+                                    <p class="admin-accordion__hint">Set membership type and keep billing notes synced.</p>
+                                </details>
+                                <details class="admin-accordion">
+                                    <summary>Payment Profile Management</summary>
+                                    <p class="admin-accordion__hint">Record SwipeSimple payment confirmations and follow-ups.</p>
+                                </details>
+                                <div class="admin-roster-notes">
+                                    <div class="admin-roster-notes__form">
+                                        <h4>Notes / Payments</h4>
+                                        <form id="admin-roster-note-form">
+                                            <label>
+                                                <span>Type</span>
+                                                <select id="admin-roster-note-type">
+                                                    <option value="note">Note</option>
+                                                    <option value="payment">Payment</option>
+                                                    <option value="message">Message</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Message</span>
+                                                <textarea id="admin-roster-note-message" rows="3" placeholder="Add note or payment detail"></textarea>
+                                            </label>
+                                            <label>
+                                                <span>Author</span>
+                                                <input type="text" id="admin-roster-note-author" placeholder="e.g. Miss Fatima">
+                                            </label>
+                                            <button type="submit" class="cta-btn">Add Entry</button>
+                                        </form>
+                                    </div>
+                                    <div class="admin-roster-notes__list">
+                                        <h4>Activity</h4>
+                                        <ul id="admin-roster-notes-list">
+                                            <li>No notes yet.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-enroll" id="admin-enroll" hidden>
+                            <div class="admin-summary__header">
+                                <h3>Quick Student Enrollment</h3>
+                                <p>Generate a new Ara ID, login credential, and optional attendance seed in one step.</p>
+                            </div>
+                            <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
+                                <div class="admin-enroll__grid">
+                                    <label>
+                                        <span>Student Name</span>
+                                        <input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required>
+                                    </label>
+                                    <label>
+                                        <span>Date of Birth</span>
+                                        <input type="date" id="admin-enroll-dob" name="birthDate" required>
+                                    </label>
+                                    <label>
+                                        <span>Parent Email</span>
+                                        <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
+                                    </label>
+                                    <label>
+                                        <span>Phone</span>
+                                        <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
+                                    </label>
+                                    <label>
+                                        <span>Starting Belt</span>
+                                        <select id="admin-enroll-belt" name="belt">
+                                            <option value="White Belt">White Belt</option>
+                                            <option value="High White Belt">High White Belt</option>
+                                            <option value="Yellow Belt">Yellow Belt</option>
+                                            <option value="High Yellow Belt">High Yellow Belt</option>
+                                            <option value="Green Belt">Green Belt</option>
+                                            <option value="High Green Belt">High Green Belt</option>
+                                            <option value="Blue Belt">Blue Belt</option>
+                                            <option value="High Blue Belt">High Blue Belt</option>
+                                            <option value="Red Belt">Red Belt</option>
+                                            <option value="High Red Belt">High Red Belt</option>
+                                            <option value="Black Belt">Black Belt</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Class Track</span>
+                                        <select id="admin-enroll-class-type" name="classType">
+                                            <option value="basic">Basic Class</option>
+                                            <option value="advanced">Advanced Class</option>
+                                            <option value="little-ninjas">Little Ninjas</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span>Seed Attendance Days</span>
+                                        <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
+                                    </label>
+                                </div>
+                                <div class="admin-enroll__actions">
+                                    <button type="submit" class="cta-btn">Create Student</button>
+                                    <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
+                                </div>
+                            </form>
+                            <div class="admin-enroll__result" id="admin-enroll-result" hidden>
+                                <p class="admin-enroll__result-title">New student ready for login.</p>
+                                <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
