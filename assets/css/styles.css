@@ -2624,6 +2624,99 @@ body.admin-modal-open {
     font-size: 1rem;
 }
 
+.admin-roster-detail {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    border-radius: 1rem;
+    background: rgba(8, 9, 10, 0.02);
+    display: grid;
+    gap: 1rem;
+}
+
+.admin-roster-detail__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.admin-roster-detail__label {
+    margin: 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(8, 9, 10, 0.6);
+}
+
+.admin-roster-detail__name {
+    margin: 0.1rem 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.admin-roster-detail__meta {
+    margin: 0;
+    color: rgba(8, 9, 10, 0.7);
+}
+
+.admin-roster-detail__membership label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.admin-roster-detail__membership select {
+    min-width: 220px;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(8, 9, 10, 0.15);
+    margin-right: 0.5rem;
+}
+
+.admin-roster-notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.admin-roster-notes__form form {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.admin-roster-notes__form textarea,
+.admin-roster-notes__form input,
+.admin-roster-notes__form select {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(8, 9, 10, 0.15);
+}
+
+.admin-roster-notes__list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.admin-roster-notes__list li {
+    background: #fff;
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.admin-roster-notes__meta {
+    font-size: 0.8rem;
+    color: rgba(8, 9, 10, 0.6);
+}
+
 .admin-summary h3,
 .admin-events h3,
 .admin-attendance h3 {

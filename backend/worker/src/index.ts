@@ -194,6 +194,7 @@ const sanitizeStudentRecord = (row: any) => {
     birthDate: row.birth_date || null,
     phone: row.phone || null,
     email: row.email || null,
+    membershipType: row.membership_type || null,
     isSuspended: Boolean(row.is_suspended),
     suspendedReason: row.suspended_reason || null,
     suspendedAt: row.suspended_at || null,
@@ -206,7 +207,7 @@ const fetchStudentById = (db: D1Database, studentId: string) => {
   const lookup = studentId.trim().toLowerCase();
   return db
     .prepare(
-      `SELECT id, name, birth_date, phone, email, current_belt, is_suspended, suspended_reason, suspended_at
+      `SELECT id, name, birth_date, phone, email, current_belt, membership_type, is_suspended, suspended_reason, suspended_at, created_at, updated_at
        FROM students
        WHERE LOWER(id) = ?1
        LIMIT 1`
@@ -868,6 +869,109 @@ app.get('/portal/admin/students', async (c) => {
   });
 });
 
+app.post('/portal/admin/students/membership', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const body = await c.req.json().catch(() => ({}));
+  const studentId = (body.studentId || '').trim();
+  const membershipType = (body.membershipType || '').toString().trim() || null;
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const timestamp = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE students
+     SET membership_type = ?1,
+         updated_at = ?2
+     WHERE id = ?3`
+  )
+    .bind(membershipType, timestamp, student.id)
+    .run();
+
+  const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
+  return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
+});
+
+app.get('/portal/admin/students/:studentId/notes', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT id, note_type, message, author, created_at
+     FROM student_notes
+     WHERE student_id = ?1
+     ORDER BY datetime(created_at) DESC
+     LIMIT 100`
+  )
+    .bind(studentId)
+    .all();
+
+  return c.json({
+    notes: (results || []).map((row: any) => ({
+      id: row.id,
+      noteType: row.note_type,
+      message: row.message,
+      author: row.author,
+      createdAt: row.created_at
+    })),
+    generatedAt: new Date().toISOString()
+  });
+});
+
+app.post('/portal/admin/students/:studentId/notes', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const noteType = (body.noteType || 'note').toString().trim().toLowerCase();
+  const message = (body.message || '').toString().trim();
+  const author = (body.author || '').toString().trim() || 'Admin';
+  if (!message) {
+    return c.json({ error: 'message is required' }, 400);
+  }
+  const allowed = new Set(['note', 'payment', 'message']);
+  const safeType = allowed.has(noteType) ? noteType : 'note';
+  const now = new Date().toISOString();
+  const id = crypto.randomUUID();
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO student_notes (id, student_id, note_type, message, author, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
+  )
+    .bind(id, studentId, safeType, message, author, now)
+    .run();
+
+  return c.json({
+    ok: true,
+    note: { id, studentId, noteType: safeType, message, author, createdAt: now }
+  });
+});
+
 app.post('/portal/admin/students', async (c) => {
   const authError = await authenticateAdminRequest(c);
   if (authError) {
@@ -1000,6 +1104,7 @@ app.get('/portal/admin/report-card/:studentId', async (c) => {
 
   return c.json({
     student: sanitizeStudentRecord(student),
+    membershipType: student.membership_type || null,
     attendance: summary,
     progress: {
       records: progress,

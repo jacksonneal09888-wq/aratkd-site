@@ -450,6 +450,16 @@ const portalEls = {
     adminRoster: document.getElementById("admin-roster"),
     adminRosterBody: document.getElementById("admin-roster-body"),
     adminRosterRefresh: document.getElementById("admin-roster-refresh"),
+    adminRosterDetail: document.getElementById("admin-roster-detail"),
+    adminRosterStudentName: document.getElementById("admin-roster-student-name"),
+    adminRosterStudentMeta: document.getElementById("admin-roster-student-meta"),
+    adminRosterMembership: document.getElementById("admin-roster-membership"),
+    adminRosterSave: document.getElementById("admin-roster-save"),
+    adminRosterNoteForm: document.getElementById("admin-roster-note-form"),
+    adminRosterNoteType: document.getElementById("admin-roster-note-type"),
+    adminRosterNoteMessage: document.getElementById("admin-roster-note-message"),
+    adminRosterNoteAuthor: document.getElementById("admin-roster-note-author"),
+    adminRosterNotesList: document.getElementById("admin-roster-notes-list"),
     adminTrigger: document.getElementById("admin-trigger"),
     reportCardModal: document.getElementById("admin-report-card"),
     reportCardClose: document.getElementById("report-card-close"),
@@ -479,7 +489,10 @@ const portalState = {
         isCreatingStudent: false,
         newStudent: null,
         roster: [],
-        rosterGeneratedAt: null
+        rosterGeneratedAt: null,
+        rosterSelected: null,
+        rosterNotes: [],
+        rosterNotesGeneratedAt: null
     }
 };
 
@@ -533,7 +546,10 @@ function attachHandlers() {
         event.preventDefault();
         requestAdminAccess();
     });
-    portalEls.adminRosterBody?.addEventListener("click", handleAdminSummaryAction);
+    portalEls.adminRosterBody?.addEventListener("click", handleAdminRosterAction);
+
+    portalEls.adminRosterSave?.addEventListener("click", handleAdminMembershipSave);
+    portalEls.adminRosterNoteForm?.addEventListener("submit", handleAdminNoteSubmit);
     portalEls.adminClose?.addEventListener("click", closeAdminModal);
     portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
     document.addEventListener("keydown", (event) => {
@@ -1726,7 +1742,7 @@ function renderAdminRoster() {
     if (!roster.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 6;
+        cell.colSpan = 7;
         cell.textContent = portalState.admin.isAuthorized
             ? "No students found."
             : "Sign in to load the roster.";
@@ -1746,6 +1762,9 @@ function renderAdminRoster() {
         idCell.innerHTML = `<strong>${student.id}</strong>`;
         const nameCell = document.createElement("td");
         nameCell.textContent = student.name || "—";
+        const membershipCell = document.createElement("td");
+        membershipCell.textContent = student.membershipType || "Not set";
+
         const beltCell = document.createElement("td");
         beltCell.textContent = student.currentBelt || "—";
 
@@ -1770,6 +1789,13 @@ function renderAdminRoster() {
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "admin-row-actions";
 
+        const openBtn = document.createElement("button");
+        openBtn.type = "button";
+        openBtn.className = "text-link-btn";
+        openBtn.dataset.action = "detail";
+        openBtn.dataset.studentId = student.id;
+        openBtn.textContent = "Open";
+
         const suspendBtn = document.createElement("button");
         suspendBtn.type = "button";
         suspendBtn.className = "text-link-btn";
@@ -1784,10 +1810,10 @@ function renderAdminRoster() {
         reportBtn.dataset.studentId = student.id;
         reportBtn.textContent = "Report Card";
 
-        actionsWrap.append(reportBtn, suspendBtn);
+        actionsWrap.append(openBtn, reportBtn, suspendBtn);
         actionsCell.appendChild(actionsWrap);
 
-        row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
+        row.append(idCell, nameCell, membershipCell, beltCell, statusCell, updatedCell, actionsCell);
         portalEls.adminRosterBody.appendChild(row);
     });
 }
@@ -3507,5 +3533,185 @@ function migrateLegacyCertificates() {
 
     Promise.allSettled(tasks).finally(() => {
         persistCertificates();
+    });
+}
+
+function handleAdminRosterAction(event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const studentId = button.dataset.studentId;
+    const action = button.dataset.action;
+    if (!studentId || !action) return;
+    if (action === "detail") {
+        const student = (portalState.admin.roster || []).find((s) =>
+            s.id && s.id.toLowerCase() === studentId.toLowerCase()
+        );
+        if (student) {
+            portalState.admin.rosterSelected = student;
+            renderRosterDetail();
+            loadRosterNotes(student.id);
+        }
+        return;
+    }
+    if (action === "report") {
+        openReportCard(studentId);
+        return;
+    }
+    const suspend = action === "suspend";
+    let reason = "";
+    if (suspend) {
+        reason = window.prompt("Enter suspension reason", "Billing issue") || "";
+    }
+    updateStudentSuspension(studentId, suspend, reason);
+}
+
+function handleAdminMembershipSave(event) {
+    event?.preventDefault();
+    if (!portalState.admin.rosterSelected) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    if (!HAS_REMOTE_API) return;
+    const studentId = portalState.admin.rosterSelected.id;
+    const membershipType = portalEls.adminRosterMembership?.value || "";
+    const url = buildApiUrl("/portal/admin/students/membership");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ studentId, membershipType })
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to save membership.");
+            return res.json();
+        })
+        .then((data) => {
+            const updated = data.student;
+            if (updated) {
+                const idx = portalState.admin.roster.findIndex(
+                    (s) => s.id?.toLowerCase() === updated.id?.toLowerCase()
+                );
+                if (idx >= 0) {
+                    portalState.admin.roster[idx] = { ...portalState.admin.roster[idx], ...updated };
+                }
+                portalState.admin.rosterSelected = updated;
+                renderAdminRoster();
+                renderRosterDetail();
+            }
+            setAdminStatus("Membership updated.", "success");
+        })
+        .catch((error) => {
+            console.error("membership save", error);
+            setAdminStatus(error.message || "Unable to save membership.", "error");
+        });
+}
+
+function handleAdminNoteSubmit(event) {
+    event?.preventDefault();
+    if (!portalState.admin.rosterSelected) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    if (!HAS_REMOTE_API) return;
+    const studentId = portalState.admin.rosterSelected.id;
+    const noteType = portalEls.adminRosterNoteType?.value || "note";
+    const message = portalEls.adminRosterNoteMessage?.value?.trim() || "";
+    const author = portalEls.adminRosterNoteAuthor?.value?.trim() || "Admin";
+    if (!message) {
+        setAdminStatus("Add a message before saving.");
+        return;
+    }
+    const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ noteType, message, author })
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to save note.");
+            return res.json();
+        })
+        .then((data) => {
+            if (data.note) {
+                portalState.admin.rosterNotes = [data.note, ...(portalState.admin.rosterNotes || [])];
+                renderRosterNotes();
+            }
+            portalEls.adminRosterNoteMessage.value = "";
+            setAdminStatus("Entry added.", "success");
+        })
+        .catch((error) => {
+            console.error("note submit", error);
+            setAdminStatus(error.message || "Unable to save entry.", "error");
+        });
+}
+
+function loadRosterNotes(studentId) {
+    if (!HAS_REMOTE_API || !studentId) return;
+    const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
+    fetch(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to load notes.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.rosterNotes = Array.isArray(data.notes) ? data.notes : [];
+            portalState.admin.rosterNotesGeneratedAt = data.generatedAt || null;
+            renderRosterNotes();
+        })
+        .catch((error) => {
+            console.error("load notes", error);
+            setAdminStatus(error.message || "Unable to load notes.", "error");
+        });
+}
+
+function renderRosterDetail() {
+    const panel = portalEls.adminRosterDetail;
+    if (!panel) return;
+    const student = portalState.admin.rosterSelected;
+    if (!student) {
+        panel.hidden = true;
+        return;
+    }
+    panel.hidden = false;
+    if (portalEls.adminRosterStudentName) {
+        portalEls.adminRosterStudentName.textContent = student.name || "—";
+    }
+    if (portalEls.adminRosterStudentMeta) {
+        portalEls.adminRosterStudentMeta.textContent = `${student.id || ""} · ${student.phone || ""}`.trim();
+    }
+    if (portalEls.adminRosterMembership) {
+        portalEls.adminRosterMembership.value = student.membershipType || "";
+    }
+    renderRosterNotes();
+}
+
+function renderRosterNotes() {
+    const list = portalEls.adminRosterNotesList;
+    if (!list) return;
+    const notes = portalState.admin.rosterNotes || [];
+    list.innerHTML = "";
+    if (!notes.length) {
+        const li = document.createElement("li");
+        li.textContent = "No notes yet.";
+        list.appendChild(li);
+        return;
+    }
+    notes.forEach((note) => {
+        const li = document.createElement("li");
+        const meta = document.createElement("div");
+        meta.className = "admin-roster-notes__meta";
+        meta.textContent = `${note.noteType || "note"} · ${note.author || "Admin"} · ${note.createdAt ? formatDateTime(note.createdAt) : ""}`;
+        const body = document.createElement("div");
+        body.textContent = note.message;
+        li.append(meta, body);
+        list.appendChild(li);
     });
 }

@@ -461,6 +461,7 @@
                                         <tr>
                                             <th scope="col">ID</th>
                                             <th scope="col">Name</th>
+                                            <th scope="col">Membership</th>
                                             <th scope="col">Belt</th>
                                             <th scope="col">Status</th>
                                             <th scope="col">Updated</th>
@@ -469,10 +470,61 @@
                                     </thead>
                                     <tbody id="admin-roster-body">
                                         <tr>
-                                            <td colspan="6">Sign in to load the roster.</td>
+                                            <td colspan="7">Sign in to load the roster.</td>
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="admin-roster-detail" id="admin-roster-detail" hidden>
+                                <div class="admin-roster-detail__head">
+                                    <div>
+                                        <p class="admin-roster-detail__label">Selected Student</p>
+                                        <p class="admin-roster-detail__name" id="admin-roster-student-name">—</p>
+                                        <p class="admin-roster-detail__meta" id="admin-roster-student-meta">—</p>
+                                    </div>
+                                    <div class="admin-roster-detail__membership">
+                                        <label for="admin-roster-membership">Membership Type</label>
+                                        <select id="admin-roster-membership">
+                                            <option value="">Not set</option>
+                                            <option value="Month-to-Month">Month-to-Month</option>
+                                            <option value="Tier 1">Tier 1</option>
+                                            <option value="Tier 2">Tier 2</option>
+                                            <option value="Tier 3">Tier 3</option>
+                                            <option value="Annual">Annual</option>
+                                        </select>
+                                        <button type="button" class="secondary-btn" id="admin-roster-save">Save Membership</button>
+                                    </div>
+                                </div>
+                                <div class="admin-roster-notes">
+                                    <div class="admin-roster-notes__form">
+                                        <h4>Notes / Payments</h4>
+                                        <form id="admin-roster-note-form">
+                                            <label>
+                                                <span>Type</span>
+                                                <select id="admin-roster-note-type">
+                                                    <option value="note">Note</option>
+                                                    <option value="payment">Payment</option>
+                                                    <option value="message">Message</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Message</span>
+                                                <textarea id="admin-roster-note-message" rows="3" placeholder="Add note or payment detail"></textarea>
+                                            </label>
+                                            <label>
+                                                <span>Author</span>
+                                                <input type="text" id="admin-roster-note-author" placeholder="e.g. Miss Fatima">
+                                            </label>
+                                            <button type="submit" class="cta-btn">Add Entry</button>
+                                        </form>
+                                    </div>
+                                    <div class="admin-roster-notes__list">
+                                        <h4>Activity</h4>
+                                        <ul id="admin-roster-notes-list">
+                                            <li>No notes yet.</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-enroll" id="admin-enroll" hidden>
