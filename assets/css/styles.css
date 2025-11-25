@@ -2769,6 +2769,37 @@ body.admin-modal-open {
     color: rgba(8, 9, 10, 0.6);
 }
 
+@media (max-width: 768px) {
+    .section {
+        padding: 2rem 1rem;
+    }
+    .hero-content {
+        grid-template-columns: 1fr !important;
+    }
+    .main-nav ul {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .cta-btn,
+    .secondary-btn {
+        width: 100%;
+        text-align: center;
+    }
+    .highlight-card,
+    .resource-card,
+    .portal-card,
+    .faq-item,
+    .admin-card,
+    .admin-summary,
+    .admin-events,
+    .admin-attendance,
+    .admin-enroll {
+        padding: 1.25rem;
+    }
+    .admin-table-wrap {
+        overflow-x: auto;
+    }
+}
 .admin-summary h3,
 .admin-events h3,
 .admin-attendance h3 {
