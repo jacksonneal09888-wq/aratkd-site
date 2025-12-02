@@ -157,6 +157,32 @@ const seedAttendanceSessions = async (
   return timestamps.length;
 };
 
+const removeAttendanceSessions = async (db: D1Database, studentId: string, count: number) => {
+  if (!count || count <= 0) {
+    return 0;
+  }
+
+  const { results } = await db
+    .prepare(
+      `SELECT id
+         FROM attendance_sessions
+         WHERE student_id = ?1
+         ORDER BY datetime(created_at) DESC
+         LIMIT ?2`
+    )
+    .bind(studentId, count)
+    .all();
+
+  let removed = 0;
+  for (const row of results || []) {
+    if (!row?.id) continue;
+    await db.prepare(`DELETE FROM attendance_sessions WHERE id = ?1`).bind(row.id).run();
+    removed += 1;
+  }
+
+  return removed;
+};
+
 const BELT_ATTENDANCE_TARGETS: Record<string, number> = {
   white: 25,
   'high-white': 27,
@@ -851,6 +877,74 @@ app.get('/portal/admin/attendance', async (c) => {
   });
 });
 
+app.post('/portal/admin/attendance/adjust', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const studentId = (body.studentId || '').trim();
+  const deltaInput = Number(body.delta ?? 0);
+  const note = (body.note || '').toString().trim();
+  const classType = (body.classType || 'basic').toString().trim() || 'basic';
+  const classLevel =
+    (body.classLevel || '').toString().trim() || resolveClassLevelLabel(classType);
+
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+
+  if (!Number.isFinite(deltaInput) || deltaInput === 0) {
+    return c.json({ error: 'delta must be a non-zero number' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const delta = Math.trunc(deltaInput);
+  let added = 0;
+  let removed = 0;
+  const now = new Date().toISOString();
+
+  if (delta > 0) {
+    added = await seedAttendanceSessions(c.env.PORTAL_DB, student.id, {
+      count: delta,
+      classType,
+      classLevel,
+      kioskId: 'admin-panel',
+      source: note ? `admin-adjust:${note.slice(0, 48)}` : 'admin-adjust'
+    });
+  } else if (delta < 0) {
+    removed = await removeAttendanceSessions(c.env.PORTAL_DB, student.id, Math.abs(delta));
+  }
+
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE students
+       SET updated_at = ?1
+     WHERE id = ?2`
+  )
+    .bind(now, student.id)
+    .run();
+
+  const refreshed = await fetchStudentById(c.env.PORTAL_DB, student.id);
+  const summary = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    student.id,
+    refreshed?.current_belt || ''
+  );
+
+  return c.json({
+    ok: true,
+    student: sanitizeStudentRecord(refreshed),
+    added,
+    removed,
+    attendance: summary
+  });
+});
+
 app.get('/portal/admin/students', async (c) => {
   const authError = await authenticateAdminRequest(c);
   if (authError) {
@@ -908,6 +1002,93 @@ app.post('/portal/admin/students/membership', async (c) => {
   )
     .bind(membershipType, timestamp, student.id)
     .run();
+
+  const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
+  return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
+});
+
+app.patch('/portal/admin/students/:studentId', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const name = (body.name || '').toString().trim();
+  const birthDate = normalizeBirthDate(body.birthDate || student.birth_date || '');
+  const phone = (body.phone || '').toString().trim();
+  const email = (body.email || '').toString().trim();
+  const currentBelt = (body.currentBelt || '').toString().trim();
+  const membershipProvided = Object.prototype.hasOwnProperty.call(body, 'membershipType');
+  const membershipType = membershipProvided ? (body.membershipType || '').toString().trim() : '';
+  const status = (body.status || '').toString().trim();
+  const parentName = (body.parentName || '').toString().trim();
+  const emergencyContact = (body.emergencyContact || '').toString().trim();
+  const address = (body.address || '').toString().trim();
+
+  const updates: string[] = [];
+  const values: any[] = [];
+
+  if (name) {
+    updates.push(`name = ?${updates.length + 1}`);
+    values.push(name);
+  }
+  if (birthDate) {
+    updates.push(`birth_date = ?${updates.length + 1}`);
+    values.push(birthDate);
+  }
+  if (phone) {
+    updates.push(`phone = ?${updates.length + 1}`);
+    values.push(phone);
+  }
+  if (email) {
+    updates.push(`email = ?${updates.length + 1}`);
+    values.push(email);
+  }
+  if (currentBelt) {
+    updates.push(`current_belt = ?${updates.length + 1}`);
+    values.push(currentBelt);
+  }
+  if (membershipProvided) {
+    updates.push(`membership_type = ?${updates.length + 1}`);
+    values.push(membershipType || null);
+  }
+  if (status) {
+    updates.push(`status = ?${updates.length + 1}`);
+    values.push(status);
+  }
+  if (parentName) {
+    updates.push(`parent_name = ?${updates.length + 1}`);
+    values.push(parentName);
+  }
+  if (emergencyContact) {
+    updates.push(`emergency_contact = ?${updates.length + 1}`);
+    values.push(emergencyContact);
+  }
+  if (address) {
+    updates.push(`address = ?${updates.length + 1}`);
+    values.push(address);
+  }
+
+  if (!updates.length) {
+    return c.json({ error: 'No valid fields provided' }, 400);
+  }
+
+  const timestamp = new Date().toISOString();
+  updates.push(`updated_at = ?${updates.length + 1}`);
+  values.push(timestamp);
+  values.push(student.id);
+
+  const query = `UPDATE students SET ${updates.join(', ')} WHERE id = ?${updates.length + 1}`;
+  await c.env.PORTAL_DB.prepare(query).bind(...values).run();
 
   const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
   return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
@@ -1061,9 +1242,15 @@ app.get('/portal/admin/students/:studentId/profile', async (c) => {
      WHERE student_id = ?1
      ORDER BY datetime(created_at) DESC
      LIMIT 50`
-  )
+    )
     .bind(studentId)
     .all();
+
+  const attendance = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    student.id,
+    student.current_belt || ''
+  );
 
   return c.json({
     student: sanitizeStudentRecord(student),
@@ -1094,7 +1281,8 @@ app.get('/portal/admin/students/:studentId/profile', async (c) => {
       note: row.note,
       createdAt: row.created_at,
       membershipId: row.membership_id
-    }))
+    })),
+    attendance
   });
 });
 

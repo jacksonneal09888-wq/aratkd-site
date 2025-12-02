@@ -384,6 +384,8 @@ const BELT_ALIAS_MAPPINGS = [
     }
 ];
 
+const DUPLICATE_NAME_PATTERNS = [/^jasper\b/i, /^kylan\b/i];
+
 const portalEls = {
     form: document.getElementById("student-login-form"),
     studentId: document.getElementById("student-id"),
@@ -455,6 +457,13 @@ const portalEls = {
     adminRosterStudentMeta: document.getElementById("admin-roster-student-meta"),
     adminRosterMembership: document.getElementById("admin-roster-membership"),
     adminRosterSave: document.getElementById("admin-roster-save"),
+    adminRosterEditForm: document.getElementById("admin-roster-edit-form"),
+    adminRosterEditStatus: document.getElementById("admin-roster-edit-status"),
+    adminRosterName: document.getElementById("admin-roster-name"),
+    adminRosterEmail: document.getElementById("admin-roster-email"),
+    adminRosterPhone: document.getElementById("admin-roster-phone"),
+    adminRosterBelt: document.getElementById("admin-roster-belt"),
+    adminRosterStatus: document.getElementById("admin-roster-status"),
     adminRosterNoteForm: document.getElementById("admin-roster-note-form"),
     adminRosterNoteType: document.getElementById("admin-roster-note-type"),
     adminRosterNoteMessage: document.getElementById("admin-roster-note-message"),
@@ -465,6 +474,12 @@ const portalEls = {
     adminRosterCard30: document.getElementById("admin-roster-card-30"),
     adminRosterCard60: document.getElementById("admin-roster-card-60"),
     adminRosterCardMembership: document.getElementById("admin-roster-card-membership"),
+    adminAttendanceAdjustForm: document.getElementById("admin-attendance-adjust-form"),
+    adminAttendanceAdjustValue: document.getElementById("admin-attendance-adjust-value"),
+    adminAttendanceAdjustClass: document.getElementById("admin-attendance-adjust-class"),
+    adminAttendanceAdjustLevel: document.getElementById("admin-attendance-adjust-level"),
+    adminAttendanceAdjustNote: document.getElementById("admin-attendance-adjust-note"),
+    adminAttendanceAdjustStatus: document.getElementById("admin-attendance-adjust-status"),
     adminTrigger: document.getElementById("admin-trigger"),
     reportCardModal: document.getElementById("admin-report-card"),
     reportCardClose: document.getElementById("report-card-close"),
@@ -497,7 +512,8 @@ const portalState = {
         rosterGeneratedAt: null,
         rosterSelected: null,
         rosterNotes: [],
-        rosterNotesGeneratedAt: null
+        rosterNotesGeneratedAt: null,
+        rosterAttendanceSummary: {}
     }
 };
 
@@ -556,8 +572,10 @@ function attachHandlers() {
     });
     portalEls.adminRosterBody?.addEventListener("click", handleAdminRosterAction);
 
+    portalEls.adminRosterEditForm?.addEventListener("submit", handleRosterEditSubmit);
     portalEls.adminRosterSave?.addEventListener("click", handleAdminMembershipSave);
     portalEls.adminRosterNoteForm?.addEventListener("submit", handleAdminNoteSubmit);
+    portalEls.adminAttendanceAdjustForm?.addEventListener("submit", handleAttendanceAdjust);
     portalEls.adminRosterDetail?.addEventListener("click", handleRosterDetailButtons);
     portalEls.adminRosterNewtab?.addEventListener("click", () => {
         const student = portalState.admin.rosterSelected;
@@ -668,7 +686,7 @@ function requestAdminAccess() {
         return;
     }
     const pin = (ADMIN_TRIGGER_PIN || "").trim();
-    const versionTag = "20241125b";
+    const versionTag = "20241126";
     const base = "portal-admin.html";
     const url = pin
         ? `${base}?v=${versionTag}&pin=${encodeURIComponent(pin)}`
@@ -1421,7 +1439,21 @@ function clearAdminSession() {
     portalState.admin.token = null;
     portalState.admin.isAuthorized = false;
     portalState.admin.newStudent = null;
+    portalState.admin.rosterAttendanceSummary = {};
     persistAdminToken(null);
+}
+
+function filterDuplicateByName(list, resolveName) {
+    const seen = new Set();
+    if (!Array.isArray(list)) return [];
+    return list.filter((item) => {
+        const name = (resolveName(item) || "").toString().trim().toLowerCase();
+        const isTarget = DUPLICATE_NAME_PATTERNS.some((pattern) => pattern.test(name));
+        if (!isTarget) return true;
+        if (seen.has(name)) return false;
+        seen.add(name);
+        return true;
+    });
 }
 
 function loadAdminActivity(options = {}) {
@@ -1457,7 +1489,7 @@ function loadAdminActivity(options = {}) {
         })
         .then((data) => {
             portalState.admin.isAuthorized = true;
-            portalState.admin.summary = (Array.isArray(data.summary) ? data.summary : []).map((entry) => ({
+            const mappedSummary = (Array.isArray(data.summary) ? data.summary : []).map((entry) => ({
                 studentId: entry.studentId ?? entry.student_id,
                 name: entry.name ?? entry.student_name ?? "",
                 currentBelt: entry.currentBelt ?? entry.current_belt ?? "",
@@ -1470,6 +1502,7 @@ function loadAdminActivity(options = {}) {
                 suspendedReason: entry.suspendedReason ?? entry.suspended_reason ?? null,
                 suspendedAt: entry.suspendedAt ?? entry.suspended_at ?? null
             }));
+            portalState.admin.summary = filterDuplicateByName(mappedSummary, (entry) => entry.name);
             portalState.admin.events = (Array.isArray(data.events) ? data.events : []).map((event) => ({
                 studentId: event.studentId ?? event.student_id,
                 action: event.action,
@@ -1583,9 +1616,20 @@ function loadAdminRoster(options = {}) {
             return res.json();
         })
         .then((data) => {
-            portalState.admin.roster = Array.isArray(data.students) ? data.students : [];
+            const roster = Array.isArray(data.students) ? data.students : [];
+            portalState.admin.roster = filterDuplicateByName(roster, (student) => student.name || "");
             portalState.admin.rosterGeneratedAt = data.generatedAt || null;
+            const selectedId = portalState.admin.rosterSelected?.id?.toLowerCase();
+            if (selectedId) {
+                const refreshed = portalState.admin.roster.find(
+                    (entry) => entry.id?.toLowerCase() === selectedId
+                );
+                if (refreshed) {
+                    portalState.admin.rosterSelected = { ...refreshed, ...portalState.admin.rosterSelected };
+                }
+            }
             renderAdminRoster();
+            renderRosterDetail();
             if (!silent) {
                 setAdminStatus("Roster updated.", "success");
             }
@@ -1780,6 +1824,45 @@ function renderAdminAttendance() {
     renderAdminEnrollSection();
 }
 
+function computeRosterAttendanceStats(studentId) {
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const summary = portalState.admin.rosterAttendanceSummary?.[studentId];
+    if (summary) {
+        const recent = Array.isArray(summary.recent) ? summary.recent : [];
+        const count30 = recent.filter((entry) => {
+            const ts = new Date(entry.checkInAt || entry.created_at || entry.createdAt || "").getTime();
+            return Number.isFinite(ts) && now - ts <= 30 * dayMs;
+        }).length;
+        const totalWindow = summary.totals?.sessions ?? 0;
+        const percent =
+            typeof summary.attendancePercent === "number" ? Number(summary.attendancePercent) : null;
+        return {
+            last30: count30 ? `${count30} in 30d` : totalWindow ? "0 in last 30d" : "No logs",
+            last60:
+                percent !== null
+                    ? `${percent}% of goal (${totalWindow} sessions)`
+                    : `${totalWindow} in 60d`
+        };
+    }
+
+    const sessions = (portalState.admin.attendance || []).filter(
+        (session) => session.studentId?.toLowerCase() === studentId?.toLowerCase()
+    );
+    const count30 = sessions.filter((session) => {
+        const ts = new Date(session.checkInAt || "").getTime();
+        return Number.isFinite(ts) && now - ts <= 30 * dayMs;
+    }).length;
+    const count60 = sessions.filter((session) => {
+        const ts = new Date(session.checkInAt || "").getTime();
+        return Number.isFinite(ts) && now - ts <= 60 * dayMs;
+    }).length;
+    return {
+        last30: count30 ? `${count30} in 30d` : "No logs",
+        last60: count60 ? `${count60} in ~60d` : "No logs"
+    };
+}
+
 function renderAdminRoster() {
     if (!portalEls.adminRosterBody) return;
     const roster = portalState.admin.roster || [];
@@ -1839,7 +1922,8 @@ function renderAdminRoster() {
         openBtn.className = "text-link-btn";
         openBtn.dataset.action = "detail";
         openBtn.dataset.studentId = student.id;
-        openBtn.textContent = "Open";
+        openBtn.textContent = "Details";
+        openBtn.title = "Open roster detail to edit info and attendance";
 
         const suspendBtn = document.createElement("button");
         suspendBtn.type = "button";
@@ -3598,8 +3682,12 @@ function handleAdminRosterAction(event) {
         );
         if (student) {
             portalState.admin.rosterSelected = student;
+            portalState.admin.rosterNotes = [];
+            renderRosterNotes();
+            setRosterEditStatus("");
+            setAttendanceAdjustStatus("");
             renderRosterDetail();
-            loadRosterNotes(student.id);
+            loadRosterProfile(student.id);
         }
         return;
     }
@@ -3613,6 +3701,116 @@ function handleAdminRosterAction(event) {
         reason = window.prompt("Enter suspension reason", "Billing issue") || "";
     }
     updateStudentSuspension(studentId, suspend, reason);
+}
+
+function setRosterEditStatus(message, variant = "error") {
+    if (!portalEls.adminRosterEditStatus) return;
+    portalEls.adminRosterEditStatus.textContent = message || "";
+    portalEls.adminRosterEditStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminRosterEditStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function updateRosterAttendanceSummary(studentId, summary) {
+    if (!studentId || !summary) return;
+    portalState.admin.rosterAttendanceSummary = portalState.admin.rosterAttendanceSummary || {};
+    portalState.admin.rosterAttendanceSummary[studentId] = summary;
+}
+
+function loadRosterProfile(studentId) {
+    if (!HAS_REMOTE_API || !studentId) return;
+    const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}/profile`);
+    if (!url) return;
+    setAdminStatus("Loading roster detail...", "progress");
+    fetch(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error("Unable to load roster detail.");
+            }
+            return res.json();
+        })
+        .then((data) => {
+            if (data.student) {
+                const rosterIndex = portalState.admin.roster.findIndex(
+                    (entry) => entry.id?.toLowerCase() === data.student.id?.toLowerCase()
+                );
+                if (rosterIndex >= 0) {
+                    portalState.admin.roster[rosterIndex] = {
+                        ...portalState.admin.roster[rosterIndex],
+                        ...data.student
+                    };
+                }
+                portalState.admin.rosterSelected = data.student;
+            }
+            if (Array.isArray(data.notes)) {
+                portalState.admin.rosterNotes = data.notes;
+            }
+            if (data.attendance) {
+                updateRosterAttendanceSummary(studentId, data.attendance);
+            }
+            renderRosterDetail();
+            renderRosterNotes();
+            setAdminStatus("Roster detail loaded.", "success");
+        })
+        .catch((error) => {
+            console.error("loadRosterProfile error", error);
+            setAdminStatus(error.message || "Unable to load roster detail.", "error");
+            loadRosterNotes(studentId);
+        });
+}
+
+function handleRosterEditSubmit(event) {
+    event?.preventDefault();
+    if (!portalState.admin.rosterSelected) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    if (!HAS_REMOTE_API) return;
+    const studentId = portalState.admin.rosterSelected.id;
+    const payload = {
+        name: portalEls.adminRosterName?.value || "",
+        email: portalEls.adminRosterEmail?.value || "",
+        phone: portalEls.adminRosterPhone?.value || "",
+        currentBelt: portalEls.adminRosterBelt?.value || "",
+        status: portalEls.adminRosterStatus?.value || "",
+        membershipType: portalEls.adminRosterMembership?.value || ""
+    };
+
+    const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
+    setRosterEditStatus("Saving roster changes...", "progress");
+    fetch(url, {
+        method: "PATCH",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(payload)
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to save roster changes.");
+            return res.json();
+        })
+        .then((data) => {
+            const updated = data.student;
+            if (updated) {
+                const idx = portalState.admin.roster.findIndex(
+                    (s) => s.id?.toLowerCase() === updated.id?.toLowerCase()
+                );
+                if (idx >= 0) {
+                    portalState.admin.roster[idx] = { ...portalState.admin.roster[idx], ...updated };
+                }
+                portalState.admin.rosterSelected = { ...portalState.admin.rosterSelected, ...updated };
+                renderAdminRoster();
+                renderRosterDetail();
+            }
+            setRosterEditStatus("Roster updated.", "success");
+            setAdminStatus("Roster updated.", "success");
+        })
+        .catch((error) => {
+            console.error("Roster edit", error);
+            setRosterEditStatus(error.message || "Unable to save roster.", "error");
+        });
 }
 
 function handleAdminMembershipSave(event) {
@@ -3652,6 +3850,84 @@ function handleAdminMembershipSave(event) {
         .catch((error) => {
             console.error("membership save", error);
             setAdminStatus(error.message || "Unable to save membership.", "error");
+        });
+}
+
+function setAttendanceAdjustStatus(message, variant = "error") {
+    if (!portalEls.adminAttendanceAdjustStatus) return;
+    portalEls.adminAttendanceAdjustStatus.textContent = message || "";
+    portalEls.adminAttendanceAdjustStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminAttendanceAdjustStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function handleAttendanceAdjust(event) {
+    event?.preventDefault();
+    if (!portalState.admin.rosterSelected) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    if (!HAS_REMOTE_API) return;
+    const studentId = portalState.admin.rosterSelected.id;
+    const submitter = event?.submitter;
+    const isRemoval = submitter?.dataset?.adjust === "remove";
+    const rawValue = Number.parseInt(portalEls.adminAttendanceAdjustValue?.value || "0", 10);
+    if (!Number.isFinite(rawValue) || rawValue <= 0) {
+        setAttendanceAdjustStatus("Enter how many sessions to adjust.", "error");
+        return;
+    }
+    const delta = isRemoval ? rawValue * -1 : rawValue;
+    const classType = portalEls.adminAttendanceAdjustClass?.value || "basic";
+    const classLevel = portalEls.adminAttendanceAdjustLevel?.value || "";
+    const note = portalEls.adminAttendanceAdjustNote?.value || "";
+    adjustStudentAttendance(studentId, delta, { classType, classLevel, note });
+}
+
+function adjustStudentAttendance(studentId, delta, options = {}) {
+    const url = buildApiUrl("/portal/admin/attendance/adjust");
+    if (!url) return;
+    setAttendanceAdjustStatus("Applying attendance change...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            studentId,
+            delta,
+            classType: options.classType,
+            classLevel: options.classLevel,
+            note: options.note
+        })
+    })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error("Unable to adjust attendance.");
+            }
+            return res.json();
+        })
+        .then((data) => {
+            if (data.student) {
+                const idx = portalState.admin.roster.findIndex(
+                    (s) => s.id?.toLowerCase() === data.student.id?.toLowerCase()
+                );
+                if (idx >= 0) {
+                    portalState.admin.roster[idx] = { ...portalState.admin.roster[idx], ...data.student };
+                }
+                portalState.admin.rosterSelected = { ...portalState.admin.rosterSelected, ...data.student };
+            }
+            if (data.attendance) {
+                updateRosterAttendanceSummary(studentId, data.attendance);
+            }
+            renderAdminRoster();
+            renderRosterDetail();
+            loadAdminAttendance();
+            setAttendanceAdjustStatus(
+                `Attendance adjusted (${data.added || 0} added, ${data.removed || 0} removed).`,
+                "success"
+            );
+            setAdminStatus("Attendance updated.", "success");
+        })
+        .catch((error) => {
+            console.error("adjust attendance", error);
+            setAttendanceAdjustStatus(error.message || "Unable to adjust attendance.", "error");
         });
 }
 
@@ -3727,6 +4003,17 @@ function renderRosterDetail() {
         return;
     }
     panel.hidden = false;
+    setRosterEditStatus("");
+    setAttendanceAdjustStatus("");
+    if (portalEls.adminRosterName) {
+        portalEls.adminRosterName.value = student.name || "";
+    }
+    if (portalEls.adminRosterEmail) {
+        portalEls.adminRosterEmail.value = student.email || "";
+    }
+    if (portalEls.adminRosterPhone) {
+        portalEls.adminRosterPhone.value = student.phone || "";
+    }
     if (portalEls.adminRosterStudentName) {
         portalEls.adminRosterStudentName.textContent = student.name || "—";
     }
@@ -3736,11 +4023,20 @@ function renderRosterDetail() {
     if (portalEls.adminRosterMembership) {
         portalEls.adminRosterMembership.value = student.membershipType || "";
     }
+    if (portalEls.adminRosterBelt) {
+        portalEls.adminRosterBelt.value = student.currentBelt || "";
+    }
+    if (portalEls.adminRosterStatus) {
+        const status = student.status || (student.isSuspended ? "suspended" : "active");
+        portalEls.adminRosterStatus.value = status;
+    }
     if (portalEls.adminRosterCardMembership) {
         portalEls.adminRosterCardMembership.textContent = student.membershipType || "Not set";
     }
     if (portalEls.adminRosterCardStatus) {
-        portalEls.adminRosterCardStatus.textContent = student.isSuspended ? "Deactivated" : "Active";
+        const status = student.isSuspended ? "Deactivated" : student.status || "Active";
+        portalEls.adminRosterCardStatus.textContent =
+            status.charAt(0).toUpperCase() + status.slice(1);
     }
     const stats = computeRosterAttendanceStats(student.id);
     if (portalEls.adminRosterCard30) {

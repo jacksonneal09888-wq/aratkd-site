@@ -175,6 +175,7 @@
                                         <button type="button" class="text-link-btn" id="admin-roster-newtab">Open Detail View</button>
                                     </div>
                                 </div>
+                                <p class="admin-accordion__hint">Use the Details action in the roster to open this editor for contact, belt, attendance, and membership updates.</p>
                                 <div class="admin-roster-actions">
                                     <button type="button" class="secondary-btn" data-roster-action="report">Report Card</button>
                                     <button type="button" class="secondary-btn" data-roster-action="note">Add Note</button>
@@ -199,6 +200,96 @@
                                         <p class="card-label">Membership</p>
                                         <p class="card-value" id="admin-roster-card-membership">—</p>
                                     </div>
+                                </div>
+                                <div class="admin-roster-edit">
+                                    <h4>Roster Editor</h4>
+                                    <p class="admin-accordion__hint">Update contact, belt, and status directly from this detail view.</p>
+                                    <form class="admin-roster-edit__form" id="admin-roster-edit-form" autocomplete="off">
+                                        <div class="admin-roster-edit__grid">
+                                            <label>
+                                                <span>Student Name</span>
+                                                <input type="text" id="admin-roster-name" placeholder="Full name">
+                                            </label>
+                                            <label>
+                                                <span>Email</span>
+                                                <input type="email" id="admin-roster-email" placeholder="name@example.com">
+                                            </label>
+                                            <label>
+                                                <span>Phone</span>
+                                                <input type="tel" id="admin-roster-phone" placeholder="9195551234">
+                                            </label>
+                                            <label>
+                                                <span>Current Belt</span>
+                                                <select id="admin-roster-belt">
+                                                    <option value="">Keep current</option>
+                                                    <option value="White Belt">White Belt</option>
+                                                    <option value="High White Belt">High White Belt</option>
+                                                    <option value="Yellow Belt">Yellow Belt</option>
+                                                    <option value="High Yellow Belt">High Yellow Belt</option>
+                                                    <option value="Green Belt">Green Belt</option>
+                                                    <option value="High Green Belt">High Green Belt</option>
+                                                    <option value="Blue Belt">Blue Belt</option>
+                                                    <option value="High Blue Belt">High Blue Belt</option>
+                                                    <option value="Red Belt">Red Belt</option>
+                                                    <option value="High Red Belt">High Red Belt</option>
+                                                    <option value="Black Belt">Black Belt</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Status</span>
+                                                <select id="admin-roster-status">
+                                                    <option value="active">Active</option>
+                                                    <option value="inactive">Inactive</option>
+                                                    <option value="frozen">Frozen</option>
+                                                    <option value="suspended">Suspended</option>
+                                                    <option value="prospect">Prospect</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="admin-roster-edit__actions">
+                                            <button type="submit" class="secondary-btn">Save Roster Updates</button>
+                                            <p class="form-status" id="admin-roster-edit-status" aria-live="polite"></p>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="admin-attendance-adjust">
+                                    <h4>Attendance Adjustment</h4>
+                                    <p class="admin-accordion__hint">Add or remove sessions when a kiosk check-in is missed.</p>
+                                    <form class="admin-attendance-adjust__form" id="admin-attendance-adjust-form" autocomplete="off">
+                                        <div class="admin-attendance-adjust__grid">
+                                            <label>
+                                                <span>Sessions</span>
+                                                <input type="number" id="admin-attendance-adjust-value" min="1" max="20" value="1" inputmode="numeric">
+                                            </label>
+                                            <label>
+                                                <span>Class</span>
+                                                <select id="admin-attendance-adjust-class">
+                                                    <option value="basic">Basic Class</option>
+                                                    <option value="advanced">Advanced Class</option>
+                                                    <option value="little-ninjas">Little Ninjas</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Level Label</span>
+                                                <select id="admin-attendance-adjust-level">
+                                                    <option value="">Auto-detect</option>
+                                                    <option value="Basic Class">Basic Class</option>
+                                                    <option value="Advanced Class">Advanced Class</option>
+                                                    <option value="Little Ninjas">Little Ninjas</option>
+                                                    <option value="All Levels">All Levels</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Note</span>
+                                                <input type="text" id="admin-attendance-adjust-note" placeholder="e.g. manual make-up session">
+                                            </label>
+                                        </div>
+                                        <div class="admin-attendance-adjust__actions">
+                                            <button type="submit" class="secondary-btn" data-adjust="add">Add Sessions</button>
+                                            <button type="submit" class="text-link-btn" data-adjust="remove">Remove Sessions</button>
+                                            <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
+                                        </div>
+                                    </form>
                                 </div>
                                 <details class="admin-accordion" open>
                                     <summary>Financial Management</summary>
@@ -346,7 +437,7 @@
         <p class="footer-note">&copy; <span id="year"></span> Ara's Martial Arts Sportsplex. All rights reserved.</p>
     </footer>
 
-    <script type="module" src="assets/js/student-portal.js?v=20241125b" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20241126" defer></script>
     <script src="assets/js/main.js?v=20241027" defer></script>
     <script src="assets/js/translate.js"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>
