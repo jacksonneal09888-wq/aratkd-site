@@ -79,6 +79,9 @@ const resolveClassLevelLabel = (classType: string) => {
   if (normalized.includes('advanced')) {
     return 'Advanced Class';
   }
+  if (normalized.includes('event:')) {
+    return 'Special Event';
+  }
   if (normalized.includes('ninja') || normalized.includes('little')) {
     return 'Little Ninjas';
   }
@@ -115,6 +118,57 @@ const generateStudentId = async (db: D1Database) => {
   const numeric = row?.id ? parseInt(row.id.replace(/[^0-9]/g, ''), 10) : 0;
   const nextNumber = Number.isFinite(numeric) ? numeric + 1 : 1;
   return `ARA${String(nextNumber).padStart(3, '0')}`;
+};
+
+type SpecialEvent = {
+  id: string;
+  name: string;
+  description: string | null;
+  startAt: string;
+  endAt: string | null;
+  capacity: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const mapSpecialEvent = (row: any): SpecialEvent => ({
+  id: row.id,
+  name: row.name,
+  description: row.description || null,
+  startAt: row.start_at,
+  endAt: row.end_at || null,
+  capacity: row.capacity !== null && row.capacity !== undefined ? row.capacity : null,
+  isActive: Boolean(row.is_active),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
+const fetchActiveEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
+  const now = new Date().toISOString();
+  const { results } = await db
+    .prepare(
+      `SELECT id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at
+       FROM special_events
+       WHERE is_active = 1
+         AND datetime(start_at) <= datetime(?1)
+         AND (end_at IS NULL OR datetime(end_at) >= datetime(?1))
+       ORDER BY datetime(start_at) ASC`
+    )
+    .bind(now)
+    .all();
+  return (results || []).map(mapSpecialEvent);
+};
+
+const fetchAllEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
+  const { results } = await db
+    .prepare(
+      `SELECT id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at
+       FROM special_events
+       ORDER BY datetime(start_at) DESC`
+    )
+    .all();
+  return (results || []).map(mapSpecialEvent);
 };
 
 const seedAttendanceSessions = async (
@@ -629,12 +683,14 @@ app.get('/portal/profile', async (c) => {
   return c.json({ student: sanitizeStudentRecord(student) });
 });
 
-app.get('/kiosk/classes', (c) =>
-  c.json({
+app.get('/kiosk/classes', async (c) => {
+  const events = await fetchActiveEvents(c.env.PORTAL_DB);
+  return c.json({
     classes: kioskClassCatalog,
+    events,
     generatedAt: new Date().toISOString()
-  })
-);
+  });
+});
 
 app.post('/kiosk/check-in', async (c) => {
   const authError = requireKioskAuth(c);
@@ -645,6 +701,7 @@ app.post('/kiosk/check-in', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const studentId = (body.studentId || '').trim();
   const classType = (body.classType || '').trim();
+  const eventId = (body.eventId || '').trim();
   const classLevel = (body.classLevel || '').trim();
   const kioskId = (body.kioskId || 'front-desk').trim();
   const source = (body.source || 'kiosk').toString();
@@ -652,12 +709,13 @@ app.post('/kiosk/check-in', async (c) => {
   if (!studentId) {
     return c.json({ error: 'studentId is required' }, 400);
   }
-  if (!classType) {
+  if (!classType && !eventId) {
     return c.json({ error: 'classType is required' }, 400);
   }
   const nowEastern = getEasternDate();
   const weekday = nowEastern.getDay() === 0 ? 7 : nowEastern.getDay();
-  if (!KIOSK_ALLOWED_DAYS.has(weekday)) {
+  const isEventCheckIn = Boolean(eventId);
+  if (!isEventCheckIn && !KIOSK_ALLOWED_DAYS.has(weekday)) {
     return c.json(
       { error: 'Kiosk check-ins are limited to Monday, Wednesday, and Friday. See the front desk.' },
       403
@@ -689,13 +747,48 @@ app.post('/kiosk/check-in', async (c) => {
   }
 
   const canonicalId = student.id;
+  let resolvedClassType = classType || 'event';
+  let resolvedClassLevel = classLevel || null;
+
+  if (isEventCheckIn) {
+    const event = await c.env.PORTAL_DB
+      .prepare(
+        `SELECT id, name, is_active, start_at, end_at
+         FROM special_events
+         WHERE id = ?1`
+      )
+      .bind(eventId)
+      .first<any>();
+    if (!event) {
+      return c.json({ error: 'Event not found' }, 404);
+    }
+    const active = Boolean(event.is_active);
+    const nowIso = nowEastern.toISOString();
+    const withinWindow =
+      (!event.start_at || new Date(event.start_at) <= nowEastern) &&
+      (!event.end_at || new Date(event.end_at) >= nowEastern);
+    if (!active || !withinWindow) {
+      return c.json({ error: 'Event is not accepting check-ins' }, 403);
+    }
+    resolvedClassType = `event:${event.id}`;
+    resolvedClassLevel = event.name || 'Special Event';
+  }
   const timestamp = new Date().toISOString();
   await c.env.PORTAL_DB.prepare(
     `INSERT INTO attendance_sessions
-       (id, student_id, class_type, class_level, kiosk_id, source, created_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+       (id, student_id, class_type, class_level, kiosk_id, source, event_id, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)`
   )
-    .bind(crypto.randomUUID(), canonicalId, classType, classLevel || null, kioskId || null, source, timestamp)
+    .bind(
+      crypto.randomUUID(),
+      canonicalId,
+      resolvedClassType,
+      resolvedClassLevel,
+      kioskId || null,
+      source,
+      isEventCheckIn ? eventId : null,
+      timestamp
+    )
     .run();
 
   const summary = await buildAttendanceSummary(
@@ -708,8 +801,8 @@ app.post('/kiosk/check-in', async (c) => {
     ok: true,
     recordedAt: timestamp,
     student: sanitizeStudentRecord(student),
-    classType,
-    classLevel: classLevel || null,
+    classType: resolvedClassType,
+    classLevel: resolvedClassLevel,
     attendancePercent: summary.attendancePercent
   });
 });
@@ -875,6 +968,71 @@ app.get('/portal/admin/attendance', async (c) => {
     sessions,
     generatedAt: new Date().toISOString()
   });
+});
+
+app.get('/portal/admin/events', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+  const events = await fetchAllEvents(c.env.PORTAL_DB);
+  return c.json({ events, generatedAt: new Date().toISOString() });
+});
+
+app.post('/portal/admin/events', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const body = await c.req.json().catch(() => ({}));
+  const name = (body.name || '').toString().trim();
+  const description = (body.description || '').toString().trim();
+  const startAt = (body.startAt || '').toString().trim();
+  const endAt = (body.endAt || '').toString().trim();
+  const capacityValue = body.capacity;
+  const isActive = Boolean(body.isActive);
+
+  if (!name || !startAt) {
+    return c.json({ error: 'name and startAt are required' }, 400);
+  }
+  const parsedCapacity = Number(capacityValue);
+  const capacity =
+    capacityValue === null || capacityValue === undefined || Number.isNaN(parsedCapacity)
+      ? null
+      : parsedCapacity;
+
+  const now = new Date().toISOString();
+  const id = crypto.randomUUID();
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO special_events
+       (id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
+  )
+    .bind(id, name, description || null, startAt, endAt || null, capacity, isActive ? 1 : 0, now)
+    .run();
+
+  const events = await fetchAllEvents(c.env.PORTAL_DB);
+  return c.json({ ok: true, eventId: id, events });
+});
+
+app.post('/portal/admin/events/:eventId/toggle', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const eventId = c.req.param('eventId').trim();
+  if (!eventId) return c.json({ error: 'eventId is required' }, 400);
+  const body = await c.req.json().catch(() => ({}));
+  const activate = Boolean(body.active);
+  const now = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE special_events
+     SET is_active = ?1,
+         updated_at = ?2
+     WHERE id = ?3`
+  )
+    .bind(activate ? 1 : 0, now, eventId)
+    .run();
+  const events = await fetchAllEvents(c.env.PORTAL_DB);
+  return c.json({ ok: true, events });
 });
 
 app.post('/portal/admin/attendance/adjust', async (c) => {

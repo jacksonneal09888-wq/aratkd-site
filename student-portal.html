@@ -450,6 +450,63 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="admin-attendance" id="admin-events" hidden>
+                            <div class="admin-summary__header">
+                                <h3>Special Events</h3>
+                                <button type="button" class="text-link-btn" id="admin-events-refresh">Refresh</button>
+                            </div>
+                            <div class="admin-table-wrap">
+                                <table class="admin-table" aria-label="Special events">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Event</th>
+                                            <th scope="col">Window</th>
+                                            <th scope="col">Capacity</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-events-body">
+                                        <tr>
+                                            <td colspan="5">No events yet.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="admin-enroll__form">
+                                <h4>Add Special Event</h4>
+                                <form id="admin-events-form" autocomplete="off">
+                                    <div class="admin-enroll__grid">
+                                        <label>
+                                            <span>Event Name</span>
+                                            <input type="text" id="admin-event-name" required placeholder="Tournament Sign-In">
+                                        </label>
+                                        <label>
+                                            <span>Start</span>
+                                            <input type="datetime-local" id="admin-event-start" required>
+                                        </label>
+                                        <label>
+                                            <span>End (optional)</span>
+                                            <input type="datetime-local" id="admin-event-end">
+                                        </label>
+                                        <label>
+                                            <span>Capacity (optional)</span>
+                                            <input type="number" id="admin-event-capacity" min="1" placeholder="e.g. 30">
+                                        </label>
+                                    </div>
+                                    <label>
+                                        <span>Description</span>
+                                        <textarea id="admin-event-description" rows="2" placeholder="Details for staff"></textarea>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:0.5rem; margin:0.5rem 0 1rem 0;">
+                                        <input type="checkbox" id="admin-event-active">
+                                        <span>Activate immediately</span>
+                                    </label>
+                                    <button type="submit" class="secondary-btn">Add Event</button>
+                                    <p class="form-status" id="admin-events-status" aria-live="polite"></p>
+                                </form>
+                            </div>
+                        </div>
                         <div class="admin-attendance" id="admin-roster" hidden>
                             <div class="admin-summary__header">
                                 <h3>Student Roster</h3>

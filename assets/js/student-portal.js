@@ -449,6 +449,17 @@ const portalEls = {
     adminAttendance: document.getElementById("admin-attendance"),
     adminAttendanceBody: document.getElementById("admin-attendance-body"),
     adminAttendanceRefresh: document.getElementById("admin-attendance-refresh"),
+    adminEvents: document.getElementById("admin-events"),
+    adminEventsBody: document.getElementById("admin-events-body"),
+    adminEventsRefresh: document.getElementById("admin-events-refresh"),
+    adminEventsForm: document.getElementById("admin-events-form"),
+    adminEventName: document.getElementById("admin-event-name"),
+    adminEventDescription: document.getElementById("admin-event-description"),
+    adminEventStart: document.getElementById("admin-event-start"),
+    adminEventEnd: document.getElementById("admin-event-end"),
+    adminEventCapacity: document.getElementById("admin-event-capacity"),
+    adminEventActive: document.getElementById("admin-event-active"),
+    adminEventsStatus: document.getElementById("admin-events-status"),
     adminRoster: document.getElementById("admin-roster"),
     adminRosterBody: document.getElementById("admin-roster-body"),
     adminRosterRefresh: document.getElementById("admin-roster-refresh"),
@@ -513,7 +524,9 @@ const portalState = {
         rosterSelected: null,
         rosterNotes: [],
         rosterNotesGeneratedAt: null,
-        rosterAttendanceSummary: {}
+        rosterAttendanceSummary: {},
+        events: [],
+        eventsGeneratedAt: null
     }
 };
 
@@ -591,6 +604,9 @@ function attachHandlers() {
     });
     document.addEventListener("keydown", handleHiddenKeySequence);
     portalEls.adminAttendanceRefresh?.addEventListener("click", loadAdminAttendance);
+    portalEls.adminEventsRefresh?.addEventListener("click", loadAdminEvents);
+    portalEls.adminEventsForm?.addEventListener("submit", handleAdminEventSubmit);
+    portalEls.adminEventsBody?.addEventListener("click", handleAdminEventAction);
     portalEls.adminSummaryDownload?.addEventListener("click", downloadAdminSummary);
     portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
     portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
@@ -1220,7 +1236,7 @@ function handleAdminLogin(event) {
             setAdminStatus("Dashboard unlocked.", "success");
             resetAdminModalState();
             loadAdminActivity({ silent: true })
-                .then(() => loadAdminRoster({ silent: true }))
+                .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
                 .catch(() => {});
         })
         .catch((error) => {
@@ -1249,7 +1265,7 @@ function handleAdminRefresh() {
     }
     setAdminStatus("Refreshing activity...", "progress");
     setAdminLoadingState(true);
-    Promise.all([loadAdminActivity({ silent: true }), loadAdminRoster({ silent: true })])
+    Promise.all([loadAdminActivity({ silent: true }), loadAdminRoster({ silent: true }), loadAdminEvents()])
         .then(() => {
             setAdminStatus("Dashboard updated.", "success");
         })
@@ -1372,12 +1388,12 @@ function attemptRestoreAdminSession() {
     portalState.admin.token = storedToken;
     portalState.admin.isAuthorized = true;
     loadAdminActivity({ silent: true })
-        .then(() => loadAdminRoster({ silent: true }))
+        .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
         .catch(() => {
             portalState.admin.token = null;
             portalState.admin.isAuthorized = false;
-        clearAdminSession();
-    });
+            clearAdminSession();
+        });
 }
 
 function autoLoginFromPin() {
@@ -1588,6 +1604,118 @@ function loadAdminAttendance(event) {
         });
 }
 
+function loadAdminEvents(event) {
+    event?.preventDefault();
+    if (!HAS_REMOTE_API) {
+        return Promise.reject(new Error("Portal API missing"));
+    }
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return Promise.reject(new Error("Missing admin auth"));
+    }
+    const url = buildApiUrl("/portal/admin/events");
+    if (!url) return Promise.reject(new Error("Missing API base"));
+    return fetch(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (res.status === 401) throw new Error("Admin session expired.");
+            if (!res.ok) throw new Error("Unable to load events.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.events = Array.isArray(data.events) ? data.events : [];
+            portalState.admin.eventsGeneratedAt = data.generatedAt || null;
+            renderAdminEvents();
+            if (portalEls.adminEvents) {
+                portalEls.adminEvents.hidden = false;
+            }
+        })
+        .catch((error) => {
+            console.warn("load events", error);
+            if (portalEls.adminEventsBody) {
+                portalEls.adminEventsBody.innerHTML = `<tr><td colspan="5">${error.message || "Unable to load events."}</td></tr>`;
+            }
+        });
+}
+
+function handleAdminEventSubmit(event) {
+    event?.preventDefault();
+    if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const url = buildApiUrl("/portal/admin/events");
+    const payload = {
+        name: portalEls.adminEventName?.value || "",
+        description: portalEls.adminEventDescription?.value || "",
+        startAt: portalEls.adminEventStart?.value || "",
+        endAt: portalEls.adminEventEnd?.value || "",
+        capacity: portalEls.adminEventCapacity?.value || "",
+        isActive: portalEls.adminEventActive?.checked || false
+    };
+    setAdminEventsStatus("Saving event...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(payload)
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to save event.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.events = Array.isArray(data.events) ? data.events : [];
+            renderAdminEvents();
+            clearAdminEventForm();
+            setAdminEventsStatus("Event saved.", "success");
+        })
+        .catch((error) => {
+            console.error("event submit", error);
+            setAdminEventsStatus(error.message || "Unable to save event.", "error");
+        });
+}
+
+function handleAdminEventAction(event) {
+    const button = event.target.closest("button[data-action='toggle-event']");
+    if (!button) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const eventId = button.dataset.eventId;
+    const current = portalState.admin.events.find((ev) => ev.id === eventId);
+    if (!eventId || !current) return;
+    toggleAdminEvent(eventId, !current.isActive);
+}
+
+function toggleAdminEvent(eventId, activate) {
+    if (!HAS_REMOTE_API) return;
+    const url = buildApiUrl(`/portal/admin/events/${encodeURIComponent(eventId)}/toggle`);
+    setAdminEventsStatus(activate ? "Activating event..." : "Hiding event...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ active: activate })
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to update event.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.events = Array.isArray(data.events) ? data.events : [];
+            renderAdminEvents();
+            setAdminEventsStatus(activate ? "Event activated." : "Event hidden.", "success");
+        })
+        .catch((error) => {
+            console.error("toggle event", error);
+            setAdminEventsStatus(error.message || "Unable to update event.", "error");
+        });
+}
+
 function loadAdminRoster(options = {}) {
     const { silent = false } = options;
     if (!HAS_REMOTE_API) {
@@ -1670,6 +1798,9 @@ function renderAdminDashboard() {
         portalEls.adminGeneratedAt.textContent = portalState.admin.generatedAt
             ? formatDateTime(portalState.admin.generatedAt)
             : "—";
+    }
+    if (portalEls.adminEvents) {
+        portalEls.adminEvents.hidden = false;
     }
 
     const summaryBody = portalEls.adminSummaryBody;
@@ -1778,6 +1909,7 @@ function renderAdminDashboard() {
     }
 
     renderAdminAttendance();
+    renderAdminEvents();
     renderAdminRoster();
 }
 
@@ -1822,6 +1954,54 @@ function renderAdminAttendance() {
     });
 
     renderAdminEnrollSection();
+}
+
+function renderAdminEvents() {
+    if (!portalEls.adminEventsBody) {
+        return;
+    }
+    const events = portalState.admin.events || [];
+    portalEls.adminEventsBody.innerHTML = "";
+    if (!events.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.textContent = portalState.admin.isAuthorized ? "No special events yet." : "Sign in to load events.";
+        row.appendChild(cell);
+        portalEls.adminEventsBody.appendChild(row);
+        return;
+    }
+    events.forEach((event) => {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        nameCell.innerHTML = `<strong>${event.name}</strong><div class="certificate-meta">${event.description || ""}</div>`;
+        const windowCell = document.createElement("td");
+        const start = event.startAt ? formatDateTime(event.startAt) : "—";
+        const end = event.endAt ? formatDateTime(event.endAt) : "—";
+        windowCell.textContent = end && end !== "—" ? `${start} → ${end}` : start;
+        const capacityCell = document.createElement("td");
+        capacityCell.textContent = event.capacity ? String(event.capacity) : "—";
+        const statusCell = document.createElement("td");
+        const pill = document.createElement("span");
+        pill.className = `admin-status-pill ${event.isActive ? "is-active" : "is-suspended"}`;
+        pill.textContent = event.isActive ? "Active" : "Hidden";
+        statusCell.appendChild(pill);
+        const actionsCell = document.createElement("td");
+        const actionsWrap = document.createElement("div");
+        actionsWrap.className = "admin-row-actions";
+        const toggleBtn = document.createElement("button");
+        toggleBtn.type = "button";
+        toggleBtn.className = "text-link-btn";
+        toggleBtn.dataset.action = "toggle-event";
+        toggleBtn.dataset.eventId = event.id;
+        toggleBtn.textContent = event.isActive ? "Deactivate" : "Activate";
+        actionsWrap.append(toggleBtn);
+        actionsCell.appendChild(actionsWrap);
+
+        row.append(nameCell, windowCell, capacityCell, statusCell, actionsCell);
+        portalEls.adminEventsBody.appendChild(row);
+    });
+
 }
 
 function computeRosterAttendanceStats(studentId) {
@@ -2030,6 +2210,24 @@ function setAdminEnrollStatus(message, variant = "error") {
     portalEls.adminEnrollStatus.textContent = message || "";
     portalEls.adminEnrollStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminEnrollStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function setAdminEventsStatus(message, variant = "error") {
+    if (!portalEls.adminEventsStatus) return;
+    portalEls.adminEventsStatus.textContent = message || "";
+    portalEls.adminEventsStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminEventsStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function clearAdminEventForm() {
+    portalEls.adminEventName && (portalEls.adminEventName.value = "");
+    portalEls.adminEventDescription && (portalEls.adminEventDescription.value = "");
+    portalEls.adminEventStart && (portalEls.adminEventStart.value = "");
+    portalEls.adminEventEnd && (portalEls.adminEventEnd.value = "");
+    portalEls.adminEventCapacity && (portalEls.adminEventCapacity.value = "");
+    if (portalEls.adminEventActive) {
+        portalEls.adminEventActive.checked = false;
+    }
 }
 
 function setAdminLoadingState(isLoading) {

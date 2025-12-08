@@ -45,6 +45,18 @@ const FOCUS_TEMPLATE = [
 const FOCUS_RANGE_START = new Date(2025, 8, 1); // 2025-09-01
 const FOCUS_RANGE_END = new Date(2026, 11, 31); // 2026-12-31
 
+function formatEventWindow(event) {
+  if (!event) return "";
+  const start = event.startAt || event.start_at || event.start;
+  const end = event.endAt || event.end_at || event.end;
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+  const options = { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" };
+  const startLabel = startDate ? startDate.toLocaleString(undefined, options) : "";
+  const endLabel = endDate ? endDate.toLocaleString(undefined, options) : "";
+  return endLabel ? `${startLabel} → ${endLabel}` : startLabel;
+}
+
 function setStatus(message, type = "") {
   if (!els.status) return;
   els.status.textContent = message;
@@ -61,7 +73,8 @@ function renderClasses(classes) {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "class-card";
-    card.innerHTML = `<h3>${klass.name}</h3><p>${klass.focus}</p><p>${klass.schedule.join(" · ")}</p>`;
+    const scheduleText = Array.isArray(klass.schedule) ? klass.schedule.join(" · ") : "";
+    card.innerHTML = `<h3>${klass.name}</h3><p>${klass.focus}</p><p>${scheduleText}</p>`;
     card.addEventListener("click", () => {
       state.selectedClass = klass;
       document.querySelectorAll(".class-card").forEach((el) => el.classList.remove("active"));
@@ -130,7 +143,8 @@ async function submitAttendance() {
     setStatus("This kiosk must run from https://aratkd.com/kiosk.html to sync attendance.", "error");
     return;
   }
-  if (!isAllowedDay()) {
+  const isEvent = Boolean(state.selectedClass.isEvent);
+  if (!isEvent && !isAllowedDay()) {
     setStatus("Attendance check-ins open Mon/Wed/Fri only. Please see the front desk.", "error");
     return;
   }
@@ -151,7 +165,8 @@ async function submitAttendance() {
         studentId: cleanedId,
         classType: state.selectedClass.id,
         classLevel: state.selectedClass.name,
-        kioskId
+        kioskId,
+        eventId: state.selectedClass.eventId || null
       })
     });
     const data = await res.json();
@@ -192,7 +207,18 @@ async function loadClasses() {
       throw new Error("Unable to load classes");
     }
     const data = await res.json();
-    renderClasses(data.classes || kioskClassCatalogFallback);
+    const classes = Array.isArray(data.classes) ? data.classes : kioskClassCatalogFallback;
+    const events = Array.isArray(data.events)
+      ? data.events.map((event) => ({
+          id: `event:${event.id}`,
+          eventId: event.id,
+          name: event.name,
+          focus: "Special Event",
+          schedule: [formatEventWindow(event)],
+          isEvent: true
+        }))
+      : [];
+    renderClasses([...events, ...classes]);
   } catch (error) {
     console.warn(error);
     setStatus("Offline? Showing default class list.", "error");
