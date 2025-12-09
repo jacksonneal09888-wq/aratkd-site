@@ -74,7 +74,8 @@ function renderClasses(classes) {
     card.type = "button";
     card.className = "class-card";
     const scheduleText = Array.isArray(klass.schedule) ? klass.schedule.join(" · ") : "";
-    card.innerHTML = `<h3>${klass.name}</h3><p>${klass.focus}</p><p>${scheduleText}</p>`;
+    const typeBadge = klass.type ? `<div class="class-card__meta"><span class="class-card__pill">${klass.type}</span></div>` : "";
+    card.innerHTML = `${typeBadge}<h3>${klass.name}</h3><p>${klass.focus}</p><p>${scheduleText}</p>`;
     card.addEventListener("click", () => {
       state.selectedClass = klass;
       document.querySelectorAll(".class-card").forEach((el) => el.classList.remove("active"));
@@ -213,7 +214,8 @@ async function loadClasses() {
           id: `event:${event.id}`,
           eventId: event.id,
           name: event.name,
-          focus: "Special Event",
+          type: event.type || "Special Event",
+          focus: event.description || "Special Event",
           schedule: [formatEventWindow(event)],
           isEvent: true
         }))

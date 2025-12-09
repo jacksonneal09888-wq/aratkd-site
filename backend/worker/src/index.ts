@@ -124,6 +124,7 @@ type SpecialEvent = {
   id: string;
   name: string;
   description: string | null;
+  type: string;
   startAt: string;
   endAt: string | null;
   capacity: number | null;
@@ -136,6 +137,7 @@ const mapSpecialEvent = (row: any): SpecialEvent => ({
   id: row.id,
   name: row.name,
   description: row.description || null,
+  type: row.event_type || 'Special Class',
   startAt: row.start_at,
   endAt: row.end_at || null,
   capacity: row.capacity !== null && row.capacity !== undefined ? row.capacity : null,
@@ -148,7 +150,7 @@ const fetchActiveEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
   const now = new Date().toISOString();
   const { results } = await db
     .prepare(
-      `SELECT id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at
+      `SELECT id, name, description, event_type, start_at, end_at, capacity, is_active, created_at, updated_at
        FROM special_events
        WHERE is_active = 1
          AND datetime(start_at) <= datetime(?1)
@@ -163,7 +165,7 @@ const fetchActiveEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
 const fetchAllEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
   const { results } = await db
     .prepare(
-      `SELECT id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at
+      `SELECT id, name, description, event_type, start_at, end_at, capacity, is_active, created_at, updated_at
        FROM special_events
        ORDER BY datetime(start_at) DESC`
     )
@@ -771,7 +773,7 @@ app.post('/kiosk/check-in', async (c) => {
       return c.json({ error: 'Event is not accepting check-ins' }, 403);
     }
     resolvedClassType = `event:${event.id}`;
-    resolvedClassLevel = event.name || 'Special Event';
+    resolvedClassLevel = event.type ? `${event.type}: ${event.name || 'Special Event'}` : event.name || 'Special Event';
   }
   const timestamp = new Date().toISOString();
   await c.env.PORTAL_DB.prepare(
@@ -986,6 +988,8 @@ app.post('/portal/admin/events', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const name = (body.name || '').toString().trim();
   const description = (body.description || '').toString().trim();
+  const type =
+    (body.type || body.eventType || '').toString().trim() || 'Special Class';
   const startAt = (body.startAt || '').toString().trim();
   const endAt = (body.endAt || '').toString().trim();
   const capacityValue = body.capacity;
@@ -1005,10 +1009,20 @@ app.post('/portal/admin/events', async (c) => {
 
   await c.env.PORTAL_DB.prepare(
     `INSERT INTO special_events
-       (id, name, description, start_at, end_at, capacity, is_active, created_at, updated_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
+       (id, name, description, event_type, start_at, end_at, capacity, is_active, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)`
   )
-    .bind(id, name, description || null, startAt, endAt || null, capacity, isActive ? 1 : 0, now)
+    .bind(
+      id,
+      name,
+      description || null,
+      type,
+      startAt,
+      endAt || null,
+      capacity,
+      isActive ? 1 : 0,
+      now
+    )
     .run();
 
   const events = await fetchAllEvents(c.env.PORTAL_DB);
