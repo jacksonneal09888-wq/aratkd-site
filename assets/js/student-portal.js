@@ -460,6 +460,7 @@ const portalEls = {
     adminEventCapacity: document.getElementById("admin-event-capacity"),
     adminEventActive: document.getElementById("admin-event-active"),
     adminEventsStatus: document.getElementById("admin-events-status"),
+    adminTabs: document.getElementById("admin-tabs"),
     adminRoster: document.getElementById("admin-roster"),
     adminRosterBody: document.getElementById("admin-roster-body"),
     adminRosterRefresh: document.getElementById("admin-roster-refresh"),
@@ -618,6 +619,9 @@ function attachHandlers() {
             closeReportCard();
         }
     });
+    if (portalEls.adminTabs) {
+        portalEls.adminTabs.addEventListener("click", handleAdminTabClick);
+    }
 }
 
 async function handleLogin(event) {
@@ -1911,6 +1915,7 @@ function renderAdminDashboard() {
     renderAdminAttendance();
     renderAdminEvents();
     renderAdminRoster();
+    showAdminTab(portalState.admin.activeTab || "admin-summary");
 }
 
 function renderAdminAttendance() {
@@ -2002,6 +2007,30 @@ function renderAdminEvents() {
         portalEls.adminEventsBody.appendChild(row);
     });
 
+}
+
+function handleAdminTabClick(event) {
+    const button = event.target.closest("[data-admin-tab]");
+    if (!button) return;
+    const targetId = button.dataset.adminTab;
+    if (!targetId) return;
+    portalState.admin.activeTab = targetId;
+    showAdminTab(targetId);
+}
+
+function showAdminTab(tabId) {
+    const tabs = ["admin-summary", "admin-attendance", "admin-events", "admin-roster", "admin-enroll"];
+    tabs.forEach((id) => {
+        const section = document.getElementById(id);
+        if (section) {
+            section.hidden = id !== tabId;
+        }
+    });
+    if (portalEls.adminTabs) {
+        portalEls.adminTabs.querySelectorAll("[data-admin-tab]").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.adminTab === tabId);
+        });
+    }
 }
 
 function computeRosterAttendanceStats(studentId) {
