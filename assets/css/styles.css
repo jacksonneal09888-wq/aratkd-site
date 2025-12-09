@@ -3842,6 +3842,18 @@ body.admin-modal-open {
     grid-column: 1 / -1;
 }
 
+.portal-admin .container {
+    max-width: 1420px;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+}
+
+.admin-table {
+    min-width: 1100px;
+}
+
 .admin-sidebar {
     position: sticky;
     top: 1.25rem;
