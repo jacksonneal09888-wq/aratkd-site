@@ -4841,6 +4841,35 @@ async function addStudentNote(studentId, entry) {
     return data.note;
 }
 
+async function updateStudent(studentId, payload) {
+    if (!studentId || !HAS_REMOTE_API) {
+        throw new Error("Missing student or API.");
+    }
+    const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            name: payload.name,
+            email: payload.email,
+            phone: payload.phone,
+            currentBelt: payload.belt || payload.currentBelt,
+            membershipType: payload.membership || payload.membershipType,
+            status: payload.status
+        })
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Unable to update student.");
+    }
+    return res.json();
+}
+
+function loadStudentIntoModal(studentId) {
+    if (!studentId) return;
+    return loadRosterProfile(studentId);
+}
+
 function renderRosterDetail() {
     const panel = portalEls.adminRosterDetail;
     if (!panel) return;
@@ -5126,31 +5155,23 @@ function handleStudentModalAction(event) {
 
 function handleStudentModalSave(event) {
     event?.preventDefault();
-    if (!portalState.admin.rosterSelected) {
-        setStudentModalStatus("Select a student first.");
+    const studentId = window.currentStudentId || portalState.admin.rosterSelected?.id;
+    if (!studentId) {
+        console.error("No student ID found for save.");
+        setStudentModalStatus("Unable to save: missing student ID.");
         return;
     }
     if (!HAS_REMOTE_API) return;
-    const studentId = portalState.admin.rosterSelected.id;
     const payload = {
-        name: portalEls.studentModalNameInput?.value || "",
-        email: portalEls.studentModalEmailInput?.value || "",
-        phone: portalEls.studentModalPhoneInput?.value || "",
-        currentBelt: portalEls.studentModalBelt?.value || "",
-        status: portalEls.studentModalStatusField?.value || "",
-        membershipType: portalEls.studentModalMembership?.value || ""
+        name: portalEls.studentModalNameInput?.value?.trim() || "",
+        email: portalEls.studentModalEmailInput?.value?.trim() || "",
+        phone: portalEls.studentModalPhoneInput?.value?.trim() || "",
+        belt: portalEls.studentModalBelt?.value || "",
+        membership: portalEls.studentModalMembership?.value || "",
+        status: portalEls.studentModalStatusField?.value || ""
     };
-    const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
     setStudentModalStatus("Saving student changes...", "progress");
-    fetch(url, {
-        method: "PATCH",
-        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(payload)
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to save student.");
-            return res.json();
-        })
+    updateStudent(studentId, payload)
         .then((data) => {
             const updated = data.student;
             if (updated) {
@@ -5165,12 +5186,12 @@ function handleStudentModalSave(event) {
                 renderRosterDetail();
                 renderStudentModal();
             }
-            setStudentModalStatus("Student updated.", "success");
-            setAdminStatus("Student updated.", "success");
+            setStudentModalStatus("Saved!");
+            return loadStudentIntoModal(studentId);
         })
         .catch((error) => {
-            console.error("Student modal save", error);
-            setStudentModalStatus(error.message || "Unable to save student.", "error");
+            console.error("Save failed:", error);
+            setStudentModalStatus(error.message || "Error saving changes.");
         });
 }
 
