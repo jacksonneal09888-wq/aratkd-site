@@ -2743,7 +2743,7 @@ function handleAdminEmailSubmit(event) {
     })
         .then(async (res) => {
             const clone = res.clone();
-            let payload: any = null;
+            let payload = null;
             try {
                 payload = await clone.json();
             } catch (jsonErr) {
