@@ -430,6 +430,7 @@ const portalEls = {
     testDate: document.getElementById("test-date"),
     beltTestStatus: document.getElementById("belt-test-status"),
     adminForm: document.getElementById("admin-auth-form"),
+    adminSubmit: document.getElementById("admin-submit"),
     adminUsername: document.getElementById("admin-username"),
     adminPassword: document.getElementById("admin-password"),
     adminPin: document.getElementById("admin-pin"),
@@ -688,6 +689,13 @@ function attachHandlers() {
     portalEls.beltTestApplicationBtn?.addEventListener("click", handleBeltTestButton);
     portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
     portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
+    portalEls.adminSubmit?.addEventListener("click", (e) => {
+        // ensure click triggers even if form submit is blocked by autofill overlays
+        if (portalEls.adminForm) {
+            e.preventDefault();
+            handleAdminLogin(e);
+        }
+    });
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
     portalEls.adminRosterRefresh?.addEventListener("click", handleAdminRosterRefresh);
     portalEls.adminLauncher?.addEventListener("click", (event) => {
