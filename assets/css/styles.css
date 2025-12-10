@@ -4101,6 +4101,69 @@ body.admin-modal-open {
     z-index: 2;
 }
 
+.email-panel {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.email-recipient-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.65rem;
+}
+
+.pill-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.75rem;
+    background: #fafafa;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.pill-button input {
+    margin: 0;
+}
+
+.email-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.email-grid label {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.email-inline {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.email-inline input {
+    flex: 1;
+}
+
+.email-message {
+    min-height: 250px;
+}
+
+.cta-btn--full {
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .email-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .admin-two-col {
     display: grid;
     grid-template-columns: 1fr 0.8fr;

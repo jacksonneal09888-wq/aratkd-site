@@ -923,62 +923,68 @@
 
                                     <section class="admin-card email-parent-card" id="admin-email" data-admin-panel="tab-email">
                                         <div class="admin-card__header">
-                                            <h3 class="admin-card__title">Email Parents</h3>
-                                            <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+                                            <div>
+                                                <h3 class="admin-card__title">Email Parents</h3>
+                                                <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+                                            </div>
                                         </div>
-                                        <form id="admin-email-form" class="admin-email-form">
-                                        <div class="admin-radio-grid">
-                                            <label><input type="radio" name="email-audience" value="all" checked> All Parents</label>
-                                            <label><input type="radio" name="email-audience" value="active"> Active Students</label>
-                                            <label><input type="radio" name="email-audience" value="belt"> Belts</label>
-                                            <label><input type="radio" name="email-audience" value="class"> Specific Class</label>
-                                            <label><input type="radio" name="email-audience" value="student"> Single Student</label>
-                                        </div>
-                                        <label>
-                                            <span>Direct Email (single send)</span>
-                                            <input type="email" id="email-direct" placeholder="parent@example.com">
-                                            <small class="admin-card__meta">Use this for one-off tests without a Student ID.</small>
-                                        </label>
-                                        <div class="admin-email-conditional">
-                                            <label>
-                                                <span>Belt (optional)</span>
-                                                <select id="email-belt">
-                                                    <option value="">Any</option>
-                                                        <option value="White Belt">White Belt</option>
-                                                        <option value="Yellow Belt">Yellow Belt</option>
-                                                        <option value="Green Belt">Green Belt</option>
-                                                        <option value="Blue Belt">Blue Belt</option>
-                                                        <option value="Red Belt">Red Belt</option>
-                                                        <option value="Black Belt">Black Belt</option>
-                                                </select>
-                                            </label>
-                                            <label>
-                                                <span>Class (optional)</span>
-                                                <input type="text" id="email-class" placeholder="e.g. Little Ninjas">
-                                            </label>
-                                            <label>
-                                                <span>Student ID (optional)</span>
-                                                <div style="display:flex;gap:0.5rem;align-items:center;">
-                                                    <input type="text" id="email-student-id" placeholder="ARA001" style="flex:1;">
-                                                    <button type="button" class="secondary-btn" id="email-use-selected">Use Selected</button>
+                                        <form id="admin-email-form" class="admin-email-form email-panel">
+                                            <div class="email-recipient-row">
+                                                <label class="pill-button"><input type="radio" name="email-audience" value="all" checked> All Parents</label>
+                                                <label class="pill-button"><input type="radio" name="email-audience" value="active"> Active Students</label>
+                                                <label class="pill-button"><input type="radio" name="email-audience" value="belt"> Belts</label>
+                                                <label class="pill-button"><input type="radio" name="email-audience" value="class"> Specific Class</label>
+                                                <label class="pill-button"><input type="radio" name="email-audience" value="student"> Single Student</label>
+                                            </div>
+                                            <div class="email-grid">
+                                                <div class="email-left">
+                                                    <label>
+                                                        <span>Direct Email (single send)</span>
+                                                        <input type="email" id="email-direct" placeholder="parent@example.com">
+                                                        <small class="admin-card__meta">Use for one-off tests without a Student ID.</small>
+                                                    </label>
+                                                    <label>
+                                                        <span>Belt (optional)</span>
+                                                        <select id="email-belt">
+                                                            <option value="">Any</option>
+                                                            <option value="White Belt">White Belt</option>
+                                                            <option value="Yellow Belt">Yellow Belt</option>
+                                                            <option value="Green Belt">Green Belt</option>
+                                                            <option value="Blue Belt">Blue Belt</option>
+                                                            <option value="Red Belt">Red Belt</option>
+                                                            <option value="Black Belt">Black Belt</option>
+                                                        </select>
+                                                    </label>
+                                                    <label>
+                                                        <span>Class (optional)</span>
+                                                        <input type="text" id="email-class" placeholder="e.g. Little Ninjas">
+                                                    </label>
+                                                    <label>
+                                                        <span>Student ID (optional)</span>
+                                                        <div class="email-inline">
+                                                            <input type="text" id="email-student-id" placeholder="ARA001">
+                                                            <button type="button" class="secondary-btn" id="email-use-selected">Use Selected</button>
+                                                        </div>
+                                                    </label>
                                                 </div>
-                                            </label>
-                                        </div>
-                                        <label>
-                                            <span>Subject</span>
-                                            <input type="text" id="email-subject">
-                                        </label>
-                                        <label>
-                                            <span>Message</span>
-                                            <textarea id="email-body" rows="5"></textarea>
-                                        </label>
-                                        <label>
-                                            <span>Attachment (optional)</span>
-                                            <input type="file" id="email-attachment" />
-                                        </label>
-                                        <button class="cta-btn" type="submit">Send Message</button>
-                                        <p class="form-status" id="email-status" aria-live="polite"></p>
-                                    </form>
+                                                <div class="email-right">
+                                                    <label>
+                                                        <span>Subject</span>
+                                                        <input type="text" id="email-subject">
+                                                    </label>
+                                                    <label>
+                                                        <span>Message</span>
+                                                        <textarea id="email-body" class="email-message" rows="8"></textarea>
+                                                    </label>
+                                                    <label>
+                                                        <span>Attachment (optional)</span>
+                                                        <input type="file" id="email-attachment" />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <button class="cta-btn cta-btn--full" type="submit">Send Message</button>
+                                            <p class="form-status" id="email-status" aria-live="polite"></p>
+                                        </form>
                                     </section>
 
                                     <section class="admin-card" id="admin-settings" data-admin-panel="tab-settings">
