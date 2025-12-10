@@ -2263,7 +2263,7 @@ function showAdminTab(tabId) {
             "tab-events": ["admin-events"],
             "tab-students": ["admin-roster", "admin-enroll"],
             "tab-membership": ["admin-roster"],
-            "tab-notes": ["admin-notes", "admin-roster"],
+            "tab-notes": ["admin-notes"],
             "tab-email": ["admin-email"],
             "tab-settings": ["admin-settings"]
         };
