@@ -4597,8 +4597,17 @@ function handleRosterEditSubmit(event) {
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload)
     })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to save roster changes.");
+        .then(async (res) => {
+            if (!res.ok) {
+                let reason = "Unable to save roster changes.";
+                try {
+                    const data = await res.json();
+                    reason = data?.error || data?.message || reason;
+                } catch {
+                    reason = `${res.status} ${res.statusText}` || reason;
+                }
+                throw new Error(reason);
+            }
             return res.json();
         })
         .then((data) => {
@@ -4620,7 +4629,9 @@ function handleRosterEditSubmit(event) {
         })
         .catch((error) => {
             console.error("Roster edit", error);
-            setRosterEditStatus(error.message || "Unable to save roster.", "error");
+            const message = error.message || "Unable to save roster.";
+            setRosterEditStatus(message, "error");
+            setAdminStatus(message, "error");
         });
 }
 
