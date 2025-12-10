@@ -2525,6 +2525,8 @@ body.admin-modal-open {
     border: 1px solid rgba(8, 9, 10, 0.08);
     box-shadow: 0 1rem 2rem rgba(8, 9, 10, 0.08);
     background: var(--color-light);
+    max-width: 420px;
+    margin: 0 auto;
 }
 
 .admin-auth label {
@@ -2532,7 +2534,7 @@ body.admin-modal-open {
 }
 
 .admin-auth input {
-    padding: 0.75rem;
+    padding: 0.5rem;
     border-radius: 0.6rem;
     border: 1px solid rgba(8, 9, 10, 0.12);
     font-size: 1rem;
@@ -2544,6 +2546,11 @@ body.admin-modal-open {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.15);
     outline: none;
+}
+
+.admin-auth .cta-btn {
+    margin-top: 1rem;
+    padding: 0.7rem 1rem;
 }
 
 .admin-key-field {
@@ -3842,6 +3849,23 @@ body.admin-modal-open {
     grid-column: 1 / -1;
 }
 
+.admin-main {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(560px, 2fr) minmax(320px, 1fr);
+    align-items: start;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#admin-roster.admin-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
 .portal-admin .container {
     max-width: 1420px;
 }
@@ -3976,7 +4000,7 @@ body.admin-modal-open {
 .admin-main {
     display: grid;
     gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: minmax(560px, 2fr) minmax(320px, 1fr);
     align-items: start;
 }
 
@@ -4009,6 +4033,7 @@ body.admin-modal-open {
 
 [data-admin-panel] {
     display: block;
+    width: 100%;
 }
 
 [data-admin-panel][hidden] {
@@ -4023,6 +4048,7 @@ body.admin-modal-open {
     border: 1px solid rgba(0, 0, 0, 0.06);
     display: grid;
     gap: 0.75rem;
+    margin-bottom: 2.5rem;
 }
 
 .admin-card__header {
@@ -4459,9 +4485,10 @@ body.admin-modal-open {
     position: relative;
     background: #fff;
     border-radius: 1rem;
-    width: min(1180px, 100%);
-    max-height: 94vh;
-    overflow: auto;
+    width: 80%;
+    max-width: 1200px;
+    height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 32px 68px rgba(0, 0, 0, 0.35);
     padding: 1.25rem 1.5rem 1.75rem;
     z-index: 1;
@@ -4660,6 +4687,10 @@ body.admin-modal-open {
         grid-template-columns: 1fr;
     }
 
+    .admin-main {
+        grid-template-columns: 1fr;
+    }
+
     .admin-sidebar {
         position: static;
     }
@@ -4684,6 +4715,11 @@ body.admin-modal-open {
 
     .class-modal__panel {
         grid-template-rows: auto 1fr auto;
+    }
+
+    .student-modal__panel {
+        width: 95%;
+        height: 95vh;
     }
 }
 

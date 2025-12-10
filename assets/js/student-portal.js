@@ -483,6 +483,11 @@ const portalEls = {
     adminEventsStatus: document.getElementById("admin-events-status"),
     adminTabs: document.getElementById("admin-tabs"),
     adminCalendarUpcoming: document.getElementById("admin-calendar-upcoming"),
+    adminEmailForm: document.getElementById("admin-email-form"),
+    adminEmailTarget: document.getElementById("email-target"),
+    adminEmailSubject: document.getElementById("email-subject"),
+    adminEmailBody: document.getElementById("email-body"),
+    adminEmailStatus: document.getElementById("email-status"),
     adminRoster: document.getElementById("admin-roster"),
     adminRosterBody: document.getElementById("admin-roster-body"),
     adminRosterRefresh: document.getElementById("admin-roster-refresh"),
@@ -699,6 +704,7 @@ function attachHandlers() {
     portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
     portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
     portalEls.adminEnrollForm?.addEventListener("submit", handleAdminEnrollSubmit);
+    portalEls.adminEmailForm?.addEventListener("submit", handleAdminEmailSubmit);
     portalEls.reportCardClose?.addEventListener("click", closeReportCard);
     portalEls.reportCardDownload?.addEventListener("click", downloadReportCard);
     portalEls.reportCardModal?.addEventListener("click", (event) => {
@@ -2199,6 +2205,7 @@ function showAdminTab(tabId) {
             "tab-students": ["admin-roster", "admin-enroll"],
             "tab-membership": ["admin-roster"],
             "tab-notes": ["admin-notes", "admin-roster"],
+            "tab-email": ["admin-email"],
             "tab-settings": ["admin-settings"]
         };
         const allSections = [
@@ -2225,6 +2232,10 @@ function showAdminTab(tabId) {
         portalEls.adminTabs.querySelectorAll("[data-admin-tab]").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.adminTab === activeTab);
         });
+    }
+
+    if (activeTab === "tab-notes" && portalState.admin.rosterSelected?.id) {
+        loadRosterNotes(portalState.admin.rosterSelected.id);
     }
 }
 
@@ -2589,6 +2600,13 @@ function setAdminEventsStatus(message, variant = "error") {
     portalEls.adminEventsStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function setAdminEmailStatus(message, variant = "error") {
+    if (!portalEls.adminEmailStatus) return;
+    portalEls.adminEmailStatus.textContent = message || "";
+    portalEls.adminEmailStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminEmailStatus.classList.toggle("is-progress", variant === "progress");
+}
+
 function clearAdminEventForm() {
     portalEls.adminEventName && (portalEls.adminEventName.value = "");
     portalEls.adminEventDescription && (portalEls.adminEventDescription.value = "");
@@ -2599,6 +2617,47 @@ function clearAdminEventForm() {
     if (portalEls.adminEventActive) {
         portalEls.adminEventActive.checked = false;
     }
+}
+
+function handleAdminEmailSubmit(event) {
+    event?.preventDefault();
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    if (!HAS_REMOTE_API) return;
+    const recipientType = portalEls.adminEmailTarget?.value || "all";
+    const subject = portalEls.adminEmailSubject?.value?.trim() || "";
+    const message = portalEls.adminEmailBody?.value?.trim() || "";
+    if (!subject || !message) {
+        setAdminEmailStatus("Add a subject and message.");
+        return;
+    }
+    const url = buildApiUrl("/portal/admin/email/send");
+    if (!url) return;
+    setAdminEmailStatus("Sending email...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            recipientType,
+            subject,
+            message
+        })
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to send email.");
+            return res.json();
+        })
+        .then(() => {
+            setAdminEmailStatus("Email queued for delivery.", "success");
+            setAdminStatus("Email queued for delivery.", "success");
+            if (portalEls.adminEmailBody) portalEls.adminEmailBody.value = "";
+        })
+        .catch((error) => {
+            console.error("email send", error);
+            setAdminEmailStatus(error.message || "Unable to send email.", "error");
+        });
 }
 
 function setAdminLoadingState(isLoading) {

@@ -425,15 +425,19 @@
                                             <span class="admin-nav__icon" aria-hidden="true">M</span>
                                             <span>Membership</span>
                                         </button>
-                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-notes">
-                                            <span class="admin-nav__icon" aria-hidden="true">N</span>
-                                            <span>Notes & Messages</span>
-                                        </button>
-                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
-                                            <span class="admin-nav__icon" aria-hidden="true">G</span>
-                                            <span>Settings</span>
-                                        </button>
-                                    </nav>
+                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-notes">
+                                        <span class="admin-nav__icon" aria-hidden="true">N</span>
+                                        <span>Notes & Messages</span>
+                                    </button>
+                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-email">
+                                        <span class="admin-nav__icon" aria-hidden="true">📧</span>
+                                        <span>Email Parents</span>
+                                    </button>
+                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
+                                        <span class="admin-nav__icon" aria-hidden="true">G</span>
+                                        <span>Settings</span>
+                                    </button>
+                                </nav>
                                     <div class="admin-sidebar__footer">
                                         <strong>ARA TKD</strong><br>
                                         Live roster, attendance, billing, and events in one anchored panel.
@@ -847,11 +851,11 @@
                                         </div>
                                     </section>
 
-                                    <section class="admin-card" id="admin-enroll" data-admin-panel="tab-students tab-dashboard">
-                                        <div class="admin-summary__header">
-                                            <h3>Quick Student Enrollment</h3>
-                                            <p>Generate a new Ara ID, login credential, and optional attendance seed in one step.</p>
-                                        </div>
+                                <section class="admin-card" id="admin-enroll" data-admin-panel="tab-students tab-dashboard">
+                                    <div class="admin-summary__header">
+                                        <h3>Quick Student Enrollment</h3>
+                                        <p>Generate a new Ara ID, login credential, and optional attendance seed in one step.</p>
+                                    </div>
                                         <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
                                             <div class="admin-enroll__grid">
                                                 <label>
@@ -906,9 +910,37 @@
                                         </form>
                                         <div class="admin-enroll__result" id="admin-enroll-result" hidden>
                                             <p class="admin-enroll__result-title">New student ready for login.</p>
-                                            <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
-                                        </div>
-                                    </section>
+                                        <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+                                    </div>
+                                </section>
+
+                                <section class="admin-card" id="admin-email" data-admin-panel="tab-email">
+                                    <div class="admin-card__header">
+                                        <h3 class="admin-card__title">Email Parents</h3>
+                                        <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+                                    </div>
+                                    <form id="admin-email-form">
+                                        <label>
+                                            <span>Select Recipients</span>
+                                            <select id="email-target">
+                                                <option value="all">All Parents</option>
+                                                <option value="active">Active Students Only</option>
+                                                <option value="class">Specific Class</option>
+                                                <option value="single">Single Student</option>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            <span>Subject</span>
+                                            <input type="text" id="email-subject">
+                                        </label>
+                                        <label>
+                                            <span>Message</span>
+                                            <textarea id="email-body" rows="5"></textarea>
+                                        </label>
+                                        <button class="cta-btn" type="submit">Send Email</button>
+                                        <p class="form-status" id="email-status" aria-live="polite"></p>
+                                    </form>
+                                </section>
 
                                     <section class="admin-card" id="admin-settings" data-admin-panel="tab-settings">
                                         <div class="admin-card__header">

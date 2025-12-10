@@ -1672,4 +1672,26 @@ app.get('/portal/admin/report-card/:studentId', async (c) => {
   });
 });
 
+app.post('/portal/admin/email/send', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+  const body = await c.req.json().catch(() => null);
+  const recipientType = body?.recipientType || 'all';
+  const subject = body?.subject || '';
+  const message = body?.message || '';
+  if (!subject || !message) {
+    return c.json({ error: 'Subject and message are required.' }, 400);
+  }
+  // Placeholder: in production wire up to transactional email provider.
+  return c.json({
+    ok: true,
+    recipientType,
+    subject,
+    message,
+    queuedAt: new Date().toISOString()
+  });
+});
+
 export default app;
