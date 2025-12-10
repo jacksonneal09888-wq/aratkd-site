@@ -484,7 +484,12 @@ const portalEls = {
     adminTabs: document.getElementById("admin-tabs"),
     adminCalendarUpcoming: document.getElementById("admin-calendar-upcoming"),
     adminEmailForm: document.getElementById("admin-email-form"),
-    adminEmailTarget: document.getElementById("email-target"),
+    adminEmailBelt: document.getElementById("email-belt"),
+    adminEmailClass: document.getElementById("email-class"),
+    adminEmailStudent: document.getElementById("email-student-id"),
+    adminEmailAttachment: document.getElementById("email-attachment"),
+    adminEmailDirect: document.getElementById("email-direct"),
+    adminEmailUseSelected: document.getElementById("email-use-selected"),
     adminEmailSubject: document.getElementById("email-subject"),
     adminEmailBody: document.getElementById("email-body"),
     adminEmailStatus: document.getElementById("email-status"),
@@ -546,6 +551,7 @@ const portalEls = {
     studentModalNoteType: document.getElementById("student-modal-note-type"),
     studentModalNoteAuthor: document.getElementById("student-modal-note-author"),
     studentModalNoteMessage: document.getElementById("student-modal-note-message"),
+    studentModalNotesFilter: document.getElementById("student-modal-notes-filter"),
     studentModalNotesList: document.getElementById("student-modal-notes-list"),
     studentModalBillingMembership: document.getElementById("student-modal-billing-membership"),
     studentModalBillingStatus: document.getElementById("student-modal-billing-status"),
@@ -601,6 +607,7 @@ const portalState = {
         rosterSelected: null,
         rosterNotes: [],
         rosterNotesGeneratedAt: null,
+        rosterNotesFilter: "all",
         rosterAttendanceSummary: {},
         events: [],
         eventsGeneratedAt: null,
@@ -614,6 +621,29 @@ const classModalState = {
     reserved: [],
     attended: []
 };
+
+function normalizeRosterTable() {
+    const rosterTable = document.querySelector("#admin-roster table.admin-table");
+    if (!rosterTable) return;
+    const desiredHeaders = ["ID", "Name", "Belt", "Status", "Updated", "Actions"];
+    const headerRow = rosterTable.querySelector("thead tr");
+    if (headerRow) {
+        const currentHeaders = Array.from(headerRow.children).map((cell) =>
+            cell.textContent.trim().toLowerCase()
+        );
+        const needsReset =
+            currentHeaders.length !== desiredHeaders.length ||
+            currentHeaders.includes("membership") ||
+            currentHeaders[0] !== desiredHeaders[0].toLowerCase();
+        if (needsReset) {
+            headerRow.innerHTML = desiredHeaders
+                .map((label) => `<th scope="col">${label}</th>`)
+                .join("");
+        }
+    }
+    const placeholderCells = rosterTable.querySelectorAll("tbody td[colspan]");
+    placeholderCells.forEach((cell) => cell.setAttribute("colspan", desiredHeaders.length));
+}
 
 normalizeStoredCertificates();
 migrateLegacyCertificates();
@@ -673,6 +703,11 @@ function attachHandlers() {
     portalEls.adminRosterEditForm?.addEventListener("submit", handleRosterEditSubmit);
     portalEls.adminRosterSave?.addEventListener("click", handleAdminMembershipSave);
     portalEls.adminRosterNoteForm?.addEventListener("submit", handleAdminNoteSubmit);
+    portalEls.studentModalNotesFilter?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-note-filter]");
+        if (!button) return;
+        setRosterNotesFilter(button.dataset.noteFilter || "all");
+    });
     portalEls.adminAttendanceAdjustForm?.addEventListener("submit", handleAttendanceAdjust);
     portalEls.adminRosterDetail?.addEventListener("click", handleRosterDetailButtons);
     portalEls.adminRosterNewtab?.addEventListener("click", () => {
@@ -705,6 +740,16 @@ function attachHandlers() {
     portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
     portalEls.adminEnrollForm?.addEventListener("submit", handleAdminEnrollSubmit);
     portalEls.adminEmailForm?.addEventListener("submit", handleAdminEmailSubmit);
+    portalEls.adminEmailUseSelected?.addEventListener("click", (event) => {
+        event.preventDefault();
+        const student = portalState.admin.rosterSelected;
+        if (student?.id && portalEls.adminEmailStudent) {
+            portalEls.adminEmailStudent.value = student.id;
+            setAdminEmailStatus(`Using selected student ${student.id}`, "success");
+        } else {
+            setAdminEmailStatus("Select a student from the roster first.", "error");
+        }
+    });
     portalEls.reportCardClose?.addEventListener("click", closeReportCard);
     portalEls.reportCardDownload?.addEventListener("click", downloadReportCard);
     portalEls.reportCardModal?.addEventListener("click", (event) => {
@@ -2100,7 +2145,13 @@ function renderAdminEvents() {
         const typeCell = document.createElement("td");
         const typeBadge = document.createElement("span");
         typeBadge.className = "badge badge--gold";
-        typeBadge.textContent = event.type || "Special Class";
+        const typeLabel = event.type || "Special Class";
+        const typeIcon = typeLabel.toLowerCase().includes("tournament")
+            ? "🏆"
+            : typeLabel.toLowerCase().includes("make-up")
+              ? "📝"
+              : "⭐";
+        typeBadge.textContent = `${typeIcon} ${typeLabel}`;
         typeCell.appendChild(typeBadge);
         const windowCell = document.createElement("td");
         const start = event.startAt ? formatDateTime(event.startAt) : "—";
@@ -2416,6 +2467,7 @@ function getRosterLastAttendance(studentId) {
 }
 
 function renderAdminRoster() {
+    normalizeRosterTable();
     if (!portalEls.adminRosterBody) return;
     const roster = portalState.admin.roster || [];
     portalEls.adminRosterBody.innerHTML = "";
@@ -2624,11 +2676,44 @@ function handleAdminEmailSubmit(event) {
         return;
     }
     if (!HAS_REMOTE_API) return;
-    const recipientType = portalEls.adminEmailTarget?.value || "all";
+    const audienceInput = portalEls.adminEmailForm?.querySelector(
+        "input[name='email-audience']:checked"
+    );
+    let recipientType = audienceInput?.value || "all";
+    if (recipientType === "single") recipientType = "student";
     const subject = portalEls.adminEmailSubject?.value?.trim() || "";
     const message = portalEls.adminEmailBody?.value?.trim() || "";
+    const belt = portalEls.adminEmailBelt?.value?.trim() || "";
+    const className = portalEls.adminEmailClass?.value?.trim() || "";
+    let directEmail = portalEls.adminEmailDirect?.value?.trim() || "";
+    let studentId = portalEls.adminEmailStudent?.value?.trim() || "";
+    if (recipientType === "student" && !studentId && portalState.admin.rosterSelected?.id) {
+        studentId = portalState.admin.rosterSelected.id;
+        if (portalEls.adminEmailStudent) {
+            portalEls.adminEmailStudent.value = studentId;
+        }
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (recipientType === "student" && !directEmail) {
+        // allow pasting an email into the message box as a fallback
+        const emailFromMessage = extractEmailFromText(`${subject} ${message}`);
+        if (emailFromMessage && emailRegex.test(emailFromMessage)) {
+            directEmail = emailFromMessage;
+            if (portalEls.adminEmailDirect) {
+                portalEls.adminEmailDirect.value = directEmail;
+            }
+        }
+    }
     if (!subject || !message) {
         setAdminEmailStatus("Add a subject and message.");
+        return;
+    }
+    if (recipientType === "student" && !studentId && !directEmail) {
+        setAdminEmailStatus("Enter a Student ID or a Direct Email for a single send.", "error");
+        return;
+    }
+    if (directEmail && !emailRegex.test(directEmail)) {
+        setAdminEmailStatus("Enter a valid direct email address.", "error");
         return;
     }
     const url = buildApiUrl("/portal/admin/email/send");
@@ -2639,18 +2724,46 @@ function handleAdminEmailSubmit(event) {
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
             recipientType,
+            audience: recipientType,
             subject,
-            message
+            message,
+            belt,
+            className,
+            studentId,
+            directEmail
         })
     })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to send email.");
-            return res.json();
+        .then(async (res) => {
+            const clone = res.clone();
+            let payload: any = null;
+            try {
+                payload = await clone.json();
+            } catch (jsonErr) {
+                try {
+                    const text = await res.text();
+                    payload = { error: text };
+                } catch (textErr) {
+                    payload = null;
+                }
+            }
+            if (!res.ok) {
+                const reason =
+                    payload?.error ||
+                    payload?.message ||
+                    `${res.status} ${res.statusText || "Unable to send email."}`;
+                throw new Error(reason);
+            }
+            return payload;
         })
         .then(() => {
             setAdminEmailStatus("Email queued for delivery.", "success");
             setAdminStatus("Email queued for delivery.", "success");
             if (portalEls.adminEmailBody) portalEls.adminEmailBody.value = "";
+            if (portalEls.adminEmailSubject) portalEls.adminEmailSubject.value = "";
+            if (portalEls.adminEmailClass) portalEls.adminEmailClass.value = "";
+            if (portalEls.adminEmailStudent) portalEls.adminEmailStudent.value = "";
+            if (portalEls.adminEmailAttachment) portalEls.adminEmailAttachment.value = "";
+            if (portalEls.adminEmailDirect) portalEls.adminEmailDirect.value = "";
         })
         .catch((error) => {
             console.error("email send", error);
@@ -4423,7 +4536,12 @@ function openStudentModal(studentId) {
             renderRosterNotes();
         }
     }
+    if (typeof window !== "undefined") {
+        // expose for external handlers/tests
+        window.currentStudentId = selected?.id || null;
+    }
     portalState.admin.studentModalPanel = "overview";
+    setRosterNotesFilter(portalState.admin.rosterNotesFilter || "all");
     setStudentModalStatus("");
     renderRosterDetail();
     renderStudentModal();
@@ -4630,7 +4748,8 @@ function handleAdminNoteSubmit(event) {
     if (!HAS_REMOTE_API) return;
     const studentId = portalState.admin.rosterSelected.id;
     const isModal = event?.target?.id === "student-modal-note-form";
-    const noteType = (isModal ? portalEls.studentModalNoteType : portalEls.adminRosterNoteType)?.value || "note";
+    const noteType =
+        (isModal ? portalEls.studentModalNoteType : portalEls.adminRosterNoteType)?.value || "note";
     const message =
         (isModal
             ? portalEls.studentModalNoteMessage?.value
@@ -4644,20 +4763,13 @@ function handleAdminNoteSubmit(event) {
         setStudentModalStatus("Add a message before saving.");
         return;
     }
-    const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
-    fetch(url, {
-        method: "POST",
-        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ noteType, message, author })
-    })
-        .then((res) => {
-            if (!res.ok) throw new Error("Unable to save note.");
-            return res.json();
-        })
-        .then((data) => {
-            if (data.note) {
-                portalState.admin.rosterNotes = [data.note, ...(portalState.admin.rosterNotes || [])];
+    addStudentNote(studentId, { noteType, message, author })
+        .then((note) => {
+            if (note) {
+                portalState.admin.rosterNotes = [note, ...(portalState.admin.rosterNotes || [])];
                 renderRosterNotes();
+            } else {
+                loadRosterNotes(studentId);
             }
             if (isModal && portalEls.studentModalNoteMessage) {
                 portalEls.studentModalNoteMessage.value = "";
@@ -4697,6 +4809,28 @@ function loadRosterNotes(studentId) {
             console.error("load notes", error);
             setAdminStatus(error.message || "Unable to load notes.", "error");
         });
+}
+
+async function addStudentNote(studentId, entry) {
+    if (!studentId || !HAS_REMOTE_API) {
+        throw new Error("Missing student or API.");
+    }
+    const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
+    const res = await fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            noteType: entry.noteType || entry.type || "note",
+            message: entry.message,
+            author: entry.author || "Admin"
+        })
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err || "Unable to save note.");
+    }
+    const data = await res.json();
+    return data.note;
 }
 
 function renderRosterDetail() {
@@ -4756,10 +4890,32 @@ function renderRosterDetail() {
     renderRosterNotes();
 }
 
+function setRosterNotesFilter(filter) {
+    const next = filter || "all";
+    portalState.admin.rosterNotesFilter = next;
+    const filterButtons =
+        portalEls.studentModalNotesFilter?.querySelectorAll("[data-note-filter]") || [];
+    filterButtons.forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.noteFilter === next);
+    });
+    renderRosterNotes();
+}
+
+function extractEmailFromText(text = "") {
+    if (!text) return "";
+    const match = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    return match ? match[0] : "";
+}
+
 function renderRosterNotes() {
     const lists = [portalEls.adminRosterNotesList, portalEls.studentModalNotesList].filter(Boolean);
     if (!lists.length) return;
-    const notes = portalState.admin.rosterNotes || [];
+    const filter = (portalState.admin.rosterNotesFilter || "all").toLowerCase();
+    const notes = (portalState.admin.rosterNotes || []).filter((note) => {
+        if (filter === "all") return true;
+        const type = (note.noteType || "note").toLowerCase();
+        return type.includes(filter);
+    });
     lists.forEach((list) => {
         list.innerHTML = "";
         if (!notes.length) {
@@ -4772,9 +4928,10 @@ function renderRosterNotes() {
             const li = document.createElement("li");
             const meta = document.createElement("div");
             meta.className = "admin-roster-notes__meta";
-            meta.textContent = `${note.noteType || "note"} · ${note.author || "Admin"} · ${
-                note.createdAt ? formatDateTime(note.createdAt) : ""
-            }`;
+            const label = (note.noteType || "note").toUpperCase();
+            const author = note.author || "Staff";
+            const stamp = note.createdAt ? formatDateTime(note.createdAt) : "";
+            meta.innerHTML = `<strong>${label}</strong> · ${author} · ${stamp}`;
             const body = document.createElement("div");
             body.textContent = note.message;
             li.append(meta, body);

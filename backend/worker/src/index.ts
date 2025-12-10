@@ -10,6 +10,9 @@ interface Env {
   ADMIN_MASTER_USERNAME?: string;
   ADMIN_MASTER_PASSWORD?: string;
   ADMIN_MASTER_PIN?: string;
+  BREVO_API_KEY?: string;
+  BREVO_SENDER_EMAIL?: string;
+  BREVO_SENDER_NAME?: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -287,6 +290,121 @@ const sanitizeStudentRecord = (row: any) => {
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
   };
+};
+
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || '');
+
+const filterEmailRecipients = (rows: any[] = []) => {
+  const deduped = new Map<string, { email: string; name: string }>();
+  for (const row of rows) {
+    const email = (row.email || '').trim();
+    if (!email) continue;
+    const key = email.toLowerCase();
+    if (deduped.has(key)) continue;
+    deduped.set(key, { email, name: row.name || row.id || 'Family' });
+  }
+  return Array.from(deduped.values());
+};
+
+const fetchEmailRecipients = async (
+  db: D1Database,
+  audience: string,
+  opts: { belt?: string; className?: string; studentId?: string }
+) => {
+  const limit = 1200;
+  const audienceKey = (audience || 'all').toLowerCase();
+  if (audienceKey === 'student' && opts.studentId) {
+    const row = await fetchStudentById(db, opts.studentId);
+    return filterEmailRecipients(row ? [row] : []);
+  }
+  if (audienceKey === 'student' && !opts.studentId) {
+    throw new Error('studentId is required for a single student email.');
+  }
+
+  if (audienceKey === 'class' && opts.className) {
+    const like = `%${opts.className.toLowerCase()}%`;
+    const { results } = await db
+      .prepare(
+        `SELECT DISTINCT s.id, s.name, s.email
+         FROM students s
+         INNER JOIN attendance_sessions a ON a.student_id = s.id
+         WHERE s.email IS NOT NULL AND s.email != ''
+           AND LOWER(a.class_type) LIKE ?1
+         ORDER BY s.name ASC
+         LIMIT ?2`
+      )
+      .bind(like, limit)
+      .all();
+    return filterEmailRecipients(results as any[]);
+  }
+
+  if (audienceKey === 'belt' && opts.belt) {
+    const belt = `%${opts.belt.toLowerCase()}%`;
+    const { results } = await db
+      .prepare(
+        `SELECT id, name, email
+         FROM students
+         WHERE email IS NOT NULL AND email != ''
+           AND LOWER(current_belt) LIKE ?1
+         ORDER BY name ASC
+         LIMIT ?2`
+      )
+      .bind(belt, limit)
+      .all();
+    return filterEmailRecipients(results as any[]);
+  }
+
+  const isActiveFilter = audienceKey === 'active';
+  const { results } = await db
+    .prepare(
+      `SELECT id, name, email, is_suspended, status
+       FROM students
+       WHERE email IS NOT NULL AND email != ''
+         ${isActiveFilter ? "AND (is_suspended IS NULL OR is_suspended = 0) AND (LOWER(status) IS NULL OR LOWER(status) != 'suspended')" : ''}
+       ORDER BY name ASC
+       LIMIT ?1`
+    )
+    .bind(limit)
+    .all();
+
+  return filterEmailRecipients(results as any[]);
+};
+
+const sendBrevoEmail = async (
+  env: Env,
+  payload: {
+    to: { email: string; name: string }[];
+    subject: string;
+    htmlContent: string;
+    textContent?: string;
+  }
+) => {
+  const apiKey = env.BREVO_API_KEY;
+  const senderEmail = env.BREVO_SENDER_EMAIL;
+  if (!apiKey || !senderEmail) {
+    throw new Error('Brevo API key or sender email is missing.');
+  }
+  const senderName = env.BREVO_SENDER_NAME || 'ARA TKD';
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': apiKey
+    },
+    body: JSON.stringify({
+      sender: { email: senderEmail, name: senderName },
+      to: payload.to,
+      subject: payload.subject,
+      htmlContent: payload.htmlContent,
+      textContent: payload.textContent || payload.htmlContent.replace(/<[^>]+>/g, '')
+    })
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Brevo send failed: ${response.status} ${errorBody}`);
+  }
+  return response.json();
 };
 
 const fetchStudentById = (db: D1Database, studentId: string) => {
@@ -1678,20 +1796,49 @@ app.post('/portal/admin/email/send', async (c) => {
     return authError;
   }
   const body = await c.req.json().catch(() => null);
-  const recipientType = body?.recipientType || 'all';
+  let recipientType = body?.recipientType || body?.audience || 'all';
+  recipientType = recipientType === 'single' ? 'student' : recipientType;
+  const belt = body?.belt || '';
+  const className = body?.className || '';
+  const studentId = body?.studentId || '';
+   const directEmail = (body?.directEmail || '').toString().trim();
   const subject = body?.subject || '';
   const message = body?.message || '';
   if (!subject || !message) {
     return c.json({ error: 'Subject and message are required.' }, 400);
   }
-  // Placeholder: in production wire up to transactional email provider.
-  return c.json({
-    ok: true,
-    recipientType,
-    subject,
-    message,
-    queuedAt: new Date().toISOString()
-  });
+  if (directEmail && !isValidEmail(directEmail)) {
+    return c.json({ error: 'Enter a valid direct email address.' }, 400);
+  }
+  if (!directEmail && recipientType === 'student' && !studentId) {
+    return c.json({ error: 'studentId is required for a single-student email.' }, 400);
+  }
+  try {
+    const recipients = directEmail
+      ? [{ email: directEmail, name: studentId || 'Recipient' }]
+      : await fetchEmailRecipients(c.env.PORTAL_DB, recipientType, {
+          belt,
+          className,
+          studentId
+        });
+    if (!recipients.length) {
+      return c.json({ error: 'No recipients found for that audience.' }, 400);
+    }
+    await sendBrevoEmail(c.env, {
+      to: recipients,
+      subject,
+      htmlContent: `<p>${message}</p>`
+    });
+    return c.json({
+      ok: true,
+      recipientType,
+      sentTo: recipients.length,
+      queuedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Email send failed', error);
+    return c.json({ error: error?.message || 'Email send failed.' }, 500);
+  }
 });
 
 export default app;

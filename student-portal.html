@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20241027">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20241213">
 </head>
 <body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-trigger-pin="1453">
     <header class="site-header">
@@ -375,6 +375,10 @@
                     <div class="admin-access">
                         <form class="admin-auth" id="admin-auth-form" autocomplete="off">
                             <div>
+                                <h3 style="margin:0;font-family:var(--font-heading);letter-spacing:0.08em;text-transform:uppercase;">Admin Login</h3>
+                                <p class="admin-card__meta">Slim access card to keep the dashboard in view.</p>
+                            </div>
+                            <div>
                                 <label for="admin-username">Username</label>
                                 <input type="text" id="admin-username" name="adminUsername" placeholder="MasterAra" required>
                             </div>
@@ -400,44 +404,47 @@
                                         </div>
                                     </div>
                                     <nav class="admin-nav" id="admin-tabs" aria-label="Admin sections">
+                                        <p class="admin-nav__section-label">Overview</p>
                                         <button type="button" class="admin-nav__item is-active" data-admin-tab="tab-dashboard">
-                                            <span class="admin-nav__icon" aria-hidden="true">D</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">🏠</span>
                                             <span>Dashboard</span>
                                             <span class="admin-nav__badge">ON</span>
                                         </button>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-calendar">
-                                            <span class="admin-nav__icon" aria-hidden="true">C</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">📅</span>
                                             <span>Calendar</span>
                                         </button>
+                                        <p class="admin-nav__section-label">Student Tools</p>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-classes">
-                                            <span class="admin-nav__icon" aria-hidden="true">A</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">🥋</span>
                                             <span>Classes / Attendance</span>
                                         </button>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-students">
-                                            <span class="admin-nav__icon" aria-hidden="true">S</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">👥</span>
                                             <span>Students</span>
                                         </button>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-events">
-                                            <span class="admin-nav__icon" aria-hidden="true">E</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">🏆</span>
                                             <span>Events</span>
                                         </button>
+                                        <p class="admin-nav__section-label">Systems</p>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-membership">
-                                            <span class="admin-nav__icon" aria-hidden="true">M</span>
+                                            <span class="admin-nav__icon" aria-hidden="true">🎟️</span>
                                             <span>Membership</span>
                                         </button>
-                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-notes">
-                                        <span class="admin-nav__icon" aria-hidden="true">N</span>
-                                        <span>Notes & Messages</span>
-                                    </button>
-                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-email">
-                                        <span class="admin-nav__icon" aria-hidden="true">📧</span>
-                                        <span>Email Parents</span>
-                                    </button>
-                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
-                                        <span class="admin-nav__icon" aria-hidden="true">G</span>
-                                        <span>Settings</span>
-                                    </button>
-                                </nav>
+                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-notes">
+                                            <span class="admin-nav__icon" aria-hidden="true">🗒️</span>
+                                            <span>Notes & Messages</span>
+                                        </button>
+                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-email">
+                                            <span class="admin-nav__icon" aria-hidden="true">📧</span>
+                                            <span>Email Parents</span>
+                                        </button>
+                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
+                                            <span class="admin-nav__icon" aria-hidden="true">⚙️</span>
+                                            <span>Settings</span>
+                                        </button>
+                                    </nav>
                                     <div class="admin-sidebar__footer">
                                         <strong>ARA TKD</strong><br>
                                         Live roster, attendance, billing, and events in one anchored panel.
@@ -583,13 +590,14 @@
                                                         <span>Event Name</span>
                                                         <input type="text" id="admin-event-name" required placeholder="Tournament Sign-In">
                                                     </label>
-                                                    <label>
-                                                        <span>Type</span>
-                                                        <select id="admin-event-type">
-                                                            <option value="Special Class">Special Class</option>
-                                                            <option value="Tournament">Tournament</option>
-                                                        </select>
-                                                    </label>
+                                                <label>
+                                                    <span>Type</span>
+                                                    <select id="admin-event-type">
+                                                        <option value="Special Class">Special Class</option>
+                                                        <option value="Tournament">Tournament</option>
+                                                        <option value="Make-Up Class">Make-Up Class</option>
+                                                    </select>
+                                                </label>
                                                     <label>
                                                         <span>Start</span>
                                                         <input type="datetime-local" id="admin-event-start" required>
@@ -911,35 +919,136 @@
                                             <p class="admin-enroll__result-title">New student ready for login.</p>
                                         <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
                                     </div>
-                                </section>
+                                    </section>
 
-                                <section class="admin-card" id="admin-email" data-admin-panel="tab-email">
-                                    <div class="admin-card__header">
-                                        <h3 class="admin-card__title">Email Parents</h3>
-                                        <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+                                    <div class="admin-two-col" data-admin-panel="tab-students tab-dashboard tab-email tab-membership tab-notes">
+                                        <section class="admin-card" id="admin-enroll">
+                                            <div class="admin-card__header">
+                                                <h3 class="admin-card__title">Enroll New Student</h3>
+                                                <p class="admin-card__meta">Seed attendance and portal access</p>
+                                            </div>
+                                            <form id="admin-enroll-form" autocomplete="off">
+                                                <div class="admin-enroll__grid">
+                                                    <label>
+                                                        <span>Student Name</span>
+                                                        <input type="text" id="admin-enroll-name" name="studentName" placeholder="Full name" required>
+                                                    </label>
+                                                    <label>
+                                                        <span>Student ID</span>
+                                                        <input type="text" id="admin-enroll-id" name="studentId" placeholder="ARA123" required>
+                                                    </label>
+                                                    <label>
+                                                        <span>Date of Birth</span>
+                                                        <input type="date" id="admin-enroll-dob" name="birthDate" required>
+                                                    </label>
+                                                    <label>
+                                                        <span>Parent Email</span>
+                                                        <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
+                                                    </label>
+                                                    <label>
+                                                        <span>Phone</span>
+                                                        <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
+                                                    </label>
+                                                    <label>
+                                                        <span>Starting Belt</span>
+                                                        <select id="admin-enroll-belt" name="belt">
+                                                            <option value="White Belt">White Belt</option>
+                                                            <option value="High White Belt">High White Belt</option>
+                                                            <option value="Yellow Belt">Yellow Belt</option>
+                                                            <option value="High Yellow Belt">High Yellow Belt</option>
+                                                            <option value="Green Belt">Green Belt</option>
+                                                            <option value="High Green Belt">High Green Belt</option>
+                                                            <option value="Blue Belt">Blue Belt</option>
+                                                            <option value="High Blue Belt">High Blue Belt</option>
+                                                            <option value="Red Belt">Red Belt</option>
+                                                            <option value="High Red Belt">High Red Belt</option>
+                                                            <option value="Black Belt">Black Belt</option>
+                                                        </select>
+                                                    </label>
+                                                    <label>
+                                                        <span>Class Track</span>
+                                                        <select id="admin-enroll-class-type" name="classType">
+                                                            <option value="basic">Basic Class</option>
+                                                            <option value="advanced">Advanced Class</option>
+                                                            <option value="little-ninjas">Little Ninjas</option>
+                                                        </select>
+                                                    </label>
+                                                    <label>
+                                                        <span>Seed Attendance Days</span>
+                                                        <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
+                                                    </label>
+                                                </div>
+                                                <div class="admin-enroll__actions">
+                                                    <button type="submit" class="cta-btn">Create Student</button>
+                                                    <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
+                                                </div>
+                                            </form>
+                                            <div class="admin-enroll__result" id="admin-enroll-result" hidden>
+                                                <p class="admin-enroll__result-title">New student ready for login.</p>
+                                                <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+                                            </div>
+                                        </section>
+
+                                        <section class="admin-card" id="admin-email" data-admin-panel="tab-email">
+                                            <div class="admin-card__header">
+                                                <h3 class="admin-card__title">Email Parents</h3>
+                                                <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+                                            </div>
+                                            <form id="admin-email-form" class="admin-email-form">
+                                            <div class="admin-radio-grid">
+                                                <label><input type="radio" name="email-audience" value="all" checked> All Parents</label>
+                                                <label><input type="radio" name="email-audience" value="active"> Active Students</label>
+                                                <label><input type="radio" name="email-audience" value="belt"> Belts</label>
+                                                <label><input type="radio" name="email-audience" value="class"> Specific Class</label>
+                                                <label><input type="radio" name="email-audience" value="student"> Single Student</label>
+                                            </div>
+                                            <label>
+                                                <span>Direct Email (single send)</span>
+                                                <input type="email" id="email-direct" placeholder="parent@example.com">
+                                                <small class="admin-card__meta">Use this for one-off tests without a Student ID.</small>
+                                            </label>
+                                            <div class="admin-email-conditional">
+                                                <label>
+                                                    <span>Belt (optional)</span>
+                                                    <select id="email-belt">
+                                                        <option value="">Any</option>
+                                                            <option value="White Belt">White Belt</option>
+                                                            <option value="Yellow Belt">Yellow Belt</option>
+                                                            <option value="Green Belt">Green Belt</option>
+                                                            <option value="Blue Belt">Blue Belt</option>
+                                                            <option value="Red Belt">Red Belt</option>
+                                                            <option value="Black Belt">Black Belt</option>
+                                                        </select>
+                                                    </label>
+                                                    <label>
+                                                        <span>Class (optional)</span>
+                                                        <input type="text" id="email-class" placeholder="e.g. Little Ninjas">
+                                                    </label>
+                                                    <label>
+                                                        <span>Student ID (optional)</span>
+                                                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                                                        <input type="text" id="email-student-id" placeholder="ARA001" style="flex:1;">
+                                                        <button type="button" class="secondary-btn" id="email-use-selected">Use Selected</button>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                                <label>
+                                                    <span>Subject</span>
+                                                    <input type="text" id="email-subject">
+                                                </label>
+                                                <label>
+                                                    <span>Message</span>
+                                                    <textarea id="email-body" rows="5"></textarea>
+                                                </label>
+                                                <label>
+                                                    <span>Attachment (optional)</span>
+                                                    <input type="file" id="email-attachment" />
+                                                </label>
+                                                <button class="cta-btn" type="submit">Send Message</button>
+                                                <p class="form-status" id="email-status" aria-live="polite"></p>
+                                            </form>
+                                        </section>
                                     </div>
-                                    <form id="admin-email-form">
-                                        <label>
-                                            <span>Select Recipients</span>
-                                            <select id="email-target">
-                                                <option value="all">All Parents</option>
-                                                <option value="active">Active Students Only</option>
-                                                <option value="class">Specific Class</option>
-                                                <option value="single">Single Student</option>
-                                            </select>
-                                        </label>
-                                        <label>
-                                            <span>Subject</span>
-                                            <input type="text" id="email-subject">
-                                        </label>
-                                        <label>
-                                            <span>Message</span>
-                                            <textarea id="email-body" rows="5"></textarea>
-                                        </label>
-                                        <button class="cta-btn" type="submit">Send Email</button>
-                                        <p class="form-status" id="email-status" aria-live="polite"></p>
-                                    </form>
-                                </section>
 
                                     <section class="admin-card" id="admin-settings" data-admin-panel="tab-settings">
                                         <div class="admin-card__header">
@@ -1089,8 +1198,18 @@
                 </section>
                 <section class="student-modal__card" data-student-panel="notes" hidden>
                     <div class="student-modal__card-head">
-                        <h4>Notes &amp; Communication</h4>
-                        <p class="admin-card__meta">Per-student notes, behavior logs, and billing conversations.</p>
+                        <div>
+                            <h4>Notes &amp; Communication</h4>
+                            <p class="admin-card__meta">Per-student notes, behavior logs, and billing conversations.</p>
+                        </div>
+                        <div class="student-notes-filter" id="student-modal-notes-filter">
+                            <button type="button" data-note-filter="all" class="is-active">All</button>
+                            <button type="button" data-note-filter="conversation">Conversations</button>
+                            <button type="button" data-note-filter="billing">Billing</button>
+                            <button type="button" data-note-filter="behavior">Behavior</button>
+                            <button type="button" data-note-filter="message">Messages</button>
+                            <button type="button" data-note-filter="payment">Payments</button>
+                        </div>
                     </div>
                     <form class="student-modal__form" id="student-modal-note-form">
                         <div class="student-modal__grid student-modal__grid--compact">
@@ -1277,8 +1396,8 @@
     <button type="button" class="admin-trigger" id="admin-trigger" aria-label="Instructor Access" tabindex="0"></button>
 
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
-    <script type="module" src="assets/js/student-portal.js?v=20241126" defer></script>
-    <script src="assets/js/main.js?v=20241027" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20241213" defer></script>
+    <script src="assets/js/main.js?v=20241213" defer></script>
     <script src="assets/js/translate.js"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>
 </body>
