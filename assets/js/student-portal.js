@@ -2422,7 +2422,7 @@ function renderAdminRoster() {
     if (!roster.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
-        cell.colSpan = 7;
+        cell.colSpan = 6;
         cell.textContent = portalState.admin.isAuthorized
             ? "No students found."
             : "Sign in to load the roster.";
@@ -2444,8 +2444,6 @@ function renderAdminRoster() {
         idCell.innerHTML = `<strong>${student.id}</strong>`;
         const nameCell = document.createElement("td");
         nameCell.textContent = student.name || "—";
-        const membershipCell = document.createElement("td");
-        membershipCell.textContent = student.membershipType || "Not set";
 
         const beltCell = document.createElement("td");
         beltCell.textContent = student.currentBelt || "—";
@@ -2496,7 +2494,7 @@ function renderAdminRoster() {
         actionsWrap.append(openBtn, reportBtn, suspendBtn);
         actionsCell.appendChild(actionsWrap);
 
-        row.append(idCell, nameCell, membershipCell, beltCell, statusCell, updatedCell, actionsCell);
+        row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
         portalEls.adminRosterBody.appendChild(row);
     });
 }
