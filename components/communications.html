@@ -1,0 +1,40 @@
+<section class="admin-card" id="admin-communications" data-admin-panel="tab-communications">
+  <div class="admin-card__header">
+    <h3 class="admin-card__title">Communications Log</h3>
+    <p class="admin-card__meta">Local log of sent messages</p>
+  </div>
+  <div class="admin-filter-row">
+    <label>
+      <span class="sr-only">Date From</span>
+      <input type="date" id="comm-date-from">
+    </label>
+    <label>
+      <span class="sr-only">Date To</span>
+      <input type="date" id="comm-date-to">
+    </label>
+    <select id="comm-audience-filter">
+      <option value="all">All Audiences</option>
+      <option value="active">Active</option>
+      <option value="belt">Belt</option>
+      <option value="class">Class</option>
+      <option value="student">Single Student</option>
+    </select>
+    <input type="search" id="comm-subject-filter" placeholder="Filter by subject keyword">
+  </div>
+  <div class="admin-table-wrap admin-table-wrap--wide">
+    <table class="admin-table admin-table--wide admin-table--compact" aria-label="Communications log">
+      <thead>
+        <tr>
+          <th scope="col">Subject</th>
+          <th scope="col">Audience</th>
+          <th scope="col">Recipients</th>
+          <th scope="col">Status</th>
+          <th scope="col">Sent At</th>
+        </tr>
+      </thead>
+      <tbody id="comm-log-body">
+        <tr><td colspan="5">No messages yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>

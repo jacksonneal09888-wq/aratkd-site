@@ -1,0 +1,105 @@
+<div class="admin-drawer" id="admin-email-drawer" hidden>
+  <div class="admin-drawer__backdrop" id="admin-email-drawer-backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <button class="admin-drawer__close text-link-btn" id="admin-email-drawer-close" aria-label="Close email panel">Close ✕</button>
+    <div class="admin-drawer__header">
+      <p class="eyebrow">Email Parents</p>
+      <h3>Send Announcement</h3>
+      <p class="admin-card__meta">Square-style messaging layout with audience filters.</p>
+    </div>
+    <form id="admin-email-form" class="admin-email-form email-panel">
+      <div class="email-recipient-row admin-radio-grid">
+        <label class="pill-button"><input type="radio" name="email-audience" value="all" checked> All Parents</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="active"> Active Students</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="belt"> Belts</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="class"> Specific Class</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="student"> Single Student</label>
+      </div>
+      <div class="admin-email-columns">
+        <div class="admin-email-left">
+          <label>
+            <span>Direct Email (single send)</span>
+            <input type="email" id="email-direct" placeholder="parent@example.com">
+            <small class="admin-card__meta">Use for one-off tests without a Student ID.</small>
+          </label>
+          <label>
+            <span>Belt (optional)</span>
+            <select id="email-belt">
+              <option value="">Any</option>
+              <option value="White Belt">White Belt</option>
+              <option value="Yellow Belt">Yellow Belt</option>
+              <option value="Green Belt">Green Belt</option>
+              <option value="Blue Belt">Blue Belt</option>
+              <option value="Red Belt">Red Belt</option>
+              <option value="Black Belt">Black Belt</option>
+            </select>
+          </label>
+          <label>
+            <span>Class (optional)</span>
+            <input type="text" id="email-class" placeholder="e.g. Little Ninjas">
+          </label>
+          <label>
+            <span>Student ID (optional)</span>
+            <div class="email-inline">
+              <input type="text" id="email-student-id" placeholder="ARA001">
+              <button type="button" class="secondary-btn" id="email-use-selected">Use Selected</button>
+            </div>
+          </label>
+        </div>
+        <div class="admin-email-right">
+          <label>
+            <span>Subject</span>
+            <input type="text" id="email-subject">
+          </label>
+          <label>
+            <span>Template</span>
+            <select id="email-template">
+              <option value="">None</option>
+              <option value="cancellation">Cancellation</option>
+              <option value="announcement">Announcement</option>
+              <option value="billing">Billing Reminder</option>
+              <option value="testing">Testing</option>
+              <option value="holiday">Holiday</option>
+            </select>
+          </label>
+          <label>
+            <span>Message</span>
+            <textarea id="email-body" class="email-message" rows="10" placeholder="Write your announcement..."></textarea>
+          </label>
+          <label>
+            <span>Attachment (optional)</span>
+            <input type="file" id="email-attachment" />
+          </label>
+        </div>
+      </div>
+      <div class="admin-topbar__actions" style="justify-content:flex-start;">
+        <button class="btn-primary" type="submit" id="email-preview-trigger">Preview &amp; Send</button>
+        <span id="email-recipient-preview" class="admin-card__meta"></span>
+      </div>
+      <p class="form-status" id="email-status" aria-live="polite"></p>
+    </form>
+
+    <div class="admin-modal" id="email-preview-modal" hidden>
+      <div class="admin-modal__backdrop" id="email-preview-backdrop"></div>
+      <div class="admin-modal__dialog">
+        <div class="admin-modal__header">
+          <h4>Email Preview</h4>
+          <button class="text-link-btn" id="email-preview-cancel">Close ✕</button>
+        </div>
+        <div class="admin-modal__body" id="email-preview-body">
+          <p><strong>Subject:</strong> <span id="preview-subject">—</span></p>
+          <p><strong>Recipients:</strong> <span id="preview-count">0</span></p>
+          <div class="preview-recipient-list" id="preview-recipient-list"></div>
+          <div class="preview-message">
+            <p class="admin-card__meta">Message</p>
+            <div id="preview-message">—</div>
+          </div>
+        </div>
+        <div class="admin-modal__footer">
+          <button class="btn-primary" id="email-preview-confirm">Confirm Send</button>
+          <button class="btn-ghost" id="email-preview-cancel-2">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>

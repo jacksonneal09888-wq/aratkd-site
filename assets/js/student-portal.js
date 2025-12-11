@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
 
 const ADMIN_STORAGE_KEY = "araPortalAdminSession";
 const ADMIN_TAB_STORAGE_KEY = "araAdminActiveTab";
+const MESSAGE_LOG_KEY = "araAdminMessageLog";
 const API_BASE_URL = (() => {
     const globalValue = typeof window !== "undefined" ? window.PORTAL_API_BASE : "";
     const bodyValue = typeof document !== "undefined" && document.body ? document.body.dataset.apiBase : "";
@@ -34,8 +35,9 @@ function readStoredAdminTab() {
             "tab-students",
             "tab-events",
             "tab-membership",
-            "tab-notes",
-            "tab-settings"
+            "tab-email",
+            "tab-settings",
+            "tab-communications"
         ]);
         return stored && allowedTabs.has(stored) ? stored : null;
     } catch (error) {
@@ -494,7 +496,10 @@ const portalEls = {
     adminEmailUseSelected: document.getElementById("email-use-selected"),
     adminEmailSubject: document.getElementById("email-subject"),
     adminEmailBody: document.getElementById("email-body"),
+    adminEmailTemplate: document.getElementById("email-template"),
     adminEmailStatus: document.getElementById("email-status"),
+    emailRecipientPreview: document.getElementById("email-recipient-preview"),
+    emailPreviewTrigger: document.getElementById("email-preview-trigger"),
     adminRoster: document.getElementById("admin-roster"),
     adminRosterBody: document.getElementById("admin-roster-body"),
     adminRosterRefresh: document.getElementById("admin-roster-refresh"),
@@ -510,11 +515,6 @@ const portalEls = {
     adminRosterPhone: document.getElementById("admin-roster-phone"),
     adminRosterBelt: document.getElementById("admin-roster-belt"),
     adminRosterStatus: document.getElementById("admin-roster-status"),
-    adminRosterNoteForm: document.getElementById("admin-roster-note-form"),
-    adminRosterNoteType: document.getElementById("admin-roster-note-type"),
-    adminRosterNoteMessage: document.getElementById("admin-roster-note-message"),
-    adminRosterNoteAuthor: document.getElementById("admin-roster-note-author"),
-    adminRosterNotesList: document.getElementById("admin-roster-notes-list"),
     adminRosterNewtab: document.getElementById("admin-roster-newtab"),
     adminRosterCardStatus: document.getElementById("admin-roster-card-status"),
     adminRosterCard30: document.getElementById("admin-roster-card-30"),
@@ -528,13 +528,14 @@ const portalEls = {
     adminAttendanceAdjustNote: document.getElementById("admin-attendance-adjust-note"),
     adminAttendanceAdjustStatus: document.getElementById("admin-attendance-adjust-status"),
     adminTrigger: document.getElementById("admin-trigger"),
-    studentModal: document.getElementById("student-detail-modal"),
-    studentModalBackdrop: document.getElementById("student-modal-backdrop"),
-    studentModalClose: document.getElementById("student-modal-close"),
+    studentModal: document.getElementById("student-drawer"),
+    studentModalBackdrop: document.getElementById("student-drawer-backdrop"),
+    studentModalClose: document.getElementById("student-drawer-close"),
     studentModalTitle: document.getElementById("student-modal-title"),
     studentModalMeta: document.getElementById("student-modal-meta"),
     studentModalAvatar: document.getElementById("student-modal-avatar"),
     studentModalStatusPill: document.getElementById("student-modal-status-pill"),
+    studentModalMembershipPill: document.getElementById("student-modal-membership-pill"),
     studentModalLastAttended: document.getElementById("student-modal-last-attended"),
     studentModalLastAttendedPill: document.getElementById("student-modal-lastattended-pill"),
     studentModalLast30: document.getElementById("student-modal-last30"),
@@ -560,11 +561,11 @@ const portalEls = {
     studentModalProgressBelt: document.getElementById("student-modal-progress-belt"),
     studentModalProgressMembership: document.getElementById("student-modal-progress-membership"),
     studentModalStatus: document.getElementById("student-modal-status"),
-    classModal: document.getElementById("class-attendance-modal"),
-    classModalBackdrop: document.getElementById("class-modal-backdrop"),
-    classModalClose: document.getElementById("class-modal-close"),
-    classModalDone: document.getElementById("class-modal-done"),
-    classModalOpen: document.getElementById("class-modal-open"),
+    classModal: document.getElementById("class-drawer"),
+    classModalBackdrop: document.getElementById("class-drawer-backdrop"),
+    classModalClose: document.getElementById("class-drawer-close"),
+    classModalDone: document.getElementById("class-drawer-done"),
+    classModalOpen: document.getElementById("admin-class-drawer-open"),
     classModalWaiting: document.getElementById("class-modal-waiting"),
     classModalReserved: document.getElementById("class-modal-reserved"),
     classModalAttended: document.getElementById("class-modal-attended"),
@@ -588,8 +589,180 @@ const portalEls = {
     adminEmailDrawer: document.getElementById("admin-email-drawer"),
     adminEmailDrawerBackdrop: document.getElementById("admin-email-drawer-backdrop"),
     adminEmailDrawerClose: document.getElementById("admin-email-drawer-close"),
-    adminEmailDrawerOpen: document.getElementById("admin-email-drawer-open")
+    adminEmailDrawerOpen: document.getElementById("admin-email-drawer-open"),
+    emailPreviewModal: document.getElementById("email-preview-modal"),
+    emailPreviewBackdrop: document.getElementById("email-preview-backdrop"),
+    emailPreviewBody: document.getElementById("email-preview-body"),
+    emailPreviewSubject: document.getElementById("preview-subject"),
+    emailPreviewCount: document.getElementById("preview-count"),
+    emailPreviewList: document.getElementById("preview-recipient-list"),
+    emailPreviewMessage: document.getElementById("preview-message"),
+    emailPreviewConfirm: document.getElementById("email-preview-confirm"),
+    emailPreviewCancel: document.getElementById("email-preview-cancel"),
+    emailPreviewCancel2: document.getElementById("email-preview-cancel-2")
 };
+
+function refreshAdminEls() {
+    const mapping = {
+        adminDashboard: "admin-dashboard",
+        adminSummaryBody: "admin-summary-body",
+        adminEventsList: "admin-events-list",
+        adminRefresh: "admin-refresh",
+        adminExpand: "admin-expand",
+        adminSummaryDownload: "admin-summary-download",
+        adminThemeToggle: "admin-theme-toggle",
+        adminLauncher: "admin-launcher",
+        adminModal: "admin-modal",
+        adminBackdrop: "admin-modal-backdrop",
+        adminClose: "admin-close",
+        adminEnroll: "admin-enroll",
+        adminEnrollForm: "admin-enroll-form",
+        adminEnrollStatus: "admin-enroll-status",
+        adminEnrollResult: "admin-enroll-result",
+        adminEnrollDetails: "admin-enroll-details",
+        adminEnrollAttendance: "admin-enroll-attendance",
+        adminGeneratedAt: "admin-generated-at",
+        adminAttendance: "admin-attendance",
+        adminAttendanceBody: "admin-attendance-body",
+        adminAttendanceRefresh: "admin-attendance-refresh",
+        adminEvents: "admin-events",
+        adminEventsBody: "admin-events-body",
+        adminEventsRefresh: "admin-events-refresh",
+        adminEventsForm: "admin-events-form",
+        adminEventName: "admin-event-name",
+        adminEventDescription: "admin-event-description",
+        adminEventStart: "admin-event-start",
+        adminEventEnd: "admin-event-end",
+        adminEventCapacity: "admin-event-capacity",
+        adminEventType: "admin-event-type",
+        adminEventActive: "admin-event-active",
+        adminEventsStatus: "admin-events-status",
+        adminTabs: "admin-tabs",
+        adminCalendarUpcoming: "admin-calendar-upcoming",
+        adminEmailForm: "admin-email-form",
+        adminEmailBelt: "email-belt",
+        adminEmailClass: "email-class",
+        adminEmailStudent: "email-student-id",
+        adminEmailAttachment: "email-attachment",
+        adminEmailDirect: "email-direct",
+        adminEmailUseSelected: "email-use-selected",
+        adminEmailSubject: "email-subject",
+        adminEmailBody: "email-body",
+        adminEmailTemplate: "email-template",
+        adminEmailStatus: "email-status",
+        adminRoster: "admin-roster",
+        adminRosterBody: "admin-roster-body",
+        adminRosterRefresh: "admin-roster-refresh",
+        adminRosterDetail: "admin-roster-detail",
+        adminRosterStudentName: "admin-roster-student-name",
+        adminRosterStudentMeta: "admin-roster-student-meta",
+        adminRosterMembership: "admin-roster-membership",
+        adminRosterSave: "admin-roster-save",
+        adminRosterEditForm: "admin-roster-edit-form",
+        adminRosterEditStatus: "admin-roster-edit-status",
+        adminRosterName: "admin-roster-name",
+        adminRosterEmail: "admin-roster-email",
+        adminRosterPhone: "admin-roster-phone",
+        adminRosterBelt: "admin-roster-belt",
+        adminRosterStatus: "admin-roster-status",
+        adminRosterSearch: "admin-roster-search",
+        adminRosterSort: "admin-roster-sort",
+        adminRosterNewtab: "admin-roster-newtab",
+        adminRosterCardStatus: "admin-roster-card-status",
+        adminRosterCard30: "admin-roster-card-30",
+        adminRosterCard60: "admin-roster-card-60",
+        adminRosterCardMembership: "admin-roster-card-membership",
+        adminRosterLastAttended: "admin-roster-last-attended",
+        adminAttendanceAdjustForm: "admin-attendance-adjust-form",
+        adminAttendanceAdjustValue: "admin-attendance-adjust-value",
+        adminAttendanceAdjustClass: "admin-attendance-adjust-class",
+        adminAttendanceAdjustLevel: "admin-attendance-adjust-level",
+        adminAttendanceAdjustNote: "admin-attendance-adjust-note",
+        adminAttendanceAdjustStatus: "admin-attendance-adjust-status",
+        adminTrigger: "admin-trigger",
+        commDateFrom: "comm-date-from",
+        commDateTo: "comm-date-to",
+        commAudienceFilter: "comm-audience-filter",
+        commSubjectFilter: "comm-subject-filter",
+        commLogBody: "comm-log-body",
+        msgMetricToday: "msg-metric-today",
+        msgMetricWeek: "msg-metric-week",
+        msgMetricBelt: "msg-metric-belt",
+        adminEventDrawer: "admin-event-drawer",
+        adminEventDrawerBackdrop: "admin-event-drawer-backdrop",
+        adminEventDrawerClose: "admin-event-drawer-close",
+        adminEventDrawerOpen: "admin-event-drawer-open",
+        adminEmailDrawer: "admin-email-drawer",
+        adminEmailDrawerBackdrop: "admin-email-drawer-backdrop",
+        adminEmailDrawerClose: "admin-email-drawer-close",
+        adminEmailDrawerOpen: "admin-email-drawer-open",
+        emailPreviewModal: "email-preview-modal",
+        emailPreviewBackdrop: "email-preview-backdrop",
+        emailPreviewBody: "email-preview-body",
+        emailPreviewSubject: "preview-subject",
+        emailPreviewCount: "preview-count",
+        emailPreviewList: "preview-recipient-list",
+        emailPreviewMessage: "preview-message",
+        emailPreviewConfirm: "email-preview-confirm",
+        emailPreviewCancel: "email-preview-cancel",
+        emailPreviewCancel2: "email-preview-cancel-2",
+        emailRecipientPreview: "email-recipient-preview",
+        emailPreviewTrigger: "email-preview-trigger",
+        studentModal: "student-drawer",
+        studentModalBackdrop: "student-drawer-backdrop",
+        studentModalClose: "student-drawer-close",
+        studentModalTitle: "student-modal-title",
+        studentModalMeta: "student-modal-meta",
+        studentModalAvatar: "student-modal-avatar",
+        studentModalStatusPill: "student-modal-status-pill",
+        studentModalMembershipPill: "student-modal-membership-pill",
+        studentModalLastAttended: "student-modal-last-attended",
+        studentModalLastAttendedPill: "student-modal-lastattended-pill",
+        studentModalLast30: "student-modal-last30",
+        studentModalLast60: "student-modal-last60",
+        studentModalEditForm: "student-modal-edit-form",
+        studentModalNameInput: "student-modal-name",
+        studentModalEmailInput: "student-modal-email",
+        studentModalPhoneInput: "student-modal-phone",
+        studentModalBelt: "student-modal-belt",
+        studentModalMembership: "student-modal-membership",
+        studentModalStatusField: "student-modal-status",
+        studentModalAttendanceList: "student-modal-attendance-list",
+        studentModalNotesForm: "student-modal-note-form",
+        studentModalNoteType: "student-modal-note-type",
+        studentModalNoteAuthor: "student-modal-note-author",
+        studentModalNoteMessage: "student-modal-note-message",
+        studentModalNotesFilter: "student-modal-notes-filter",
+        studentModalNotesList: "student-modal-notes-list",
+        studentModalBillingMembership: "student-modal-billing-membership",
+        studentModalBillingStatus: "student-modal-billing-status",
+        studentModalProgressBelt: "student-modal-progress-belt",
+        studentModalProgressMembership: "student-modal-progress-membership",
+        studentModalStatus: "student-modal-status",
+        classModal: "class-drawer",
+        classModalBackdrop: "class-drawer-backdrop",
+        classModalClose: "class-drawer-close",
+        classModalDone: "class-drawer-done",
+        classModalOpen: "admin-class-drawer-open",
+        classModalWaiting: "class-modal-waiting",
+        classModalReserved: "class-modal-reserved",
+        classModalAttended: "class-modal-attended",
+        classModalInstructor: "class-modal-instructor",
+        classModalWod: "class-modal-wod",
+        classModalMember: "class-modal-member",
+        classModalReserve: "class-modal-reserve",
+        classModalSignin: "class-modal-signin",
+        classModalDropin: "class-modal-dropin",
+        classModalMoveAll: "class-modal-move-all",
+        classModalClearAttended: "class-modal-clear-attended",
+        classModalEdit: "class-modal-edit"
+    };
+    Object.entries(mapping).forEach(([key, id]) => {
+        portalEls[key] = document.getElementById(id) || portalEls[key];
+    });
+    portalEls.studentModalNavButtons = document.querySelectorAll("#student-drawer [data-student-panel-target]");
+    portalEls.studentModalPanels = document.querySelectorAll("#student-drawer [data-student-panel]");
+}
 
 const THEME_STORAGE_KEY = "aratkd-theme";
 
@@ -620,6 +793,20 @@ function toggleDrawer(drawerEl, show) {
     const shouldShow = show === undefined ? true : Boolean(show);
     drawerEl.hidden = !shouldShow;
     document.body.classList.toggle("admin-modal-open", shouldShow);
+}
+
+const boundHandlers = new WeakMap();
+function bindOnce(el, event, handler) {
+    if (!el || typeof el.addEventListener !== "function") return;
+    if (!boundHandlers.has(el)) {
+        boundHandlers.set(el, new Map());
+    }
+    const eventMap = boundHandlers.get(el);
+    const handlers = eventMap.get(event) || new Set();
+    if (handlers.has(handler)) return;
+    el.addEventListener(event, handler);
+    handlers.add(handler);
+    eventMap.set(event, handlers);
 }
 
 const portalState = {
@@ -653,15 +840,49 @@ const portalState = {
         events: [],
         eventsGeneratedAt: null,
         activeTab: readStoredAdminTab() || "tab-dashboard",
-        studentModalPanel: "overview"
+        studentModalPanel: "overview",
+        rosterSearch: "",
+        rosterSort: "name",
+        isRosterLoading: false,
+        isAttendanceLoading: false,
+        studentDrawerMemory: {},
+        classCompactMode: false,
+        classFilter: "all",
+        messageLog: loadMessageLog(),
+        pendingEmail: null,
+        pendingClassRecipients: null,
+        localMessageNotes: {}
     }
 };
+
+function loadMessageLog() {
+    try {
+        const raw = localStorage.getItem(MESSAGE_LOG_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn("message log load failed", error);
+        return [];
+    }
+}
+
+function persistMessageLog(log) {
+    try {
+        localStorage.setItem(MESSAGE_LOG_KEY, JSON.stringify(log || []));
+    } catch (error) {
+        console.warn("message log persist failed", error);
+    }
+}
 
 const classModalState = {
     waiting: [],
     reserved: [],
     attended: []
 };
+
+const CLASS_INSTRUCTOR_KEY = "araClassInstructor";
+const CLASS_COMPACT_KEY = "araClassCompactMode";
 
 function normalizeRosterTable() {
     const rosterTable = document.querySelector("#admin-roster table.admin-table");
@@ -716,149 +937,477 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function attachHandlers() {
-    portalEls.form?.addEventListener("submit", handleLogin);
-    portalEls.logout?.addEventListener("click", handleLogout);
-    portalEls.refresh?.addEventListener("click", () => {
-        if (portalState.activeStudent) {
-            renderPortal();
-            setStatus("Portal refreshed.", "success");
-        }
-    });
-    portalEls.readinessForm?.addEventListener("submit", handleReadinessSubmit);
-    portalEls.beltTestApplicationBtn?.addEventListener("click", handleBeltTestButton);
-    portalEls.beltTestForm?.addEventListener("submit", handleBeltTestApplication);
-    portalEls.adminForm?.addEventListener("submit", handleAdminLogin);
-    portalEls.adminSubmit?.addEventListener("click", (e) => {
-        // ensure click triggers even if form submit is blocked by autofill overlays
-        if (portalEls.adminForm) {
-            e.preventDefault();
-            handleAdminLogin(e);
-        }
-    });
-    portalEls.adminThemeToggle?.addEventListener("click", () => {
-        const nextTheme = (document.documentElement.getAttribute("data-theme") || "light") === "light" ? "dark" : "light";
-        applyTheme(nextTheme);
-        persistTheme(nextTheme);
-    });
-    portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
-    portalEls.adminRosterRefresh?.addEventListener("click", handleAdminRosterRefresh);
-    portalEls.adminLauncher?.addEventListener("click", (event) => {
-        event.preventDefault();
-        requestAdminAccess();
-    });
-    portalEls.adminTrigger?.addEventListener("click", (event) => {
-        event.preventDefault();
-        requestAdminAccess();
-    });
-    portalEls.adminRosterBody?.addEventListener("click", handleAdminRosterAction);
-
-    portalEls.adminRosterEditForm?.addEventListener("submit", handleRosterEditSubmit);
-    portalEls.adminRosterSave?.addEventListener("click", handleAdminMembershipSave);
-    portalEls.adminRosterNoteForm?.addEventListener("submit", handleAdminNoteSubmit);
-    portalEls.studentModalNotesFilter?.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-note-filter]");
-        if (!button) return;
-        setRosterNotesFilter(button.dataset.noteFilter || "all");
-    });
-    portalEls.adminAttendanceAdjustForm?.addEventListener("submit", handleAttendanceAdjust);
-    portalEls.adminRosterDetail?.addEventListener("click", handleRosterDetailButtons);
-    portalEls.adminRosterNewtab?.addEventListener("click", () => {
-        const student = portalState.admin.rosterSelected;
-        if (!student) return;
-        window.open(`${window.location.pathname}?student=${encodeURIComponent(student.id)}#admin`, "_blank");
-    });
-    portalEls.adminClose?.addEventListener("click", closeAdminModal);
-    portalEls.adminBackdrop?.addEventListener("click", closeAdminModal);
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            if (portalEls.adminModal && !portalEls.adminModal.hidden) {
-                closeAdminModal();
-            }
-            if (portalEls.classModal && !portalEls.classModal.hidden) {
-                closeClassModal();
-            }
-            if (portalEls.studentModal && !portalEls.studentModal.hidden) {
-                closeStudentModal();
-            }
-            if (portalEls.adminEventDrawer && !portalEls.adminEventDrawer.hidden) {
-                toggleDrawer(portalEls.adminEventDrawer, false);
-            }
-            if (portalEls.adminEmailDrawer && !portalEls.adminEmailDrawer.hidden) {
-                toggleDrawer(portalEls.adminEmailDrawer, false);
-            }
-        }
-    });
-    document.addEventListener("keydown", handleHiddenKeySequence);
-    portalEls.adminAttendanceRefresh?.addEventListener("click", loadAdminAttendance);
-    portalEls.adminEventsRefresh?.addEventListener("click", loadAdminEvents);
-    portalEls.adminEventsForm?.addEventListener("submit", handleAdminEventSubmit);
-    portalEls.adminEventsBody?.addEventListener("click", handleAdminEventAction);
-    portalEls.adminSummaryDownload?.addEventListener("click", downloadAdminSummary);
-    portalEls.adminExpand?.addEventListener("click", toggleAdminPanelSize);
-    portalEls.adminSummaryBody?.addEventListener("click", handleAdminSummaryAction);
-    portalEls.adminEnrollForm?.addEventListener("submit", handleAdminEnrollSubmit);
-    portalEls.adminEmailForm?.addEventListener("submit", handleAdminEmailSubmit);
-    portalEls.adminEmailUseSelected?.addEventListener("click", (event) => {
-        event.preventDefault();
-        const student = portalState.admin.rosterSelected;
-        if (student?.id && portalEls.adminEmailStudent) {
-            portalEls.adminEmailStudent.value = student.id;
-            setAdminEmailStatus(`Using selected student ${student.id}`, "success");
-        } else {
-            setAdminEmailStatus("Select a student from the roster first.", "error");
-        }
-    });
-    portalEls.reportCardClose?.addEventListener("click", closeReportCard);
-    portalEls.reportCardDownload?.addEventListener("click", downloadReportCard);
-    portalEls.reportCardModal?.addEventListener("click", (event) => {
-        if (event.target === portalEls.reportCardModal) {
-            closeReportCard();
-        }
-    });
-    portalEls.studentModalClose?.addEventListener("click", closeStudentModal);
-    portalEls.studentModalBackdrop?.addEventListener("click", closeStudentModal);
-    portalEls.studentModalEditForm?.addEventListener("submit", handleStudentModalSave);
-    portalEls.studentModalNotesForm?.addEventListener("submit", handleAdminNoteSubmit);
-    portalEls.studentModalNavButtons?.forEach((btn) =>
-        btn.addEventListener("click", handleStudentModalNav)
-    );
-    document.addEventListener("click", handleStudentModalAction);
-    if (portalEls.adminTabs) {
-        portalEls.adminTabs.addEventListener("click", handleAdminTabClick);
+document.body.addEventListener("admin:component:loaded", (event) => {
+    const tabId = event?.detail?.tabId || portalState.admin.activeTab;
+    if (tabId) {
+        portalState.admin.activeTab = tabId;
     }
-    portalEls.classModalOpen?.addEventListener("click", () => openClassModal());
-    portalEls.classModalClose?.addEventListener("click", closeClassModal);
-    portalEls.classModalDone?.addEventListener("click", closeClassModal);
-    portalEls.classModalBackdrop?.addEventListener("click", closeClassModal);
-    portalEls.classModalReserve?.addEventListener("click", () => addClassModalEntry("reserved"));
-    portalEls.classModalSignin?.addEventListener("click", () => addClassModalEntry("attended"));
-    portalEls.classModalDropin?.addEventListener("click", () => addClassModalEntry("attended", "Drop-in Guest"));
-    portalEls.classModalMoveAll?.addEventListener("click", moveAllToAttended);
-    portalEls.classModalClearAttended?.addEventListener("click", clearClassAttended);
-    portalEls.classModalEdit?.addEventListener("click", () => {
-        openClassModal();
-        portalEls.classModalWod?.focus();
+    refreshAdminEls();
+    attachHandlers();
+    if (portalState.admin.isAuthorized) {
+        renderAdminDashboard();
+        loadAdminRoster();
+        loadAdminEvents();
+        loadAdminAttendance();
+        renderCommunicationsLog();
+    }
+    if (tabId) {
+        showAdminTab(tabId);
+        if (tabId === "tab-communications") {
+            renderCommunicationsLog();
+        }
+    }
+});
+
+function handlePortalRefresh() {
+    if (!portalState.activeStudent) return;
+    renderPortal();
+    setStatus("Portal refreshed.", "success");
+}
+
+function handleAdminSubmitClick(event) {
+    if (portalEls.adminForm) {
+        event.preventDefault();
+        handleAdminLogin(event);
+    }
+}
+
+function handleThemeToggleClick() {
+    const nextTheme =
+        (document.documentElement.getAttribute("data-theme") || "light") === "light"
+            ? "dark"
+            : "light";
+    applyTheme(nextTheme);
+    persistTheme(nextTheme);
+}
+
+function handleAdminAccessClick(event) {
+    event.preventDefault();
+    requestAdminAccess();
+}
+
+function handleStudentNotesFilterClick(event) {
+    const button = event.target.closest("[data-note-filter]");
+    if (!button) return;
+    setRosterNotesFilter(button.dataset.noteFilter || "all");
+}
+
+function handleRosterNewTab() {
+    const student = portalState.admin.rosterSelected;
+    if (!student) return;
+    window.open(
+        `${window.location.pathname}?student=${encodeURIComponent(student.id)}#admin`,
+        "_blank"
+    );
+}
+
+function handleEscapeKey(event) {
+    if (event.key !== "Escape") return;
+    if (portalEls.adminModal && !portalEls.adminModal.hidden) {
+        closeAdminModal();
+    }
+    if (portalEls.classModal && !portalEls.classModal.hidden) {
+        closeClassModal();
+    }
+    if (portalEls.studentModal && !portalEls.studentModal.hidden) {
+        closeStudentModal();
+    }
+    if (portalEls.adminEventDrawer && !portalEls.adminEventDrawer.hidden) {
+        toggleDrawer(portalEls.adminEventDrawer, false);
+    }
+    if (portalEls.adminEmailDrawer && !portalEls.adminEmailDrawer.hidden) {
+        toggleDrawer(portalEls.adminEmailDrawer, false);
+    }
+    if (portalEls.emailPreviewModal && !portalEls.emailPreviewModal.hidden) {
+        closeEmailPreview();
+    }
+}
+
+function handleAdminEmailUseSelected(event) {
+    event.preventDefault();
+    const student = portalState.admin.rosterSelected;
+    if (student?.id && portalEls.adminEmailStudent) {
+        portalEls.adminEmailStudent.value = student.id;
+        setAdminEmailStatus(`Using selected student ${student.id}`, "success");
+    } else {
+        setAdminEmailStatus("Select a student from the roster first.", "error");
+    }
+}
+
+function handleEmailTemplateSelect() {
+    const template = (portalEls.adminEmailTemplate?.value || "").toLowerCase();
+    const templates = {
+        cancellation: {
+            subject: "Class Cancellation Notice",
+            body: "Hi families,\n\nWe need to cancel today's class. Please watch for the reschedule link.\n\nThank you,\nARA TKD"
+        },
+        announcement: {
+            subject: "New Announcement from ARA TKD",
+            body: "Hi everyone,\n\nHere's an important update for this week.\n\nSee you in class,\nARA TKD"
+        },
+        billing: {
+            subject: "Billing Reminder",
+            body: "Hello,\n\nThis is a friendly reminder about your upcoming payment. Please contact us if you have questions.\n\nThank you,\nARA TKD"
+        },
+        testing: {
+            subject: "Testing Week Details",
+            body: "Hi,\n\nTesting week is approaching. Please review requirements and arrive early.\n\nRegards,\nARA TKD"
+        },
+        holiday: {
+            subject: "Holiday Schedule",
+            body: "Hi everyone,\n\nHere are our holiday hours and any closures. Have a safe break!\n\nARA TKD"
+        }
+    };
+    if (!template || !templates[template]) return;
+    const preset = templates[template];
+    if (portalEls.adminEmailSubject) {
+        portalEls.adminEmailSubject.value = preset.subject;
+    }
+    if (portalEls.adminEmailBody) {
+        portalEls.adminEmailBody.value = preset.body;
+    }
+}
+
+function buildEmailRecipients({ recipientType, belt, className, studentId, directEmails = [] }) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const roster = portalState.admin.roster || [];
+    const recipients = new Set();
+    const studentIds = new Set();
+    const missing = [];
+    const invalid = [];
+    const addStudentEmail = (student) => {
+        if (!student) return;
+        if (!student.email) {
+            missing.push(student.name || student.id || "Student");
+            return;
+        }
+        if (!emailRegex.test(student.email)) {
+            invalid.push(student.email);
+            return;
+        }
+        recipients.add(student.email);
+        if (student.id) studentIds.add(student.id);
+    };
+    const classRecipients =
+        recipientType === "class" ? portalState.admin.pendingClassRecipients : null;
+    const hasPreResolvedClass = Boolean(classRecipients);
+    if (classRecipients) {
+        (classRecipients.emails || []).forEach((email) => {
+            if (emailRegex.test(email)) {
+                recipients.add(email);
+            } else {
+                invalid.push(email);
+            }
+        });
+        (classRecipients.studentIds || []).forEach((id) => studentIds.add(id));
+        if (Array.isArray(classRecipients.missing)) {
+            missing.push(...classRecipients.missing);
+        }
+    }
+    if (recipientType === "student") {
+        if (studentId) {
+            const found = roster.find((s) => s.id?.toLowerCase() === studentId.toLowerCase());
+            if (found) {
+                addStudentEmail(found);
+            } else {
+                missing.push(studentId);
+            }
+        }
+    } else if (recipientType === "active") {
+        roster.forEach((student) => {
+            const status = (student.status || "").toLowerCase();
+            if (!student.isSuspended && status === "active") addStudentEmail(student);
+        });
+    } else if (recipientType === "belt" && belt) {
+        roster.forEach((student) => {
+            if ((student.currentBelt || "").toLowerCase() === belt.toLowerCase()) {
+                addStudentEmail(student);
+            }
+        });
+    } else {
+        roster.forEach((student) => addStudentEmail(student));
+    }
+    directEmails.forEach((email) => {
+        if (emailRegex.test(email)) recipients.add(email);
+        else invalid.push(email);
     });
-    document.addEventListener("click", handleClassActionButtons);
-    portalEls.adminEventDrawerOpen?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEventDrawer, true)
+    // class filter: best-effort using className keyword search in notes/profile text
+    if (recipientType === "class" && className && !hasPreResolvedClass) {
+        const nameLower = className.toLowerCase();
+        roster.forEach((student) => {
+            const haystack = `${student.notes || ""} ${student.classes || ""}`.toLowerCase();
+            if (haystack.includes(nameLower)) {
+                addStudentEmail(student);
+            }
+        });
+    }
+    return {
+        recipients: Array.from(recipients),
+        studentIds: Array.from(studentIds),
+        missing,
+        invalid
+    };
+}
+
+function handleReportCardModalClick(event) {
+    if (event.target === portalEls.reportCardModal) {
+        closeReportCard();
+    }
+}
+
+function handleClassModalEditClick() {
+    openClassModal();
+    portalEls.classModalWod?.focus();
+}
+
+function handleClassModalReserveClick() {
+    addClassModalEntry("reserved");
+}
+
+function handleClassModalSigninClick() {
+    addClassModalEntry("attended");
+}
+
+function handleClassModalDropinClick() {
+    addClassModalEntry("attended", "Drop-in Guest");
+}
+
+function handleClassModalOpenClick() {
+    openClassModal();
+}
+
+function handleClassFilterClick(event) {
+    const messageBtn = event.target.closest("[data-class-message]");
+    if (messageBtn) {
+        handleClassMessage(messageBtn.dataset.classMessage || "attended");
+        return;
+    }
+    const button = event.target.closest("[data-class-filter]");
+    if (!button) return;
+    portalState.admin.classFilter = button.dataset.classFilter || "all";
+    document
+        .querySelectorAll("[data-class-filter]")
+        .forEach((btn) => btn.classList.toggle("is-active", btn === button));
+    renderClassModalLists();
+}
+
+function handleClassCompactToggle(event) {
+    const isCompact = Boolean(event?.target?.checked);
+    portalState.admin.classCompactMode = isCompact;
+    persistClassCompactMode(isCompact);
+    applyClassCompactMode();
+}
+
+function resolveClassRecipients(scope = "attended") {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const roster = portalState.admin.roster || [];
+    const lists = {
+        waiting: classModalState.waiting || [],
+        reserved: classModalState.reserved || [],
+        attended: classModalState.attended || []
+    };
+    const selected =
+        scope === "all"
+            ? [...lists.waiting, ...lists.reserved, ...lists.attended]
+            : lists[scope] || [];
+    const emails = new Set();
+    const studentIds = new Set();
+    const missing = [];
+    selected.forEach((entry) => {
+        const name = (entry?.name || "").trim();
+        if (!name) return;
+        const match = roster.find(
+            (student) =>
+                student.id?.toLowerCase() === name.toLowerCase() ||
+                student.name?.toLowerCase() === name.toLowerCase()
+        );
+        if (match) {
+            if (!match.email) {
+                missing.push(match.name || match.id || "Student");
+                return;
+            }
+            if (!emailRegex.test(match.email)) {
+                missing.push(match.name || match.email || "Invalid email");
+                return;
+            }
+            emails.add(match.email);
+            if (match.id) studentIds.add(match.id);
+            return;
+        }
+        if (emailRegex.test(name)) {
+            emails.add(name);
+            return;
+        }
+        missing.push(name);
+    });
+    return {
+        emails: Array.from(emails),
+        studentIds: Array.from(studentIds),
+        missing
+    };
+}
+
+function handleClassMessage(scope = "attended") {
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    const { emails, studentIds, missing } = resolveClassRecipients(scope);
+    const label = scope.charAt(0).toUpperCase() + scope.slice(1);
+    const className = portalEls.classModalWod?.value?.trim() || `${label} List`;
+    portalState.admin.pendingClassRecipients = {
+        emails,
+        studentIds,
+        className,
+        scope
+    };
+    const classRadio = portalEls.adminEmailForm?.querySelector(
+        "input[name='email-audience'][value='class']"
     );
-    portalEls.adminEventDrawerClose?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEventDrawer, false)
+    if (classRadio) classRadio.checked = true;
+    if (portalEls.adminEmailClass) {
+        portalEls.adminEmailClass.value = className;
+    }
+    handleAdminEmailDrawerOpen();
+    if (portalEls.emailRecipientPreview) {
+        const missingText = missing.length ? ` • ${missing.length} missing emails` : "";
+        portalEls.emailRecipientPreview.textContent = `${emails.length} recipient(s)${missingText}`;
+    }
+    if (missing.length) {
+        setAdminEmailStatus(
+            `${missing.length} attendee(s) missing email. Update roster or add direct emails.`,
+            "progress"
+        );
+    } else {
+        setAdminEmailStatus(`Prepared class message for ${label}.`, "progress");
+    }
+}
+
+function handleAdminEventDrawerOpen() {
+    toggleDrawer(portalEls.adminEventDrawer, true);
+}
+
+function handleAdminEventDrawerClose() {
+    toggleDrawer(portalEls.adminEventDrawer, false);
+}
+
+function handleAdminEmailDrawerOpen() {
+    toggleDrawer(portalEls.adminEmailDrawer, true);
+}
+
+function handleAdminEmailDrawerClose() {
+    toggleDrawer(portalEls.adminEmailDrawer, false);
+}
+
+function handleRosterSearch(event) {
+    portalState.admin.rosterSearch = (event?.target?.value || "").trim().toLowerCase();
+    renderAdminRoster();
+}
+
+function handleRosterSort(event) {
+    portalState.admin.rosterSort = event?.target?.value || "name";
+    renderAdminRoster();
+}
+
+function attachHandlers() {
+    refreshAdminEls();
+    bindOnce(portalEls.form, "submit", handleLogin);
+    bindOnce(portalEls.logout, "click", handleLogout);
+    bindOnce(portalEls.refresh, "click", handlePortalRefresh);
+    bindOnce(portalEls.readinessForm, "submit", handleReadinessSubmit);
+    bindOnce(portalEls.beltTestApplicationBtn, "click", handleBeltTestButton);
+    bindOnce(portalEls.beltTestForm, "submit", handleBeltTestApplication);
+    bindOnce(portalEls.adminForm, "submit", handleAdminLogin);
+    bindOnce(portalEls.adminSubmit, "click", handleAdminSubmitClick);
+    if (!portalEls.adminThemeToggle?.dataset.bound) {
+        bindOnce(portalEls.adminThemeToggle, "click", handleThemeToggleClick);
+    }
+    bindOnce(portalEls.adminRefresh, "click", handleAdminRefresh);
+    bindOnce(portalEls.adminRosterRefresh, "click", handleAdminRosterRefresh);
+    bindOnce(portalEls.adminLauncher, "click", handleAdminAccessClick);
+    bindOnce(portalEls.adminTrigger, "click", handleAdminAccessClick);
+    bindOnce(portalEls.adminRosterBody, "click", handleAdminRosterAction);
+
+    bindOnce(portalEls.adminRosterEditForm, "submit", handleRosterEditSubmit);
+    bindOnce(portalEls.adminRosterSave, "click", handleAdminMembershipSave);
+    bindOnce(portalEls.studentModalNotesFilter, "click", handleStudentNotesFilterClick);
+    bindOnce(portalEls.adminAttendanceAdjustForm, "submit", handleAttendanceAdjust);
+    bindOnce(portalEls.adminRosterDetail, "click", handleRosterDetailButtons);
+    bindOnce(portalEls.adminRosterNewtab, "click", handleRosterNewTab);
+    bindOnce(portalEls.adminRosterSearch, "input", handleRosterSearch);
+    bindOnce(portalEls.adminRosterSort, "change", handleRosterSort);
+    bindOnce(portalEls.adminClose, "click", closeAdminModal);
+    bindOnce(portalEls.adminBackdrop, "click", closeAdminModal);
+    bindOnce(document, "keydown", handleEscapeKey);
+    bindOnce(document, "keydown", handleHiddenKeySequence);
+    bindOnce(portalEls.adminAttendanceRefresh, "click", loadAdminAttendance);
+    bindOnce(portalEls.adminEventsRefresh, "click", loadAdminEvents);
+    bindOnce(portalEls.adminEventsForm, "submit", handleAdminEventSubmit);
+    bindOnce(portalEls.adminEventsBody, "click", handleAdminEventAction);
+    bindOnce(portalEls.adminSummaryDownload, "click", downloadAdminSummary);
+    bindOnce(portalEls.adminExpand, "click", toggleAdminPanelSize);
+    bindOnce(portalEls.adminSummaryBody, "click", handleAdminSummaryAction);
+    bindOnce(portalEls.adminEnrollForm, "submit", handleAdminEnrollSubmit);
+    bindOnce(portalEls.adminEmailForm, "submit", handleAdminEmailSubmit);
+    bindOnce(portalEls.adminEmailUseSelected, "click", handleAdminEmailUseSelected);
+    bindOnce(portalEls.emailPreviewTrigger, "click", handleAdminEmailPreview);
+    bindOnce(portalEls.emailPreviewConfirm, "click", confirmAdminEmailSend);
+    bindOnce(portalEls.emailPreviewCancel, "click", closeEmailPreview);
+    bindOnce(portalEls.emailPreviewCancel2, "click", closeEmailPreview);
+    bindOnce(portalEls.emailPreviewBackdrop, "click", closeEmailPreview);
+    bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
+    bindOnce(portalEls.reportCardClose, "click", closeReportCard);
+    bindOnce(portalEls.reportCardDownload, "click", downloadReportCard);
+    bindOnce(portalEls.reportCardModal, "click", handleReportCardModalClick);
+    bindOnce(portalEls.studentModalClose, "click", closeStudentModal);
+    bindOnce(portalEls.studentModalBackdrop, "click", closeStudentModal);
+    bindOnce(portalEls.studentModalEditForm, "submit", handleStudentModalSave);
+    bindOnce(portalEls.studentModalNotesForm, "submit", handleAdminNoteSubmit);
+    portalEls.studentModalNavButtons?.forEach((btn) =>
+        bindOnce(btn, "click", handleStudentModalNav)
     );
-    portalEls.adminEventDrawerBackdrop?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEventDrawer, false)
+    const studentContent = getStudentDrawerContent();
+    if (studentContent) {
+        bindOnce(studentContent, "scroll", rememberStudentDrawerScroll);
+    }
+    bindOnce(document, "click", handleStudentModalAction);
+    if (portalEls.commLogBody) {
+        bindOnce(portalEls.commLogBody, "click", handleCommLogToggle);
+    }
+    bindOnce(portalEls.commAudienceFilter, "change", renderCommunicationsLog);
+    bindOnce(portalEls.commDateFrom, "change", renderCommunicationsLog);
+    bindOnce(portalEls.commDateTo, "change", renderCommunicationsLog);
+    bindOnce(portalEls.commSubjectFilter, "input", renderCommunicationsLog);
+    if (portalEls.adminTabs) {
+        bindOnce(portalEls.adminTabs, "click", handleAdminTabClick);
+    }
+    bindOnce(portalEls.classModalOpen, "click", handleClassModalOpenClick);
+    bindOnce(portalEls.classModalClose, "click", closeClassModal);
+    bindOnce(portalEls.classModalDone, "click", closeClassModal);
+    bindOnce(portalEls.classModalBackdrop, "click", closeClassModal);
+    bindOnce(portalEls.classModalReserve, "click", handleClassModalReserveClick);
+    bindOnce(portalEls.classModalSignin, "click", handleClassModalSigninClick);
+    bindOnce(portalEls.classModalDropin, "click", handleClassModalDropinClick);
+    bindOnce(portalEls.classModalMoveAll, "click", moveAllToAttended);
+    bindOnce(portalEls.classModalClearAttended, "click", clearClassAttended);
+    bindOnce(portalEls.classModalEdit, "click", handleClassModalEditClick);
+    bindOnce(portalEls.classModalInstructor, "change", (event) =>
+        persistLastInstructor(event.target?.value || "")
     );
-    portalEls.adminEmailDrawerOpen?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEmailDrawer, true)
-    );
-    portalEls.adminEmailDrawerClose?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEmailDrawer, false)
-    );
-    portalEls.adminEmailDrawerBackdrop?.addEventListener("click", () =>
-        toggleDrawer(portalEls.adminEmailDrawer, false)
-    );
+    bindOnce(portalEls.classModal, "click", handleClassFilterClick);
+    bindOnce(document.getElementById("class-compact-toggle"), "change", handleClassCompactToggle);
+    bindOnce(document, "click", handleClassActionButtons);
+    bindOnce(portalEls.adminEventDrawerOpen, "click", handleAdminEventDrawerOpen);
+    bindOnce(portalEls.adminEventDrawerClose, "click", handleAdminEventDrawerClose);
+    bindOnce(portalEls.adminEventDrawerBackdrop, "click", handleAdminEventDrawerClose);
+    bindOnce(portalEls.adminEmailDrawerOpen, "click", handleAdminEmailDrawerOpen);
+    bindOnce(portalEls.adminEmailDrawerClose, "click", handleAdminEmailDrawerClose);
+    bindOnce(portalEls.adminEmailDrawerBackdrop, "click", handleAdminEmailDrawerClose);
+    bindOnce(portalEls.emailPreviewTrigger, "click", handleAdminEmailPreview);
+    bindOnce(portalEls.emailPreviewConfirm, "click", confirmAdminEmailSend);
+    bindOnce(portalEls.emailPreviewCancel, "click", closeEmailPreview);
+    bindOnce(portalEls.emailPreviewCancel2, "click", closeEmailPreview);
+    bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
 }
 
 async function handleLogin(event) {
@@ -1815,6 +2364,8 @@ function loadAdminAttendance(event) {
     }
     const url = buildApiUrl("/portal/admin/attendance");
     if (!url) return Promise.reject(new Error("Missing API base"));
+    portalState.admin.isAttendanceLoading = true;
+    renderAdminAttendance();
     return fetch(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
@@ -1842,6 +2393,10 @@ function loadAdminAttendance(event) {
             if (portalEls.adminAttendanceBody) {
                 portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="5">${error.message || "Unable to load attendance."}</td></tr>`;
             }
+        })
+        .finally(() => {
+            portalState.admin.isAttendanceLoading = false;
+            renderAdminAttendance();
         });
 }
 
@@ -1970,6 +2525,8 @@ function loadAdminRoster(options = {}) {
     const url = buildApiUrl("/portal/admin/students");
     if (!url) return Promise.reject(new Error("Missing API base"));
 
+    portalState.admin.isRosterLoading = true;
+    renderAdminRoster();
     return fetch(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
@@ -2010,6 +2567,10 @@ function loadAdminRoster(options = {}) {
                 setAdminStatus(error.message || "Unable to load roster.");
             }
             throw error;
+        })
+        .finally(() => {
+            portalState.admin.isRosterLoading = false;
+            renderAdminRoster();
         });
 }
 
@@ -2153,6 +2714,7 @@ function renderAdminDashboard() {
     renderAdminAttendance();
     renderAdminEvents();
     renderAdminRoster();
+    renderMessagingAnalytics();
     showAdminTab(portalState.admin.activeTab || "tab-dashboard");
 }
 
@@ -2163,6 +2725,19 @@ function renderAdminAttendance() {
     }
     const sessions = portalState.admin.attendance || [];
     portalEls.adminAttendanceBody.innerHTML = "";
+    if (portalState.admin.isAttendanceLoading) {
+        for (let i = 0; i < 5; i += 1) {
+            const row = document.createElement("tr");
+            for (let c = 0; c < 5; c += 1) {
+                const cell = document.createElement("td");
+                cell.innerHTML = '<div class="skeleton skeleton--line"></div>';
+                row.appendChild(cell);
+            }
+            portalEls.adminAttendanceBody.appendChild(row);
+        }
+        renderAdminEnrollSection();
+        return;
+    }
     if (!sessions.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
@@ -2212,9 +2787,9 @@ function renderAdminEvents() {
         cell.textContent = portalState.admin.isAuthorized ? "No special events yet." : "Sign in to load events.";
         row.appendChild(cell);
         portalEls.adminEventsBody.appendChild(row);
-        renderAdminCalendar([]);
-        return;
-    }
+    renderAdminCalendar([]);
+    return;
+}
     events.forEach((event) => {
         const row = document.createElement("tr");
         const nameCell = document.createElement("td");
@@ -2258,6 +2833,28 @@ function renderAdminEvents() {
     });
 
     renderAdminCalendar(events);
+}
+
+function renderMessagingAnalytics() {
+    if (!portalEls.msgMetricToday && !portalEls.msgMetricWeek && !portalEls.msgMetricBelt) return;
+    const log = portalState.admin.messageLog || [];
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const todayCount = log.filter((entry) => now - new Date(entry.timestamp || 0).getTime() <= dayMs).length;
+    const weekCount = log.filter((entry) => now - new Date(entry.timestamp || 0).getTime() <= 7 * dayMs).length;
+    const roster = portalState.admin.roster || [];
+    const beltCounts = {};
+    log.forEach((entry) => {
+        (entry.recipients || []).forEach((email) => {
+            const match = roster.find((s) => (s.email || "").toLowerCase() === email.toLowerCase());
+            const belt = match?.currentBelt || "Unknown";
+            beltCounts[belt] = (beltCounts[belt] || 0) + 1;
+        });
+    });
+    const topBelt = Object.entries(beltCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    if (portalEls.msgMetricToday) portalEls.msgMetricToday.textContent = todayCount;
+    if (portalEls.msgMetricWeek) portalEls.msgMetricWeek.textContent = weekCount;
+    if (portalEls.msgMetricBelt) portalEls.msgMetricBelt.textContent = topBelt;
 }
 
 function renderAdminCalendar(events) {
@@ -2332,8 +2929,8 @@ function showAdminTab(tabId) {
             "tab-events": ["admin-events"],
             "tab-students": ["admin-roster", "admin-enroll"],
             "tab-membership": ["admin-roster"],
-            "tab-notes": ["admin-notes"],
             "tab-email": ["admin-email"],
+            "tab-communications": ["admin-communications"],
             "tab-settings": ["admin-settings"]
         };
         const allSections = [
@@ -2344,8 +2941,8 @@ function showAdminTab(tabId) {
             "admin-events",
             "admin-roster",
             "admin-enroll",
-            "admin-notes",
             "admin-settings",
+            "admin-communications",
             "class-session-card"
         ];
         const visible = tabMapping[activeTab] || [];
@@ -2362,9 +2959,6 @@ function showAdminTab(tabId) {
         });
     }
 
-    if (activeTab === "tab-notes" && portalState.admin.rosterSelected?.id) {
-        loadRosterNotes(portalState.admin.rosterSelected.id);
-    }
 }
 
 function primeClassModalFromAttendance() {
@@ -2382,8 +2976,15 @@ function renderClassModalLists() {
         { el: portalEls.classModalReserved, items: classModalState.reserved, label: "Reserved" },
         { el: portalEls.classModalAttended, items: classModalState.attended, label: "Attended" }
     ];
+    const filter = portalState.admin.classFilter || "all";
+    document
+        .querySelectorAll("[data-class-filter]")
+        .forEach((btn) => btn.classList.toggle("is-active", btn.dataset.classFilter === filter));
     columns.forEach((column) => {
         if (!column.el) return;
+        const isHidden = filter !== "all" && column.label.toLowerCase() !== filter;
+        column.el.parentElement?.classList.toggle("is-muted", isHidden);
+        column.el.closest(".class-modal__column")?.classList.toggle("is-hidden", isHidden);
         column.el.innerHTML = "";
         if (!column.items.length) {
             const empty = document.createElement("li");
@@ -2436,8 +3037,9 @@ function openClassModal(defaultAction) {
     if (!classModalState.attended.length) {
         primeClassModalFromAttendance();
     }
-    portalEls.classModal.hidden = false;
-    document.body.classList.add("admin-modal-open");
+    applyClassCompactMode();
+    restoreLastInstructor();
+    toggleDrawer(portalEls.classModal, true);
     renderClassModalLists();
     if (defaultAction && portalEls.classModalMember) {
         portalEls.classModalMember.focus();
@@ -2449,9 +3051,49 @@ function openClassModal(defaultAction) {
 
 function closeClassModal() {
     if (!portalEls.classModal) return;
-    portalEls.classModal.hidden = true;
-    if (!portalEls.adminModal || portalEls.adminModal.hidden) {
-        document.body.classList.remove("admin-modal-open");
+    toggleDrawer(portalEls.classModal, false);
+}
+
+function restoreLastInstructor() {
+    const stored = (() => {
+        try {
+            return localStorage.getItem(CLASS_INSTRUCTOR_KEY);
+        } catch (error) {
+            return null;
+        }
+    })();
+    if (stored && portalEls.classModalInstructor) {
+        portalEls.classModalInstructor.value = stored;
+    }
+}
+
+function persistLastInstructor(value) {
+    try {
+        localStorage.setItem(CLASS_INSTRUCTOR_KEY, value || "");
+    } catch (error) {
+        console.warn("Persist instructor failed", error);
+    }
+}
+
+function applyClassCompactMode() {
+    if (!portalEls.classModal) return;
+    const isCompact =
+        portalState.admin.classCompactMode ||
+        localStorage.getItem(CLASS_COMPACT_KEY) === "true" ||
+        false;
+    portalState.admin.classCompactMode = Boolean(isCompact);
+    portalEls.classModal.classList.toggle("is-compact", Boolean(isCompact));
+    const toggle = document.getElementById("class-compact-toggle");
+    if (toggle) {
+        toggle.checked = Boolean(isCompact);
+    }
+}
+
+function persistClassCompactMode(value) {
+    try {
+        localStorage.setItem(CLASS_COMPACT_KEY, value ? "true" : "false");
+    } catch (error) {
+        console.warn("compact mode persist", error);
     }
 }
 
@@ -2546,8 +3188,20 @@ function getRosterLastAttendance(studentId) {
 function renderAdminRoster() {
     normalizeRosterTable();
     if (!portalEls.adminRosterBody) return;
-    const roster = portalState.admin.roster || [];
+    const roster = getVisibleRoster();
     portalEls.adminRosterBody.innerHTML = "";
+    if (portalState.admin.isRosterLoading) {
+        for (let i = 0; i < 6; i += 1) {
+            const row = document.createElement("tr");
+            for (let c = 0; c < 6; c += 1) {
+                const cell = document.createElement("td");
+                cell.innerHTML = '<div class="skeleton skeleton--line"></div>';
+                row.appendChild(cell);
+            }
+            portalEls.adminRosterBody.appendChild(row);
+        }
+        return;
+    }
     if (!roster.length) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
@@ -2626,6 +3280,57 @@ function renderAdminRoster() {
         row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
         portalEls.adminRosterBody.appendChild(row);
     });
+}
+
+function getVisibleRoster() {
+    const roster = portalState.admin.roster || [];
+    const query = (portalState.admin.rosterSearch || "").toLowerCase();
+    let filtered = roster;
+    if (query) {
+        filtered = roster.filter((student) => {
+            const fields = [
+                student.name,
+                student.currentBelt,
+                student.status,
+                student.email,
+                student.id
+            ]
+                .filter(Boolean)
+                .map((val) => String(val).toLowerCase());
+            return fields.some((field) => field.includes(query));
+        });
+    }
+    const sort = portalState.admin.rosterSort || "name";
+    const beltOrder = [
+        "white belt",
+        "high white belt",
+        "yellow belt",
+        "high yellow belt",
+        "green belt",
+        "high green belt",
+        "blue belt",
+        "high blue belt",
+        "red belt",
+        "high red belt",
+        "black belt"
+    ];
+    const statusOrder = ["active", "prospect", "frozen", "suspended", "inactive"];
+    filtered = filtered.slice().sort((a, b) => {
+        if (sort === "belt") {
+            const aIdx = beltOrder.indexOf((a.currentBelt || "").toLowerCase());
+            const bIdx = beltOrder.indexOf((b.currentBelt || "").toLowerCase());
+            return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+        }
+        if (sort === "status") {
+            const aIdx = statusOrder.indexOf((a.status || "").toLowerCase());
+            const bIdx = statusOrder.indexOf((b.status || "").toLowerCase());
+            return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+        }
+        const aName = (a.name || "").toLowerCase();
+        const bName = (b.name || "").toLowerCase();
+        return aName.localeCompare(bName);
+    });
+    return filtered;
 }
 
 function renderAdminEnrollSection() {
@@ -2734,6 +3439,166 @@ function setAdminEmailStatus(message, variant = "error") {
     portalEls.adminEmailStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function showEmailPreview({ subject, message, recipients }) {
+    if (!portalEls.emailPreviewModal) return;
+    if (portalEls.emailPreviewSubject) {
+        portalEls.emailPreviewSubject.textContent = subject || "—";
+    }
+    if (portalEls.emailPreviewMessage) {
+        portalEls.emailPreviewMessage.textContent = message || "—";
+    }
+    if (portalEls.emailPreviewCount) {
+        portalEls.emailPreviewCount.textContent = recipients.length;
+    }
+    if (portalEls.emailPreviewList) {
+        portalEls.emailPreviewList.innerHTML = "";
+        recipients.slice(0, 200).forEach((email) => {
+            const pill = document.createElement("span");
+            pill.className = "admin-pill";
+            pill.textContent = email;
+            portalEls.emailPreviewList.appendChild(pill);
+        });
+        if (recipients.length > 200) {
+            const more = document.createElement("div");
+            more.className = "admin-card__meta";
+            more.textContent = `+${recipients.length - 200} more`;
+            portalEls.emailPreviewList.appendChild(more);
+        }
+    }
+    portalEls.emailPreviewModal.hidden = false;
+}
+
+function closeEmailPreview() {
+    if (portalEls.emailPreviewModal) {
+        portalEls.emailPreviewModal.hidden = true;
+    }
+    setEmailSendingState(false);
+}
+
+function appendMessageLogEntry(entry) {
+    const log = portalState.admin.messageLog || [];
+    const id = entry.id || `msg-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`;
+    const payload = {
+        id,
+        timestamp: entry.timestamp || new Date().toISOString(),
+        subject: entry.subject || "",
+        audience: entry.audience || "all",
+        bodyExcerpt: (entry.body || "").slice(0, 100),
+        recipients: entry.recipients || []
+    };
+    log.unshift(payload);
+    portalState.admin.messageLog = log;
+    persistMessageLog(log);
+    renderCommunicationsLog();
+    renderMessagingAnalytics();
+}
+
+function renderCommunicationsLog() {
+    if (!portalEls.commLogBody) return;
+    const log = portalState.admin.messageLog || [];
+    const from = portalEls.commDateFrom?.value ? new Date(portalEls.commDateFrom.value).getTime() : null;
+    const to = portalEls.commDateTo?.value ? new Date(portalEls.commDateTo.value).getTime() : null;
+    const audience = (portalEls.commAudienceFilter?.value || "all").toLowerCase();
+    const keyword = (portalEls.commSubjectFilter?.value || "").toLowerCase();
+    const filtered = log.filter((entry) => {
+        const ts = new Date(entry.timestamp || 0).getTime();
+        if (from && ts < from) return false;
+        if (to && ts > to + 24 * 60 * 60 * 1000) return false;
+        if (audience !== "all" && (entry.audience || "").toLowerCase() !== audience) return false;
+        if (keyword && !(entry.subject || "").toLowerCase().includes(keyword)) return false;
+        return true;
+    });
+    portalEls.commLogBody.innerHTML = "";
+    if (!filtered.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.textContent = "No messages yet.";
+        row.appendChild(cell);
+        portalEls.commLogBody.appendChild(row);
+        return;
+    }
+    filtered
+        .slice()
+        .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
+        .forEach((entry) => {
+            const row = document.createElement("tr");
+            row.dataset.commId = entry.id;
+            row.innerHTML = `
+                <td><strong>${entry.subject || "—"}</strong><div class="admin-card__meta">${entry.bodyExcerpt || ""}</div></td>
+                <td>${entry.audience || "—"}</td>
+                <td>${entry.recipients?.length || 0}</td>
+                <td><span class="admin-pill admin-pill--success">sent</span></td>
+                <td>${entry.timestamp ? formatDateTime(entry.timestamp) : "—"}</td>
+            `;
+            const detailRow = document.createElement("tr");
+            detailRow.className = "comm-detail-row";
+            const detailCell = document.createElement("td");
+            detailCell.colSpan = 5;
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "text-link-btn";
+            toggle.dataset.commToggle = entry.id;
+            toggle.textContent = "View recipients";
+            toggle.setAttribute("aria-expanded", "false");
+            const list = document.createElement("div");
+            list.className = "preview-recipient-list";
+            (entry.recipients || []).slice(0, 250).forEach((email) => {
+                const pill = document.createElement("span");
+                pill.className = "admin-pill";
+                pill.textContent = email;
+                list.appendChild(pill);
+            });
+            if ((entry.recipients || []).length > 250) {
+                const more = document.createElement("div");
+                more.className = "admin-card__meta";
+                more.textContent = `+${entry.recipients.length - 250} more`;
+                list.appendChild(more);
+            }
+            detailCell.append(toggle, list);
+            detailRow.appendChild(detailCell);
+            detailRow.hidden = true;
+            portalEls.commLogBody.append(row, detailRow);
+        });
+}
+
+function handleCommLogToggle(event) {
+    const button = event.target.closest("[data-comm-toggle]");
+    if (!button) return;
+    const row = button.closest("tr");
+    const detailRow = row?.nextElementSibling;
+    if (!detailRow || !detailRow.classList.contains("comm-detail-row")) return;
+    detailRow.hidden = !detailRow.hidden;
+    const expanded = !detailRow.hidden;
+    button.textContent = expanded ? "Hide recipients" : "View recipients";
+    button.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function pushMessagesToStudents(pending) {
+    if (!pending?.studentIds?.length) return;
+    const excerpt = (pending.message || "").slice(0, 100);
+    const activeId = portalState.admin.rosterSelected?.id || "";
+    let refreshedActive = false;
+    pending.studentIds.forEach((id) => {
+        addStudentNote(id, {
+            noteType: "message",
+            message: `Message Sent (System): ${pending.subject || ""} — ${excerpt}`,
+            author: "System"
+        })
+            .then((note) => {
+                const isActive = activeId && activeId.toLowerCase() === id.toLowerCase();
+                if (isActive && note) {
+                    portalState.admin.rosterNotes = [note, ...(portalState.admin.rosterNotes || [])];
+                    renderRosterNotes();
+                } else if (isActive && !refreshedActive) {
+                    refreshedActive = true;
+                    loadRosterNotes(id);
+                }
+            })
+            .catch((error) => console.warn("note push failed", error));
+    });
+}
+
 function clearAdminEventForm() {
     portalEls.adminEventName && (portalEls.adminEventName.value = "");
     portalEls.adminEventDescription && (portalEls.adminEventDescription.value = "");
@@ -2747,6 +3612,10 @@ function clearAdminEventForm() {
 }
 
 function handleAdminEmailSubmit(event) {
+    return handleAdminEmailPreview(event);
+}
+
+function handleAdminEmailPreview(event) {
     event?.preventDefault();
     if (!portalState.admin.isAuthorized) {
         setAdminStatus("Sign in first.");
@@ -2758,10 +3627,13 @@ function handleAdminEmailSubmit(event) {
     );
     let recipientType = audienceInput?.value || "all";
     if (recipientType === "single") recipientType = "student";
+    if (recipientType !== "class") {
+        portalState.admin.pendingClassRecipients = null;
+    }
     const subject = portalEls.adminEmailSubject?.value?.trim() || "";
     const message = portalEls.adminEmailBody?.value?.trim() || "";
     const belt = portalEls.adminEmailBelt?.value?.trim() || "";
-    const className = portalEls.adminEmailClass?.value?.trim() || "";
+    let className = portalEls.adminEmailClass?.value?.trim() || "";
     let directEmail = portalEls.adminEmailDirect?.value?.trim() || "";
     let studentId = portalEls.adminEmailStudent?.value?.trim() || "";
     if (recipientType === "student" && !studentId && portalState.admin.rosterSelected?.id) {
@@ -2771,6 +3643,15 @@ function handleAdminEmailSubmit(event) {
         }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const directEmails = (directEmail || "")
+        .split(/[,;]+/)
+        .map((e) => e.trim())
+        .filter(Boolean);
+    const invalidDirect = directEmails.filter((e) => !emailRegex.test(e));
+    if (invalidDirect.length) {
+        setAdminEmailStatus(`Invalid email(s): ${invalidDirect.join(", ")}`, "error");
+        return;
+    }
     if (recipientType === "student" && !directEmail) {
         // allow pasting an email into the message box as a fallback
         const emailFromMessage = extractEmailFromText(`${subject} ${message}`);
@@ -2782,32 +3663,91 @@ function handleAdminEmailSubmit(event) {
         }
     }
     if (!subject || !message) {
-        setAdminEmailStatus("Add a subject and message.");
+        setAdminEmailStatus("Add a subject and message.", "error");
         return;
     }
     if (recipientType === "student" && !studentId && !directEmail) {
         setAdminEmailStatus("Enter a Student ID or a Direct Email for a single send.", "error");
         return;
     }
-    if (directEmail && !emailRegex.test(directEmail)) {
-        setAdminEmailStatus("Enter a valid direct email address.", "error");
+    if (recipientType === "class" && !className && portalState.admin.pendingClassRecipients?.className) {
+        className = portalState.admin.pendingClassRecipients.className;
+        if (portalEls.adminEmailClass) {
+            portalEls.adminEmailClass.value = className;
+        }
+    }
+    const recipientData = buildEmailRecipients({
+        recipientType,
+        belt,
+        className,
+        studentId,
+        directEmails
+    });
+    if (!recipientData.recipients.length) {
+        setAdminEmailStatus("No valid recipients resolved.", "error");
+        return;
+    }
+    if (portalEls.emailRecipientPreview) {
+        const missingText = recipientData.missing?.length
+            ? ` • ${recipientData.missing.length} missing email`
+            : "";
+        const invalidText = recipientData.invalid?.length
+            ? ` • ${recipientData.invalid.length} invalid skipped`
+            : "";
+        portalEls.emailRecipientPreview.textContent = `${recipientData.recipients.length} recipient(s)${missingText}${invalidText}`;
+    }
+    if (recipientData.missing?.length || recipientData.invalid?.length) {
+        const parts = [];
+        if (recipientData.missing?.length) {
+            parts.push(`${recipientData.missing.length} missing email(s)`);
+        }
+        if (recipientData.invalid?.length) {
+            parts.push(`${recipientData.invalid.length} invalid email(s) skipped`);
+        }
+        setAdminEmailStatus(parts.join(". "), "progress");
+    }
+    setPendingEmail({
+        recipientType,
+        subject,
+        message,
+        belt,
+        className,
+        studentId,
+        directEmails,
+        recipients: recipientData.recipients,
+        studentIds: recipientData.studentIds
+    });
+    showEmailPreview({
+        subject,
+        message,
+        recipients: recipientData.recipients
+    });
+}
+
+function confirmAdminEmailSend(event) {
+    event?.preventDefault();
+    const pending = portalState.admin.pendingEmail;
+    if (!pending) {
+        setAdminEmailStatus("No email to send. Preview first.", "error");
+        closeEmailPreview();
         return;
     }
     const url = buildApiUrl("/portal/admin/email/send");
     if (!url) return;
-    setAdminEmailStatus("Sending email...", "progress");
+    setEmailSendingState(true);
+    setAdminEmailStatus(`Sending to ~${pending.recipients.length} recipient(s)...`, "progress");
     fetch(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
-            recipientType,
-            audience: recipientType,
-            subject,
-            message,
-            belt,
-            className,
-            studentId,
-            directEmail
+            recipientType: pending.recipientType,
+            audience: pending.recipientType,
+            subject: pending.subject,
+            message: pending.message,
+            belt: pending.belt,
+            className: pending.className,
+            studentId: pending.studentId,
+            directEmail: pending.directEmails?.join(", ")
         })
     })
         .then(async (res) => {
@@ -2833,8 +3773,18 @@ function handleAdminEmailSubmit(event) {
             return payload;
         })
         .then(() => {
-            setAdminEmailStatus("Email queued for delivery.", "success");
+            appendMessageLogEntry({
+                subject: pending.subject,
+                body: pending.message,
+                audience: pending.recipientType,
+                recipients: pending.recipients
+            });
+            setAdminEmailStatus(
+                `Email queued for delivery to ~${pending.recipients.length} recipient(s).`,
+                "success"
+            );
             setAdminStatus("Email queued for delivery.", "success");
+            pushMessagesToStudents(pending);
             if (portalEls.adminEmailBody) portalEls.adminEmailBody.value = "";
             if (portalEls.adminEmailSubject) portalEls.adminEmailSubject.value = "";
             if (portalEls.adminEmailClass) portalEls.adminEmailClass.value = "";
@@ -2845,6 +3795,11 @@ function handleAdminEmailSubmit(event) {
         .catch((error) => {
             console.error("email send", error);
             setAdminEmailStatus(error.message || "Unable to send email.", "error");
+        })
+        .finally(() => {
+            setEmailSendingState(false);
+            closeEmailPreview();
+            setPendingEmail(null);
         });
 }
 
@@ -2869,6 +3824,43 @@ function syncAdminEnrollButtonState() {
         portalState.admin.isLoading || portalState.admin.isCreatingStudent || !portalState.admin.isAuthorized
     );
     enrollButton.disabled = disabled;
+}
+
+function setEmailSendingState(isSending) {
+    const sendBtn = portalEls.adminEmailForm?.querySelector("button[type='submit']");
+    if (sendBtn) {
+        sendBtn.disabled = Boolean(isSending);
+        if (isSending) {
+            sendBtn.dataset.originalText = sendBtn.textContent || "";
+            sendBtn.textContent = "Sending...";
+            sendBtn.classList.add("is-loading");
+        } else {
+            if (sendBtn.dataset.originalText) {
+                sendBtn.textContent = sendBtn.dataset.originalText;
+            }
+            sendBtn.classList.remove("is-loading");
+        }
+    }
+    const confirmBtn = portalEls.emailPreviewConfirm;
+    if (confirmBtn) {
+        confirmBtn.disabled = Boolean(isSending);
+        if (isSending) {
+            confirmBtn.dataset.originalText = confirmBtn.textContent || "";
+            confirmBtn.textContent = "Sending...";
+        } else if (confirmBtn.dataset.originalText) {
+            confirmBtn.textContent = confirmBtn.dataset.originalText;
+        }
+    }
+    [portalEls.emailPreviewCancel, portalEls.emailPreviewCancel2].forEach((btn) => {
+        if (btn) btn.disabled = Boolean(isSending);
+    });
+}
+
+function setPendingEmail(payload) {
+    portalState.admin.pendingEmail = payload;
+    if (!payload) {
+        portalState.admin.pendingClassRecipients = null;
+    }
 }
 
 function toggleAdminPanelSize() {
@@ -2938,6 +3930,30 @@ function downloadAdminSummary() {
     link.click();
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+function estimateEmailRecipients({ recipientType, belt, className, studentId, directEmail }) {
+    if (directEmail) return 1;
+    if (recipientType === "student" && studentId) return 1;
+    const roster = portalState.admin.roster || [];
+    if (!roster.length) return 0;
+    if (recipientType === "active") {
+        return roster.filter(
+            (student) =>
+                !student.isSuspended && (student.status || "").toLowerCase() === "active"
+        ).length;
+    }
+    if (belt) {
+        return roster.filter(
+            (student) => (student.currentBelt || "").toLowerCase() === belt.toLowerCase()
+        ).length;
+    }
+    if (className) {
+        return roster.filter((student) =>
+            (student.notes || "").toLowerCase().includes(className.toLowerCase())
+        ).length;
+    }
+    return roster.length;
 }
 
 function handleAdminSummaryAction(event) {
@@ -4588,6 +5604,7 @@ function loadRosterProfile(studentId) {
             renderRosterNotes();
             renderStudentModal();
             setAdminStatus("Roster detail loaded.", "success");
+            loadRosterNotes(studentId);
         })
         .catch((error) => {
             console.error("loadRosterProfile error", error);
@@ -4618,13 +5635,17 @@ function openStudentModal(studentId) {
         window.currentStudentId = selected?.id || null;
     }
     portalState.admin.studentModalPanel = "overview";
+    const memory = portalState.admin.studentDrawerMemory[studentId];
+    if (memory?.tab) {
+        portalState.admin.studentModalPanel = memory.tab;
+    }
     setRosterNotesFilter(portalState.admin.rosterNotesFilter || "all");
     setStudentModalStatus("");
     renderRosterDetail();
     renderStudentModal();
+    applyStudentDrawerScroll(studentId);
     if (portalEls.studentModal) {
-        portalEls.studentModal.hidden = false;
-        document.body.classList.add("admin-modal-open");
+        toggleDrawer(portalEls.studentModal, true);
     }
     if (selected?.id) {
         loadRosterProfile(selected.id);
@@ -4633,13 +5654,8 @@ function openStudentModal(studentId) {
 
 function closeStudentModal() {
     if (!portalEls.studentModal) return;
-    portalEls.studentModal.hidden = true;
-    if (
-        (!portalEls.adminModal || portalEls.adminModal.hidden) &&
-        (!portalEls.classModal || portalEls.classModal.hidden)
-    ) {
-        document.body.classList.remove("admin-modal-open");
-    }
+    rememberStudentDrawerScroll();
+    toggleDrawer(portalEls.studentModal, false);
 }
 
 function handleRosterEditSubmit(event) {
@@ -4835,17 +5851,9 @@ function handleAdminNoteSubmit(event) {
     }
     if (!HAS_REMOTE_API) return;
     const studentId = portalState.admin.rosterSelected.id;
-    const isModal = event?.target?.id === "student-modal-note-form";
-    const noteType =
-        (isModal ? portalEls.studentModalNoteType : portalEls.adminRosterNoteType)?.value || "note";
-    const message =
-        (isModal
-            ? portalEls.studentModalNoteMessage?.value
-            : portalEls.adminRosterNoteMessage?.value
-        )?.trim() || "";
-    const author =
-        (isModal ? portalEls.studentModalNoteAuthor : portalEls.adminRosterNoteAuthor)?.value?.trim() ||
-        "Admin";
+    const noteType = portalEls.studentModalNoteType?.value || "note";
+    const message = portalEls.studentModalNoteMessage?.value?.trim() || "";
+    const author = portalEls.studentModalNoteAuthor?.value?.trim() || "Admin";
     if (!message) {
         setAdminStatus("Add a message before saving.");
         setStudentModalStatus("Add a message before saving.");
@@ -4859,14 +5867,12 @@ function handleAdminNoteSubmit(event) {
             } else {
                 loadRosterNotes(studentId);
             }
-            if (isModal && portalEls.studentModalNoteMessage) {
+            if (portalEls.studentModalNoteMessage) {
                 portalEls.studentModalNoteMessage.value = "";
-            }
-            if (!isModal && portalEls.adminRosterNoteMessage) {
-                portalEls.adminRosterNoteMessage.value = "";
             }
             setAdminStatus("Entry added.", "success");
             setStudentModalStatus("Entry added.", "success");
+            loadRosterNotes(studentId);
         })
         .catch((error) => {
             console.error("note submit", error);
@@ -5025,14 +6031,20 @@ function extractEmailFromText(text = "") {
 }
 
 function renderRosterNotes() {
-    const lists = [portalEls.adminRosterNotesList, portalEls.studentModalNotesList].filter(Boolean);
+    const lists = [portalEls.studentModalNotesList].filter(Boolean);
     if (!lists.length) return;
     const filter = (portalState.admin.rosterNotesFilter || "all").toLowerCase();
-    const notes = (portalState.admin.rosterNotes || []).filter((note) => {
-        if (filter === "all") return true;
-        const type = (note.noteType || "note").toLowerCase();
-        return type.includes(filter);
-    });
+    const notes = (portalState.admin.rosterNotes || [])
+        .filter((note) => {
+            if (filter === "all") return true;
+            const type = (note.noteType || "note").toLowerCase();
+            return type.includes(filter);
+        })
+        .sort((a, b) => {
+            const aTime = new Date(a.createdAt || a.created_at || 0).getTime();
+            const bTime = new Date(b.createdAt || b.created_at || 0).getTime();
+            return bTime - aTime;
+        });
     lists.forEach((list) => {
         list.innerHTML = "";
         if (!notes.length) {
@@ -5060,6 +6072,15 @@ function renderRosterNotes() {
 function setStudentModalPanel(panelId) {
     const target = panelId || "overview";
     portalState.admin.studentModalPanel = target;
+    const currentId = portalState.admin.rosterSelected?.id;
+    if (currentId) {
+        const memory = portalState.admin.studentDrawerMemory[currentId] || {};
+        portalState.admin.studentDrawerMemory[currentId] = {
+            ...memory,
+            tab: target,
+            scroll: memory.scroll ?? 0
+        };
+    }
     if (portalEls.studentModalPanels?.length) {
         portalEls.studentModalPanels.forEach((panel) => {
             const panels = (panel.dataset.studentPanel || "").split(/\s+/);
@@ -5070,6 +6091,38 @@ function setStudentModalPanel(panelId) {
         portalEls.studentModalNavButtons.forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.studentPanelTarget === target);
         });
+    }
+}
+
+function getStudentDrawerContent() {
+    return portalEls.studentModal?.querySelector(".student-modal__content") || null;
+}
+
+function rememberStudentDrawerScroll() {
+    const studentId = portalState.admin.rosterSelected?.id;
+    if (!studentId) return;
+    const content = getStudentDrawerContent();
+    const scroll = content?.scrollTop ?? 0;
+    const memory = portalState.admin.studentDrawerMemory[studentId] || {};
+    portalState.admin.studentDrawerMemory[studentId] = {
+        ...memory,
+        scroll,
+        tab: portalState.admin.studentModalPanel || memory.tab || "overview"
+    };
+}
+
+function applyStudentDrawerScroll(studentId) {
+    if (!studentId) return;
+    const memory = portalState.admin.studentDrawerMemory[studentId];
+    if (!memory) return;
+    const content = getStudentDrawerContent();
+    if (content && typeof memory.scroll === "number") {
+        requestAnimationFrame(() => {
+            content.scrollTop = memory.scroll;
+        });
+    }
+    if (memory.tab) {
+        setStudentModalPanel(memory.tab);
     }
 }
 
@@ -5133,6 +6186,10 @@ function renderStudentModal() {
             student.isSuspended ? "admin-pill--warning" : "admin-pill--success"
         }`;
     }
+    if (portalEls.studentModalMembershipPill) {
+        portalEls.studentModalMembershipPill.textContent = student.membershipType || "Not set";
+        portalEls.studentModalMembershipPill.className = "admin-pill admin-pill--success";
+    }
     const stats = computeRosterAttendanceStats(student.id);
     const lastAttended = getRosterLastAttendance(student.id);
     if (portalEls.studentModalLast30) portalEls.studentModalLast30.textContent = stats.last30 || "—";
@@ -5185,6 +6242,7 @@ function handleStudentModalNav(event) {
     if (!button) return;
     const target = button.dataset.studentPanelTarget || "overview";
     setStudentModalPanel(target);
+    rememberStudentDrawerScroll();
 }
 
 function handleStudentModalAction(event) {
@@ -5285,13 +6343,17 @@ function handleRosterDetailButtons(event) {
         return;
     }
     if (action === 'note') {
-        if (portalEls.adminRosterNoteType) portalEls.adminRosterNoteType.value = 'note';
-        portalEls.adminRosterNoteMessage?.focus();
+        openStudentModal(studentId);
+        setStudentModalPanel("notes");
+        if (portalEls.studentModalNoteType) portalEls.studentModalNoteType.value = "conversation";
+        portalEls.studentModalNoteMessage?.focus();
         return;
     }
     if (action === 'payment') {
-        if (portalEls.adminRosterNoteType) portalEls.adminRosterNoteType.value = 'payment';
-        portalEls.adminRosterNoteMessage?.focus();
+        openStudentModal(studentId);
+        setStudentModalPanel("notes");
+        if (portalEls.studentModalNoteType) portalEls.studentModalNoteType.value = "payment";
+        portalEls.studentModalNoteMessage?.focus();
         return;
     }
     if (action === 'deactivate' || action === 'activate') {

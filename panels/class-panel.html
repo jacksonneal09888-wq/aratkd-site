@@ -1,0 +1,92 @@
+<div class="admin-drawer class-drawer" id="class-drawer" hidden>
+  <div class="admin-drawer__backdrop" id="class-drawer-backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <div class="admin-drawer__header">
+      <div>
+        <p class="eyebrow">Classes &amp; Attendance</p>
+        <h3>Session Controls</h3>
+        <p class="admin-card__meta">Manage waiting, reserved, and attended lists in one slide-out.</p>
+      </div>
+      <div class="admin-topbar__actions">
+        <label class="pill-button" style="gap:0.35rem;align-items:center;">
+          <input type="checkbox" id="class-compact-toggle">
+          Compact mode
+        </label>
+        <button type="button" class="secondary-btn" id="class-modal-move-all">Move All to Attended</button>
+        <button type="button" class="text-link-btn" id="class-modal-clear-attended">Remove All Attended</button>
+        <button type="button" class="text-link-btn" id="class-drawer-close">Close ✕</button>
+      </div>
+    </div>
+
+    <div class="class-filter-row">
+      <button type="button" class="pill-button is-active" data-class-filter="all">All</button>
+      <button type="button" class="pill-button" data-class-filter="waiting">Waiting</button>
+      <button type="button" class="pill-button" data-class-filter="reserved">Reserved</button>
+      <button type="button" class="pill-button" data-class-filter="attended">Attended</button>
+    </div>
+    <div class="class-broadcast-row">
+      <button type="button" class="pill-button" data-class-message="attended">Message Attending</button>
+      <button type="button" class="pill-button" data-class-message="reserved">Message Reserved</button>
+      <button type="button" class="pill-button" data-class-message="waiting">Message Waiting</button>
+      <button type="button" class="pill-button" data-class-message="all">Message All Lists</button>
+    </div>
+
+    <div class="class-modal__body class-modal__body--drawer">
+      <div class="class-modal__column">
+        <div class="admin-summary__header">
+          <h4>Waiting</h4>
+          <span class="class-modal__pill">Queue</span>
+        </div>
+        <ul class="class-modal__list" id="class-modal-waiting">
+          <li>No members waiting.</li>
+        </ul>
+      </div>
+      <div class="class-modal__column">
+        <div class="admin-summary__header">
+          <h4>Reserved</h4>
+          <span class="class-modal__pill">Reserved</span>
+        </div>
+        <ul class="class-modal__list" id="class-modal-reserved">
+          <li>No reservations yet.</li>
+        </ul>
+      </div>
+      <div class="class-modal__column">
+        <div class="admin-summary__header">
+          <h4>Attended</h4>
+          <span class="class-modal__pill">Checked In</span>
+        </div>
+        <ul class="class-modal__list" id="class-modal-attended">
+          <li>No one attended yet.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="class-modal__footer">
+      <div class="class-modal__fields">
+        <label>
+          <span>Instructor</span>
+          <select id="class-modal-instructor">
+            <option value="Master Ara">Master Ara</option>
+            <option value="Miss Fatima">Miss Fatima</option>
+            <option value="Coach">Coach</option>
+          </select>
+        </label>
+        <label>
+          <span>WOD / Notes</span>
+          <input type="text" id="class-modal-wod" placeholder="WOD, focus, or notes">
+        </label>
+        <label>
+          <span>Member ID / Name</span>
+          <input type="text" id="class-modal-member" placeholder="ARA123 or Name">
+        </label>
+      </div>
+      <div class="class-modal__actions">
+        <button type="button" class="secondary-btn" id="class-modal-reserve" data-class-action="reserve">Reserve Member</button>
+        <button type="button" class="secondary-btn" id="class-modal-signin" data-class-action="signin">Sign-in Member</button>
+        <button type="button" class="secondary-btn" id="class-modal-dropin" data-class-action="dropin">Add Drop-in</button>
+        <button type="button" class="text-link-btn" id="class-modal-edit" data-class-action="open-modal">Edit Class</button>
+        <button type="button" class="text-link-btn" id="class-drawer-done">Done</button>
+      </div>
+    </div>
+  </aside>
+</div>

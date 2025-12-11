@@ -1,0 +1,37 @@
+<section class="admin-card admin-card--gold" id="admin-calendar-card" data-admin-panel="tab-calendar">
+  <div class="admin-card__header">
+    <h3 class="admin-card__title">Calendar & Special Occasions</h3>
+    <p class="admin-card__meta">Active events appear on kiosk sign-in</p>
+  </div>
+  <div class="admin-grid" id="admin-calendar-upcoming">
+    <p>Refresh events to see Special Classes and Tournaments.</p>
+  </div>
+</section>
+
+<section class="admin-card" id="admin-attendance" data-admin-panel="tab-classes tab-calendar">
+  <div class="admin-summary__header">
+    <h3>Latest Attendance Check-ins</h3>
+    <div class="admin-topbar__actions">
+      <button type="button" class="secondary-btn" id="class-modal-open">Open Class Modal</button>
+      <button type="button" class="text-link-btn" id="admin-attendance-refresh">Refresh</button>
+    </div>
+  </div>
+  <div class="admin-table-wrap">
+    <table class="admin-table" aria-label="Recent attendance">
+      <thead>
+        <tr>
+          <th scope="col">Student ID</th>
+          <th scope="col">Class</th>
+          <th scope="col">Kiosk</th>
+          <th scope="col">Attendance %</th>
+          <th scope="col">Time</th>
+        </tr>
+      </thead>
+      <tbody id="admin-attendance-body">
+        <tr>
+          <td colspan="5">No attendance logs yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

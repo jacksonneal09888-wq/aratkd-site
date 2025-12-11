@@ -1,0 +1,155 @@
+<section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">Live roster</p>
+      <h3>Student Roster</h3>
+    </div>
+    <div class="admin-topbar__actions">
+      <a class="text-link-btn" href="admin-new-student.html?pin=1453" target="_blank" rel="noopener">Add New Student</a>
+      <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
+    </div>
+  </div>
+  <div class="admin-filter-row">
+    <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
+    <select id="admin-roster-sort" aria-label="Sort roster">
+      <option value="name">Name A–Z</option>
+      <option value="belt">Belt Order</option>
+      <option value="status">Status</option>
+    </select>
+  </div>
+  <div class="admin-table-wrap admin-table-wrap--wide">
+    <table class="admin-table admin-table--wide" aria-label="Student roster">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Belt</th>
+          <th scope="col">Status</th>
+          <th scope="col">Updated</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admin-roster-body">
+        <tr>
+          <td colspan="6">Sign in to load the roster.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="admin-roster-detail" id="admin-roster-detail" hidden>
+    <div class="admin-roster-detail__head">
+      <div>
+        <p class="admin-roster-detail__label">Selected Student</p>
+        <p class="admin-roster-detail__name" id="admin-roster-student-name">—</p>
+        <p class="admin-roster-detail__meta" id="admin-roster-student-meta">—</p>
+      </div>
+      <div class="admin-roster-actions">
+        <button type="button" class="btn-ghost" id="admin-roster-newtab">Open in New Tab</button>
+        <button type="button" class="btn-primary" id="admin-student-drawer-open">Open Student Panel</button>
+      </div>
+    </div>
+    <form id="admin-roster-edit-form" autocomplete="off">
+      <div class="admin-roster-cards">
+        <div class="admin-roster-card">
+          <p class="card-label">Membership</p>
+          <p class="card-value" id="admin-roster-card-membership">Not set</p>
+        </div>
+        <div class="admin-roster-card">
+          <p class="card-label">Status</p>
+          <p class="card-value" id="admin-roster-card-status">—</p>
+        </div>
+        <div class="admin-roster-card">
+          <p class="card-label">Last 30 Days</p>
+          <p class="card-value" id="admin-roster-card-30">—</p>
+        </div>
+        <div class="admin-roster-card">
+          <p class="card-label">Last 60 Days</p>
+          <p class="card-value" id="admin-roster-card-60">—</p>
+        </div>
+        <div class="admin-roster-card">
+          <p class="card-label">Last Attended</p>
+          <p class="card-value" id="admin-roster-last-attended">—</p>
+        </div>
+      </div>
+      <div class="admin-roster-detail__membership">
+        <label>
+          Membership
+          <select id="admin-roster-membership">
+            <option value="">Not set</option>
+            <option value="Month-to-Month">Month-to-Month</option>
+            <option value="Tier 1">Tier 1</option>
+            <option value="Tier 2">Tier 2</option>
+            <option value="Tier 3">Tier 3</option>
+            <option value="Annual">Annual</option>
+          </select>
+        </label>
+      </div>
+      <div class="admin-roster-detail__form admin-enroll__grid">
+        <label>
+          <span>Name</span>
+          <input type="text" id="admin-roster-name" placeholder="Full name">
+        </label>
+        <label>
+          <span>Email</span>
+          <input type="email" id="admin-roster-email" placeholder="name@example.com">
+        </label>
+        <label>
+          <span>Phone</span>
+          <input type="tel" id="admin-roster-phone" placeholder="9195551234">
+        </label>
+        <label>
+          <span>Belt</span>
+          <select id="admin-roster-belt">
+            <option value="">Keep current</option>
+            <option value="White Belt">White Belt</option>
+            <option value="High White Belt">High White Belt</option>
+            <option value="Yellow Belt">Yellow Belt</option>
+            <option value="High Yellow Belt">High Yellow Belt</option>
+            <option value="Green Belt">Green Belt</option>
+            <option value="High Green Belt">High Green Belt</option>
+            <option value="Blue Belt">Blue Belt</option>
+            <option value="High Blue Belt">High Blue Belt</option>
+            <option value="Red Belt">Red Belt</option>
+            <option value="High Red Belt">High Red Belt</option>
+            <option value="Black Belt">Black Belt</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select id="admin-roster-status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="frozen">Frozen</option>
+            <option value="suspended">Suspended</option>
+            <option value="prospect">Prospect</option>
+          </select>
+        </label>
+      </div>
+      <div class="admin-roster-actions">
+        <button type="submit" class="btn-primary" id="admin-roster-save">Save Changes</button>
+        <button type="button" class="btn-ghost" id="admin-attendance-adjust-open">Adjust Attendance</button>
+      </div>
+      <p class="form-status" id="admin-roster-edit-status" aria-live="polite"></p>
+    </form>
+    <form id="admin-attendance-adjust-form" class="admin-enroll__grid">
+      <label>
+        <span>Adjust Sessions (+/-)</span>
+        <input type="number" id="admin-attendance-adjust-value" placeholder="e.g. 3 or -2">
+      </label>
+      <label>
+        <span>Class Type</span>
+        <input type="text" id="admin-attendance-adjust-class" placeholder="basic">
+      </label>
+      <label>
+        <span>Level</span>
+        <input type="text" id="admin-attendance-adjust-level" placeholder="Advanced">
+      </label>
+      <label>
+        <span>Note</span>
+        <input type="text" id="admin-attendance-adjust-note" placeholder="Adjustment reason">
+      </label>
+      <button type="submit" class="btn-ghost">Apply Attendance Change</button>
+      <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>

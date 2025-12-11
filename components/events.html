@@ -1,0 +1,30 @@
+<section class="admin-card" id="admin-events" data-admin-panel="tab-events tab-calendar">
+  <div class="admin-summary__header">
+    <h3>Special Events</h3>
+    <div class="admin-topbar__actions">
+      <span class="badge badge--gold">Special Class &amp; Tournament types</span>
+      <button type="button" class="text-link-btn" id="admin-events-refresh">Refresh</button>
+      <button type="button" class="btn-primary" id="admin-event-drawer-open">+ Add Special Event</button>
+    </div>
+  </div>
+  <div class="admin-table-wrap">
+    <table class="admin-table" aria-label="Special events">
+      <thead>
+        <tr>
+          <th scope="col">Event</th>
+          <th scope="col">Type</th>
+          <th scope="col">Window</th>
+          <th scope="col">Capacity</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admin-events-body">
+        <tr>
+          <td colspan="6">No events yet.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="form-status" id="admin-events-status" aria-live="polite"></p>
+</section>

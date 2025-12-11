@@ -1,0 +1,51 @@
+<div class="admin-drawer" id="admin-event-drawer" hidden>
+  <div class="admin-drawer__backdrop" id="admin-event-drawer-backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <button class="admin-drawer__close text-link-btn" id="admin-event-drawer-close" aria-label="Close event form">Close ✕</button>
+    <div class="admin-drawer__header">
+      <p class="eyebrow">Special Events</p>
+      <h3>Add or Edit Event</h3>
+      <p class="admin-card__meta">Create tournaments, make-up classes, or kiosk events.</p>
+    </div>
+    <form id="admin-events-form" autocomplete="off">
+      <div class="admin-enroll__grid">
+        <label>
+          <span>Event Name</span>
+          <input type="text" id="admin-event-name" required placeholder="Tournament Sign-In">
+        </label>
+        <label>
+          <span>Type</span>
+          <select id="admin-event-type">
+            <option value="Special Class">Special Class</option>
+            <option value="Tournament">Tournament</option>
+            <option value="Make-Up Class">Make-Up Class</option>
+          </select>
+        </label>
+        <label>
+          <span>Start</span>
+          <input type="datetime-local" id="admin-event-start" required>
+        </label>
+        <label>
+          <span>End (optional)</span>
+          <input type="datetime-local" id="admin-event-end">
+        </label>
+        <label>
+          <span>Capacity (optional)</span>
+          <input type="number" id="admin-event-capacity" min="1" placeholder="e.g. 30">
+        </label>
+      </div>
+      <label>
+        <span>Description</span>
+        <textarea id="admin-event-description" rows="2" placeholder="Details for staff"></textarea>
+      </label>
+      <label style="display:flex;align-items:center;gap:0.5rem; margin:0.5rem 0 1rem 0;">
+        <input type="checkbox" id="admin-event-active">
+        <span>Activate immediately</span>
+      </label>
+      <div class="admin-topbar__actions" style="justify-content:flex-start;">
+        <button type="submit" class="btn-primary">Save Event</button>
+      </div>
+      <p class="form-status" id="admin-events-status" aria-live="polite"></p>
+    </form>
+  </aside>
+</div>

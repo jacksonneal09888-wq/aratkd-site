@@ -432,13 +432,13 @@
                                             <span class="admin-nav__icon" aria-hidden="true">🎟️</span>
                                             <span>Membership</span>
                                         </button>
-                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-notes">
-                                            <span class="admin-nav__icon" aria-hidden="true">🗒️</span>
-                                            <span>Notes & Messages</span>
-                                        </button>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-email">
                                             <span class="admin-nav__icon" aria-hidden="true">📧</span>
                                             <span>Email Parents</span>
+                                        </button>
+                                        <button type="button" class="admin-nav__item" data-admin-tab="tab-communications">
+                                            <span class="admin-nav__icon" aria-hidden="true">🧾</span>
+                                            <span>Communications</span>
                                         </button>
                                         <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
                                             <span class="admin-nav__icon" aria-hidden="true">⚙️</span>
@@ -491,7 +491,7 @@
                                         </div>
                                     </section>
 
-                                    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard tab-notes">
+                                    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
                                         <div class="admin-card__header">
                                             <h3 class="admin-card__title">Recent Portal Events</h3>
                                             <span class="admin-pill admin-pill--warning">Live feed</span>
@@ -515,7 +515,7 @@
                                         <div class="admin-summary__header">
                                             <h3>Latest Attendance Check-ins</h3>
                                             <div class="admin-topbar__actions">
-                                                <button type="button" class="secondary-btn" id="class-modal-open">Open Class Modal</button>
+                                                <button type="button" class="secondary-btn" id="admin-class-drawer-open">Open Class Panel</button>
                                                 <button type="button" class="text-link-btn" id="admin-attendance-refresh">Refresh</button>
                                             </div>
                                         </div>
@@ -625,7 +625,7 @@
                                         </div>
                                     </section>
 
-                                    <section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership tab-notes">
+                                    <section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
                                         <div class="admin-summary__header">
                                             <h3>Student Roster</h3>
                                             <div>
@@ -633,8 +633,16 @@
                                                 <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
                                             </div>
                                         </div>
-                                        <div class="admin-table-wrap">
-                                            <table class="admin-table" aria-label="Student roster">
+                                    <div class="admin-filter-row">
+                                        <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
+                                        <select id="admin-roster-sort" aria-label="Sort roster">
+                                            <option value="name">Name A–Z</option>
+                                            <option value="belt">Belt Order</option>
+                                            <option value="status">Status</option>
+                                        </select>
+                                    </div>
+                                    <div class="admin-table-wrap admin-table-wrap--wide">
+                                        <table class="admin-table admin-table--wide" aria-label="Student roster">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">ID</th>
@@ -825,38 +833,6 @@
                                         </div>
                                     </section>
 
-                                    <section class="admin-card" id="admin-notes" data-admin-panel="tab-notes">
-                                        <div class="admin-roster-notes">
-                                            <div class="admin-roster-notes__form">
-                                                <h4>Notes / Payments</h4>
-                                                <form id="admin-roster-note-form">
-                                                    <label>
-                                                        <span>Type</span>
-                                                        <select id="admin-roster-note-type">
-                                                            <option value="note">Note</option>
-                                                            <option value="payment">Payment</option>
-                                                            <option value="message">Message</option>
-                                                        </select>
-                                                    </label>
-                                                    <label>
-                                                        <span>Message</span>
-                                                        <textarea id="admin-roster-note-message" rows="3" placeholder="Add note or payment detail"></textarea>
-                                                    </label>
-                                                    <label>
-                                                        <span>Author</span>
-                                                        <input type="text" id="admin-roster-note-author" placeholder="e.g. Miss Fatima">
-                                                    </label>
-                                                    <button type="submit" class="cta-btn">Add Entry</button>
-                                                </form>
-                                            </div>
-                                            <div class="admin-roster-notes__list">
-                                                <h4>Activity</h4>
-                                                <ul id="admin-roster-notes-list">
-                                                    <li>No notes yet.</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </section>
 
                                 <section class="admin-card" id="admin-enroll" data-admin-panel="tab-students">
                                     <div class="admin-summary__header">
@@ -1006,304 +982,6 @@
             </section>
         </div>
     </div>
-    <div class="student-modal" id="student-detail-modal" hidden>
-        <div class="student-modal__backdrop" id="student-modal-backdrop"></div>
-        <div class="student-modal__panel" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
-            <button class="student-modal__close text-link-btn" id="student-modal-close" aria-label="Close student profile">Close ✕</button>
-            <header class="student-modal__header">
-                <div class="student-modal__avatar" id="student-modal-avatar">ARA</div>
-                <div>
-                    <p class="eyebrow">Student Profile</p>
-                    <h3 id="student-modal-title">Select a student</h3>
-                    <p class="student-modal__meta" id="student-modal-meta">ID · Contact</p>
-                    <div class="student-modal__tags">
-                        <span class="admin-pill" id="student-modal-status-pill">—</span>
-                        <span class="student-modal__last" id="student-modal-last-attended">Last attended —</span>
-                    </div>
-                </div>
-                <div class="student-modal__actions">
-                    <details>
-                        <summary class="secondary-btn">Actions ▾</summary>
-                        <menu>
-                            <button type="button" class="text-link-btn" data-student-action="edit">Edit Info</button>
-                            <button type="button" class="text-link-btn" data-student-action="photo">Change Photo</button>
-                            <button type="button" class="text-link-btn" data-student-action="note">Add Notes</button>
-                            <button type="button" class="text-link-btn" data-student-action="payment">Add Payment</button>
-                            <button type="button" class="text-link-btn" data-student-action="credit">Add Credit</button>
-                            <button type="button" class="text-link-btn" data-student-action="report">Report Card</button>
-                            <button type="button" class="text-link-btn" data-student-action="make-staff">Make Staff</button>
-                            <button type="button" class="text-link-btn" data-student-action="deactivate">Deactivate</button>
-                            <button type="button" class="text-link-btn" data-student-action="activate">Reactivate</button>
-                        </menu>
-                    </details>
-                </div>
-            </header>
-            <div class="student-modal__stats">
-                <div class="profile-metric">
-                    <p class="profile-metric__label">Last 30 days</p>
-                    <p class="profile-metric__value" id="student-modal-last30">—</p>
-                </div>
-                <div class="profile-metric">
-                    <p class="profile-metric__label">Last 60 days</p>
-                    <p class="profile-metric__value" id="student-modal-last60">—</p>
-                </div>
-                <div class="profile-metric">
-                    <p class="profile-metric__label">Last Attended</p>
-                    <p class="profile-metric__value" id="student-modal-lastattended-pill">—</p>
-                </div>
-            </div>
-            <nav class="student-modal__nav" aria-label="Student panels">
-                <button type="button" class="is-active" data-student-panel-target="overview">Overview</button>
-                <button type="button" data-student-panel-target="classes">Classes</button>
-                <button type="button" data-student-panel-target="notes">Notes</button>
-                <button type="button" data-student-panel-target="billing">Billing</button>
-                <button type="button" data-student-panel-target="progress">Progress</button>
-            </nav>
-            <div class="student-modal__content">
-                <section class="student-modal__card" data-student-panel="overview">
-                    <div class="student-modal__card-head">
-                        <h4>General Info</h4>
-                        <p class="admin-card__meta">Update contact, belt, membership, and status.</p>
-                    </div>
-                    <form class="student-modal__form" id="student-modal-edit-form" autocomplete="off">
-                        <div class="student-modal__grid">
-                            <label>
-                                <span>Name</span>
-                                <input type="text" id="student-modal-name" placeholder="Full name">
-                            </label>
-                            <label>
-                                <span>Email</span>
-                                <input type="email" id="student-modal-email" placeholder="name@example.com">
-                            </label>
-                            <label>
-                                <span>Phone</span>
-                                <input type="tel" id="student-modal-phone" placeholder="9195551234">
-                            </label>
-                            <label>
-                                <span>Belt</span>
-                                <select id="student-modal-belt">
-                                    <option value="">Keep current</option>
-                                    <option value="White Belt">White Belt</option>
-                                    <option value="High White Belt">High White Belt</option>
-                                    <option value="Yellow Belt">Yellow Belt</option>
-                                    <option value="High Yellow Belt">High Yellow Belt</option>
-                                    <option value="Green Belt">Green Belt</option>
-                                    <option value="High Green Belt">High Green Belt</option>
-                                    <option value="Blue Belt">Blue Belt</option>
-                                    <option value="High Blue Belt">High Blue Belt</option>
-                                    <option value="Red Belt">Red Belt</option>
-                                    <option value="High Red Belt">High Red Belt</option>
-                                    <option value="Black Belt">Black Belt</option>
-                                </select>
-                            </label>
-                            <label>
-                                <span>Membership</span>
-                                <select id="student-modal-membership">
-                                    <option value="">Not set</option>
-                                    <option value="Month-to-Month">Month-to-Month</option>
-                                    <option value="Tier 1">Tier 1</option>
-                                    <option value="Tier 2">Tier 2</option>
-                                    <option value="Tier 3">Tier 3</option>
-                                    <option value="Annual">Annual</option>
-                                </select>
-                            </label>
-                            <label>
-                                <span>Status</span>
-                                <select id="student-modal-status">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="frozen">Frozen</option>
-                                    <option value="suspended">Suspended</option>
-                                    <option value="prospect">Prospect</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="student-modal__actions-row">
-                            <button type="submit" class="secondary-btn">Save Changes</button>
-                            <button type="button" class="text-link-btn" data-student-action="report">View Report Card</button>
-                        </div>
-                    </form>
-                </section>
-                <section class="student-modal__card" data-student-panel="classes" hidden>
-                    <div class="student-modal__card-head">
-                        <h4>Classes &amp; Attendance</h4>
-                        <p class="admin-card__meta">Recent check-ins and adjustments.</p>
-                    </div>
-                    <ul class="class-modal__list" id="student-modal-attendance-list">
-                        <li>Load a student to view attendance.</li>
-                    </ul>
-                </section>
-                <section class="student-modal__card" data-student-panel="notes" hidden>
-                    <div class="student-modal__card-head">
-                        <div>
-                            <h4>Notes &amp; Communication</h4>
-                            <p class="admin-card__meta">Per-student notes, behavior logs, and billing conversations.</p>
-                        </div>
-                        <div class="student-notes-filter" id="student-modal-notes-filter">
-                            <button type="button" data-note-filter="all" class="is-active">All</button>
-                            <button type="button" data-note-filter="conversation">Conversations</button>
-                            <button type="button" data-note-filter="billing">Billing</button>
-                            <button type="button" data-note-filter="behavior">Behavior</button>
-                            <button type="button" data-note-filter="message">Messages</button>
-                            <button type="button" data-note-filter="payment">Payments</button>
-                        </div>
-                    </div>
-                    <form class="student-modal__form" id="student-modal-note-form">
-                        <div class="student-modal__grid student-modal__grid--compact">
-                            <label>
-                                <span>Type</span>
-                                <select id="student-modal-note-type">
-                                    <option value="conversation">Conversation</option>
-                                    <option value="message">Message Sent</option>
-                                    <option value="behavior">Behavior</option>
-                                    <option value="billing">Billing</option>
-                                    <option value="payment">Payment</option>
-                                    <option value="note">Note</option>
-                                </select>
-                            </label>
-                            <label>
-                                <span>Author</span>
-                                <input type="text" id="student-modal-note-author" placeholder="e.g. Miss Fatima">
-                            </label>
-                        </div>
-                        <label>
-                            <span>Message</span>
-                            <textarea id="student-modal-note-message" rows="3" placeholder="Add detail for this student"></textarea>
-                        </label>
-                        <div class="student-modal__actions-row">
-                            <button type="submit" class="secondary-btn">Add Note</button>
-                        </div>
-                    </form>
-                    <ul class="student-modal__timeline" id="student-modal-notes-list">
-                        <li>No notes yet.</li>
-                    </ul>
-                </section>
-                <section class="student-modal__card" data-student-panel="billing" hidden>
-                    <div class="student-modal__card-head">
-                        <h4>Payments &amp; Billing</h4>
-                        <p class="admin-card__meta">Use billing notes to track dues, credits, or special arrangements.</p>
-                    </div>
-                    <div class="student-modal__grid student-modal__grid--compact">
-                        <div>
-                            <p class="profile-metric__label">Membership</p>
-                            <p class="profile-metric__value" id="student-modal-billing-membership">—</p>
-                        </div>
-                        <div>
-                            <p class="profile-metric__label">Status</p>
-                            <p class="profile-metric__value" id="student-modal-billing-status">—</p>
-                        </div>
-                    </div>
-                    <p class="admin-card__meta">Log credits or payments in the notes tab to keep a full history.</p>
-                </section>
-                <section class="student-modal__card" data-student-panel="progress" hidden>
-                    <div class="student-modal__card-head">
-                        <h4>Progress &amp; Belt Tracking</h4>
-                        <p class="admin-card__meta">Snapshot of membership type and belt milestones.</p>
-                    </div>
-                    <div class="student-modal__grid student-modal__grid--compact">
-                        <div>
-                            <p class="profile-metric__label">Current Belt</p>
-                            <p class="profile-metric__value" id="student-modal-progress-belt">—</p>
-                        </div>
-                        <div>
-                            <p class="profile-metric__label">Membership</p>
-                            <p class="profile-metric__value" id="student-modal-progress-membership">—</p>
-                        </div>
-                    </div>
-                    <button type="button" class="secondary-btn" data-student-action="report">Open Report Card</button>
-                </section>
-            </div>
-            <p class="form-status" id="student-modal-status" aria-live="polite"></p>
-        </div>
-    </div>
-    <div class="class-modal" id="class-attendance-modal" hidden>
-        <div class="class-modal__backdrop" id="class-modal-backdrop"></div>
-        <div class="class-modal__panel" role="dialog" aria-modal="true" aria-labelledby="class-modal-title">
-            <div class="class-modal__header">
-                <div>
-                    <p class="eyebrow">Class Attendance</p>
-                    <h3 id="class-modal-title">ARA TKD Check-in</h3>
-                </div>
-                <div class="class-modal__controls">
-                    <button type="button" class="secondary-btn" id="class-modal-move-all">Move All to Attended</button>
-                    <button type="button" class="text-link-btn" id="class-modal-clear-attended">Remove All Attended</button>
-                    <button type="button" class="text-link-btn" id="class-modal-close">Close ✕</button>
-                </div>
-            </div>
-            <div class="class-modal__body">
-                <div class="class-modal__column">
-                    <div class="admin-summary__header">
-                        <h4>Waiting</h4>
-                        <span class="class-modal__pill">Queue</span>
-                    </div>
-                    <ul class="class-modal__list" id="class-modal-waiting">
-                        <li>No members waiting.</li>
-                    </ul>
-                </div>
-                <div class="class-modal__column">
-                    <div class="admin-summary__header">
-                        <h4>Reserved</h4>
-                        <span class="class-modal__pill">Reserved</span>
-                    </div>
-                    <ul class="class-modal__list" id="class-modal-reserved">
-                        <li>No reservations yet.</li>
-                    </ul>
-                </div>
-                <div class="class-modal__column">
-                    <div class="admin-summary__header">
-                        <h4>Attended</h4>
-                        <span class="class-modal__pill">Checked In</span>
-                    </div>
-                    <ul class="class-modal__list" id="class-modal-attended">
-                        <li>No one attended yet.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="class-modal__footer">
-                <div class="class-modal__fields">
-                    <label>
-                        <span>Instructor</span>
-                        <select id="class-modal-instructor">
-                            <option value="Master Ara">Master Ara</option>
-                            <option value="Miss Fatima">Miss Fatima</option>
-                            <option value="Coach">Coach</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span>WOD / Notes</span>
-                        <input type="text" id="class-modal-wod" placeholder="WOD, focus, or notes">
-                    </label>
-                    <label>
-                        <span>Member ID / Name</span>
-                        <input type="text" id="class-modal-member" placeholder="ARA123 or Name">
-                    </label>
-                </div>
-                <div class="class-modal__actions">
-                    <button type="button" class="secondary-btn" id="class-modal-reserve">Reserve Member</button>
-                    <button type="button" class="secondary-btn" id="class-modal-signin">Sign-in Member</button>
-                    <button type="button" class="secondary-btn" id="class-modal-dropin">Add Drop-in</button>
-                    <button type="button" class="text-link-btn" id="class-modal-edit">Edit Class</button>
-                    <button type="button" class="text-link-btn" id="class-modal-done">Done</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="admin-report-card" id="admin-report-card" hidden>
-        <div class="admin-report-card__dialog" role="dialog" aria-modal="true" aria-labelledby="report-card-title">
-            <button type="button" class="admin-report-card__close" id="report-card-close" aria-label="Close report card">&times;</button>
-            <div id="report-card-content">
-                <h3 id="report-card-title">Report Card</h3>
-                <div id="report-card-body">
-                    <p>Select a student to view report card details.</p>
-                </div>
-            </div>
-            <div class="report-card-actions">
-                <button type="button" class="secondary-btn" id="report-card-download">Download Report Card</button>
-            </div>
-        </div>
-    </div>
-
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>

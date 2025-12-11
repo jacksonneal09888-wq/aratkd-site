@@ -1,0 +1,126 @@
+<div class="admin-drawer" id="student-drawer" hidden>
+  <div class="admin-drawer__backdrop" id="student-drawer-backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <button class="admin-drawer__close text-link-btn" id="student-drawer-close" aria-label="Close student panel">Close ✕</button>
+    <header class="student-modal__header">
+      <div class="student-modal__avatar" id="student-modal-avatar">ARA</div>
+      <div>
+        <p class="eyebrow">Student Profile</p>
+        <h3 id="student-modal-title">Select a student</h3>
+        <p class="student-modal__meta" id="student-modal-meta">ID · Contact</p>
+        <div class="student-modal__tags">
+          <span class="admin-pill" id="student-modal-status-pill">—</span>
+          <span class="admin-pill admin-pill--success" id="student-modal-membership-pill">Membership</span>
+          <span class="student-modal__last" id="student-modal-last-attended">Last attended —</span>
+        </div>
+      </div>
+      <div class="student-modal__actions">
+        <button type="button" class="secondary-btn" data-student-action="report">Report Card</button>
+        <button type="button" class="text-link-btn" data-student-action="note">Add Note</button>
+        <button type="button" class="text-link-btn" data-student-action="payment">Add Payment</button>
+        <button type="button" class="text-link-btn" data-student-action="deactivate">Deactivate</button>
+      </div>
+    </header>
+    <div class="student-modal__stats">
+      <div class="profile-metric">
+        <p class="profile-metric__label">Last 30 days</p>
+        <p class="profile-metric__value" id="student-modal-last30">—</p>
+      </div>
+      <div class="profile-metric">
+        <p class="profile-metric__label">Last 60 days</p>
+        <p class="profile-metric__value" id="student-modal-last60">—</p>
+      </div>
+      <div class="profile-metric">
+        <p class="profile-metric__label">Last Attended</p>
+        <p class="profile-metric__value" id="student-modal-lastattended-pill">—</p>
+      </div>
+    </div>
+    <nav class="student-modal__nav" aria-label="Student panels">
+      <button type="button" class="is-active" data-student-panel-target="overview">Overview</button>
+      <button type="button" data-student-panel-target="classes">Classes</button>
+      <button type="button" data-student-panel-target="notes">Notes</button>
+      <button type="button" data-student-panel-target="billing">Billing</button>
+      <button type="button" data-student-panel-target="progress">Progress</button>
+    </nav>
+    <div class="student-modal__content">
+      <section class="student-modal__card" data-student-panel="overview">
+        <div class="student-modal__card-head">
+          <h4>General Info</h4>
+          <p class="admin-card__meta">Update contact, belt, membership, and status.</p>
+        </div>
+        <form class="student-modal__form" id="student-modal-edit-form" autocomplete="off">
+          <div class="student-modal__grid">
+            <label><span>Name</span><input type="text" id="student-modal-name" placeholder="Full name"></label>
+            <label><span>Email</span><input type="email" id="student-modal-email" placeholder="name@example.com"></label>
+            <label><span>Phone</span><input type="tel" id="student-modal-phone" placeholder="9195551234"></label>
+            <label><span>Belt</span><select id="student-modal-belt"></select></label>
+            <label><span>Membership</span><select id="student-modal-membership"></select></label>
+            <label><span>Status</span><select id="student-modal-status"></select></label>
+          </div>
+          <div class="student-modal__actions-row">
+            <button type="submit" class="secondary-btn">Save Changes</button>
+            <button type="button" class="text-link-btn" data-student-action="report">View Report Card</button>
+          </div>
+        </form>
+      </section>
+      <section class="student-modal__card" data-student-panel="classes" hidden>
+        <div class="student-modal__card-head">
+          <h4>Classes &amp; Attendance</h4>
+          <p class="admin-card__meta">Recent check-ins and adjustments.</p>
+        </div>
+        <ul class="class-modal__list" id="student-modal-attendance-list">
+          <li>Load a student to view attendance.</li>
+        </ul>
+      </section>
+      <section class="student-modal__card" data-student-panel="notes" hidden>
+        <div class="student-modal__card-head">
+          <div>
+            <h4>Notes &amp; Communication</h4>
+            <p class="admin-card__meta">Per-student notes, behavior logs, and billing conversations.</p>
+          </div>
+          <div class="student-notes-filter" id="student-modal-notes-filter">
+            <button type="button" data-note-filter="all" class="is-active">All</button>
+            <button type="button" data-note-filter="conversation">Conversations</button>
+            <button type="button" data-note-filter="billing">Billing</button>
+            <button type="button" data-note-filter="behavior">Behavior</button>
+            <button type="button" data-note-filter="message">Messages</button>
+            <button type="button" data-note-filter="payment">Payments</button>
+            <button type="button" data-note-filter="note">Notes</button>
+          </div>
+        </div>
+        <form class="student-modal__form" id="student-modal-note-form">
+          <div class="student-modal__grid student-modal__grid--compact">
+            <label><span>Type</span><select id="student-modal-note-type"></select></label>
+            <label><span>Author</span><input type="text" id="student-modal-note-author" placeholder="e.g. Miss Fatima"></label>
+          </div>
+          <label><span>Message</span><textarea id="student-modal-note-message" rows="3" placeholder="Add detail for this student"></textarea></label>
+          <div class="student-modal__actions-row"><button type="submit" class="secondary-btn">Add Note</button></div>
+        </form>
+        <ul class="student-modal__timeline" id="student-modal-notes-list">
+          <li>No notes yet.</li>
+        </ul>
+      </section>
+      <section class="student-modal__card" data-student-panel="billing" hidden>
+        <div class="student-modal__card-head">
+          <h4>Payments &amp; Billing</h4>
+          <p class="admin-card__meta">Use billing notes to track dues, credits, or special arrangements.</p>
+        </div>
+        <div class="student-modal__grid student-modal__grid--compact">
+          <div><p class="profile-metric__label">Membership</p><p class="profile-metric__value" id="student-modal-billing-membership">—</p></div>
+          <div><p class="profile-metric__label">Status</p><p class="profile-metric__value" id="student-modal-billing-status">—</p></div>
+        </div>
+        <p class="admin-card__meta">Log credits or payments in the notes tab to keep a full history.</p>
+      </section>
+      <section class="student-modal__card" data-student-panel="progress" hidden>
+        <div class="student-modal__card-head">
+          <h4>Progress &amp; Belt Tracking</h4>
+          <p class="admin-card__meta">Snapshot of membership type and belt milestones.</p>
+        </div>
+        <div class="student-modal__grid student-modal__grid--compact">
+          <div><p class="profile-metric__label">Current Belt</p><p class="profile-metric__value" id="student-modal-progress-belt">—</p></div>
+          <div><p class="profile-metric__label">Membership</p><p class="profile-metric__value" id="student-modal-progress-membership">—</p></div>
+        </div>
+      </section>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,58 @@
+<section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard">
+  <div class="admin-card__header">
+    <h3 class="admin-card__title">Usage Overview</h3>
+    <p class="admin-card__meta">Snapshot of portal logins and belt updates</p>
+  </div>
+  <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
+  <div class="admin-table-wrap">
+    <table class="admin-table" aria-label="Portal usage summary">
+      <thead>
+        <tr>
+          <th scope="col">Student ID</th>
+          <th scope="col">Total Events</th>
+          <th scope="col">Logins</th>
+          <th scope="col">Latest Belt</th>
+          <th scope="col">Last Activity</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admin-summary-body">
+        <tr>
+          <td colspan="7">Sign in to load analytics.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard">
+  <div class="admin-card__header">
+    <h3 class="admin-card__title">Messaging Insights</h3>
+    <p class="admin-card__meta">Local log metrics</p>
+  </div>
+  <div class="admin-roster-cards">
+    <div class="admin-roster-card">
+      <p class="card-label">Messages Today</p>
+      <p class="card-value" id="msg-metric-today">0</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Messages This Week</p>
+      <p class="card-value" id="msg-metric-week">0</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Most Messaged Belt</p>
+      <p class="card-value" id="msg-metric-belt">—</p>
+    </div>
+  </div>
+</section>
+
+<section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
+  <div class="admin-card__header">
+    <h3 class="admin-card__title">Recent Portal Events</h3>
+    <span class="admin-pill admin-pill--warning">Live feed</span>
+  </div>
+  <ul class="admin-event-list" id="admin-events-list">
+    <li>No events yet.</li>
+  </ul>
+</section>
