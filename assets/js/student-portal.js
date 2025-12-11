@@ -3856,44 +3856,48 @@ function confirmAdminEmailSend(event) {
         `Sending to ~${pending.recipients.length} recipient(s)...`,
         "progress"
     );
-    const sendPromise =
-        apiKey && pending.recipients?.length
-            ? sendEmailViaBrevo(pending)
-            : fetch(url, {
-                  method: "POST",
-                  headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-                  body: JSON.stringify({
-                      recipientType: pending.recipientType,
-                      audience: pending.recipientType,
-                      subject: pending.subject,
-                      message: pending.message,
-                      belt: pending.belt,
-                      className: pending.className,
-                      studentId: pending.studentId,
-                      directEmail: pending.directEmails?.join(", ")
-                  })
-              }).then(async (res) => {
-                  const clone = res.clone();
-                  let payload = null;
-                  try {
-                      payload = await clone.json();
-                  } catch (jsonErr) {
-                      try {
-                          const text = await res.text();
-                          payload = { error: text };
-                      } catch (textErr) {
-                          payload = null;
-                      }
-                  }
-                  if (!res.ok) {
-                      const reason =
-                          payload?.error ||
-                          payload?.message ||
-                          `${res.status} ${res.statusText || "Unable to send email."}`;
-                      throw new Error(reason);
-                  }
-                  return payload;
-              });
+    let sendPromise = null;
+    if (apiKey && pending.recipients?.length) {
+        sendPromise = sendEmailViaBrevo(pending);
+    } else if (url) {
+        sendPromise = fetch(url, {
+            method: "POST",
+            headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({
+                recipientType: pending.recipientType,
+                audience: pending.recipientType,
+                subject: pending.subject,
+                message: pending.message,
+                belt: pending.belt,
+                className: pending.className,
+                studentId: pending.studentId,
+                directEmail: pending.directEmails?.join(", ")
+            })
+        }).then(async (res) => {
+            const clone = res.clone();
+            let payload = null;
+            try {
+                payload = await clone.json();
+            } catch (jsonErr) {
+                try {
+                    const text = await res.text();
+                    payload = { error: text };
+                } catch (textErr) {
+                    payload = null;
+                }
+            }
+            if (!res.ok) {
+                const reason =
+                    payload?.error ||
+                    payload?.message ||
+                    `${res.status} ${res.statusText || "Unable to send email."}`;
+                throw new Error(reason);
+            }
+            return payload;
+        });
+    } else {
+        sendPromise = Promise.reject(new Error("Email service is not configured."));
+    }
     Promise.resolve(sendPromise)
         .then(() => {
             appendMessageLogEntry({
