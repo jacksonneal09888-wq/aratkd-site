@@ -1006,6 +1006,13 @@ function handleEmailActionClick(event) {
     handleAdminEmailSubmit(event);
 }
 
+function handleEmailPanelSubmit(event) {
+    const form = event.target.closest("#admin-email-form");
+    if (!form) return;
+    event.preventDefault();
+    handleAdminEmailSubmit(event);
+}
+
 function handleStudentNotesFilterClick(event) {
     const button = event.target.closest("[data-note-filter]");
     if (!button) return;
@@ -1437,6 +1444,7 @@ function attachHandlers() {
     bindOnce(portalEls.emailPreviewCancel2, "click", closeEmailPreview);
     bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
     bindOnce(document, "click", handleEmailActionClick);
+    bindOnce(portalEls.adminEmailForm, "submit", handleEmailPanelSubmit);
 }
 
 function bindAdminEvents() {
@@ -3506,17 +3514,44 @@ function getBrevoSender() {
     }
 }
 
+function readAttachment(file) {
+    return new Promise((resolve, reject) => {
+        if (!file) return resolve(null);
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = (reader.result || "").toString().split(",").pop();
+            resolve({
+                name: file.name,
+                content: base64 || "",
+                type: file.type || "application/octet-stream"
+            });
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+    });
+}
+
 async function sendEmailViaBrevo(pending) {
     const apiKey = getBrevoApiKey();
     if (!apiKey) {
         throw new Error("Missing Brevo API key");
+    }
+    let attachment = null;
+    try {
+        const file = portalEls.adminEmailAttachment?.files?.[0];
+        if (file) {
+            attachment = await readAttachment(file);
+        }
+    } catch (error) {
+        console.warn("Attachment read failed", error);
     }
     const payload = {
         sender: { email: getBrevoSender(), name: "ARA TKD" },
         to: (pending.recipients || []).map((email) => ({ email })),
         subject: pending.subject || "",
         htmlContent: pending.message || "",
-        textContent: pending.message || ""
+        textContent: pending.message || "",
+        attachments: attachment ? [attachment] : undefined
     };
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
