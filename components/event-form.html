@@ -1,0 +1,22 @@
+<div class="admin-drawer" id="admin-event-drawer-sample" hidden>
+  <div class="admin-drawer__backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <button class="admin-drawer__close text-link-btn" aria-label="Close event form">Close ✕</button>
+    <div class="admin-drawer__header">
+      <p class="eyebrow">Special Events</p>
+      <h3>Add or Edit Event</h3>
+    </div>
+    <form autocomplete="off">
+      <div class="admin-enroll__grid">
+        <label><span>Event Name</span><input type="text" placeholder="Tournament Sign-In"></label>
+        <label><span>Type</span><select><option>Special Class</option><option>Tournament</option><option>Make-Up Class</option></select></label>
+        <label><span>Start</span><input type="datetime-local"></label>
+        <label><span>End (optional)</span><input type="datetime-local"></label>
+        <label><span>Capacity (optional)</span><input type="number" min="1" placeholder="e.g. 30"></label>
+      </div>
+      <label><span>Description</span><textarea rows="2"></textarea></label>
+      <label style="display:flex;align-items:center;gap:0.5rem; margin:0.5rem 0 1rem 0;"><input type="checkbox"><span>Activate immediately</span></label>
+      <button type="submit" class="btn-primary">Save Event</button>
+    </form>
+  </aside>
+</div>

@@ -1,0 +1,33 @@
+<div class="admin-drawer" id="admin-email-drawer-sample" hidden>
+  <div class="admin-drawer__backdrop"></div>
+  <aside class="admin-drawer__panel">
+    <button class="admin-drawer__close text-link-btn" aria-label="Close email panel">Close ✕</button>
+    <div class="admin-drawer__header">
+      <p class="eyebrow">Email Parents</p>
+      <h3>Send Announcement</h3>
+    </div>
+    <form class="admin-email-form email-panel">
+      <div class="email-recipient-row admin-radio-grid">
+        <label class="pill-button"><input type="radio" name="email-audience" value="all" checked> All Parents</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="active"> Active Students</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="belt"> Belts</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="class"> Specific Class</label>
+        <label class="pill-button"><input type="radio" name="email-audience" value="student"> Single Student</label>
+      </div>
+      <div class="admin-email-columns">
+        <div class="admin-email-left">
+          <label><span>Direct Email (single send)</span><input type="email" placeholder="parent@example.com"></label>
+          <label><span>Belt (optional)</span><select><option value="">Any</option></select></label>
+          <label><span>Class (optional)</span><input type="text" placeholder="e.g. Little Ninjas"></label>
+          <label><span>Student ID (optional)</span><input type="text" placeholder="ARA001"></label>
+        </div>
+        <div class="admin-email-right">
+          <label><span>Subject</span><input type="text"></label>
+          <label><span>Message</span><textarea rows="10" placeholder="Write your announcement..."></textarea></label>
+          <label><span>Attachment (optional)</span><input type="file"></label>
+        </div>
+      </div>
+      <button class="btn-primary" type="submit">Send Message</button>
+    </form>
+  </aside>
+</div>

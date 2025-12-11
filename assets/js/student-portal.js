@@ -441,6 +441,7 @@ const portalEls = {
     adminRefresh: document.getElementById("admin-refresh"),
     adminExpand: document.getElementById("admin-expand"),
     adminSummaryDownload: document.getElementById("admin-summary-download"),
+    adminThemeToggle: document.getElementById("admin-theme-toggle"),
     adminLauncher: document.getElementById("admin-launcher"),
     adminModal: document.getElementById("admin-modal"),
     adminBackdrop: document.getElementById("admin-modal-backdrop"),
@@ -579,8 +580,47 @@ const portalEls = {
     reportCardModal: document.getElementById("admin-report-card"),
     reportCardClose: document.getElementById("report-card-close"),
     reportCardBody: document.getElementById("report-card-body"),
-    reportCardDownload: document.getElementById("report-card-download")
+    reportCardDownload: document.getElementById("report-card-download"),
+    adminEventDrawer: document.getElementById("admin-event-drawer"),
+    adminEventDrawerBackdrop: document.getElementById("admin-event-drawer-backdrop"),
+    adminEventDrawerClose: document.getElementById("admin-event-drawer-close"),
+    adminEventDrawerOpen: document.getElementById("admin-event-drawer-open"),
+    adminEmailDrawer: document.getElementById("admin-email-drawer"),
+    adminEmailDrawerBackdrop: document.getElementById("admin-email-drawer-backdrop"),
+    adminEmailDrawerClose: document.getElementById("admin-email-drawer-close"),
+    adminEmailDrawerOpen: document.getElementById("admin-email-drawer-open")
 };
+
+const THEME_STORAGE_KEY = "aratkd-theme";
+
+function getStoredTheme() {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(THEME_STORAGE_KEY);
+}
+
+function persistTheme(theme) {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+}
+
+function applyTheme(theme) {
+    const safeTheme = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", safeTheme);
+    if (portalEls.adminThemeToggle) {
+        portalEls.adminThemeToggle.setAttribute("aria-pressed", safeTheme === "dark");
+        portalEls.adminThemeToggle.textContent = safeTheme === "dark" ? "🌙 Dark" : "🌞 Light";
+    }
+}
+
+const initialTheme = getStoredTheme() || "light";
+applyTheme(initialTheme);
+
+function toggleDrawer(drawerEl, show) {
+    if (!drawerEl) return;
+    const shouldShow = show === undefined ? true : Boolean(show);
+    drawerEl.hidden = !shouldShow;
+    document.body.classList.toggle("admin-modal-open", shouldShow);
+}
 
 const portalState = {
     activeStudent: readStoredStudentProfile(),
@@ -696,6 +736,11 @@ function attachHandlers() {
             handleAdminLogin(e);
         }
     });
+    portalEls.adminThemeToggle?.addEventListener("click", () => {
+        const nextTheme = (document.documentElement.getAttribute("data-theme") || "light") === "light" ? "dark" : "light";
+        applyTheme(nextTheme);
+        persistTheme(nextTheme);
+    });
     portalEls.adminRefresh?.addEventListener("click", handleAdminRefresh);
     portalEls.adminRosterRefresh?.addEventListener("click", handleAdminRosterRefresh);
     portalEls.adminLauncher?.addEventListener("click", (event) => {
@@ -735,6 +780,12 @@ function attachHandlers() {
             }
             if (portalEls.studentModal && !portalEls.studentModal.hidden) {
                 closeStudentModal();
+            }
+            if (portalEls.adminEventDrawer && !portalEls.adminEventDrawer.hidden) {
+                toggleDrawer(portalEls.adminEventDrawer, false);
+            }
+            if (portalEls.adminEmailDrawer && !portalEls.adminEmailDrawer.hidden) {
+                toggleDrawer(portalEls.adminEmailDrawer, false);
             }
         }
     });
@@ -790,6 +841,24 @@ function attachHandlers() {
         portalEls.classModalWod?.focus();
     });
     document.addEventListener("click", handleClassActionButtons);
+    portalEls.adminEventDrawerOpen?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEventDrawer, true)
+    );
+    portalEls.adminEventDrawerClose?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEventDrawer, false)
+    );
+    portalEls.adminEventDrawerBackdrop?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEventDrawer, false)
+    );
+    portalEls.adminEmailDrawerOpen?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEmailDrawer, true)
+    );
+    portalEls.adminEmailDrawerClose?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEmailDrawer, false)
+    );
+    portalEls.adminEmailDrawerBackdrop?.addEventListener("click", () =>
+        toggleDrawer(portalEls.adminEmailDrawer, false)
+    );
 }
 
 async function handleLogin(event) {
