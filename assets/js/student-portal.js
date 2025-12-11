@@ -515,6 +515,7 @@ const portalEls = {
     adminRosterPhone: document.getElementById("admin-roster-phone"),
     adminRosterBelt: document.getElementById("admin-roster-belt"),
     adminRosterStatus: document.getElementById("admin-roster-status"),
+    adminStudentDrawerOpen: document.getElementById("admin-student-drawer-open"),
     adminRosterNewtab: document.getElementById("admin-roster-newtab"),
     adminRosterCardStatus: document.getElementById("admin-roster-card-status"),
     adminRosterCard30: document.getElementById("admin-roster-card-30"),
@@ -665,6 +666,7 @@ function refreshAdminEls() {
         adminRosterPhone: "admin-roster-phone",
         adminRosterBelt: "admin-roster-belt",
         adminRosterStatus: "admin-roster-status",
+        adminStudentDrawerOpen: "admin-student-drawer-open",
         adminRosterSearch: "admin-roster-search",
         adminRosterSort: "admin-roster-sort",
         adminRosterNewtab: "admin-roster-newtab",
@@ -1002,6 +1004,16 @@ function handleRosterNewTab() {
     );
 }
 
+function handleStudentDrawerOpen(event) {
+    event?.preventDefault();
+    const student = portalState.admin.rosterSelected;
+    if (!student?.id) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    openStudentModal(student.id);
+}
+
 function handleEscapeKey(event) {
     if (event.key !== "Escape") return;
     if (portalEls.adminModal && !portalEls.adminModal.hidden) {
@@ -1335,6 +1347,7 @@ function attachHandlers() {
     bindOnce(portalEls.adminAttendanceAdjustForm, "submit", handleAttendanceAdjust);
     bindOnce(portalEls.adminRosterDetail, "click", handleRosterDetailButtons);
     bindOnce(portalEls.adminRosterNewtab, "click", handleRosterNewTab);
+    bindOnce(portalEls.adminStudentDrawerOpen, "click", handleStudentDrawerOpen);
     bindOnce(portalEls.adminRosterSearch, "input", handleRosterSearch);
     bindOnce(portalEls.adminRosterSort, "change", handleRosterSort);
     bindOnce(portalEls.adminClose, "click", closeAdminModal);
