@@ -1,8 +1,13 @@
 function toggleDrawer(drawerEl, show) {
   if (!drawerEl) return;
   const shouldShow = show === undefined ? true : Boolean(show);
+  const wasHidden = drawerEl.hidden;
   drawerEl.hidden = !shouldShow;
   document.body.classList.toggle("admin-modal-open", shouldShow);
+  const eventName = shouldShow ? "panel-open" : "panel-close";
+  if (wasHidden !== !shouldShow) {
+    drawerEl.dispatchEvent(new CustomEvent(eventName, { bubbles: true, detail: { drawer: drawerEl } }));
+  }
 }
 
 function bindDrawerTriggers(openBtn, drawer, closeBtn, backdrop) {
@@ -63,6 +68,7 @@ if (typeof window !== "undefined") {
     // Rebind to newly injected buttons if present
     initPanels();
   });
+  document.body.addEventListener("admin-components-loaded", () => initPanels());
 }
 
 export { toggleDrawer, initPanels, bindDrawerTriggers };

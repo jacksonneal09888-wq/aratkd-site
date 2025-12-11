@@ -37,7 +37,9 @@ async function loadComponent(tabId) {
     const res = await fetch(url, { cache: "no-store" });
     const html = await res.text();
     target.innerHTML = html;
-    document.body.dispatchEvent(new CustomEvent("admin:component:loaded", { detail: { tabId } }));
+    const detail = { detail: { tabId } };
+    document.body.dispatchEvent(new CustomEvent("admin:component:loaded", detail));
+    document.body.dispatchEvent(new CustomEvent("admin-components-loaded", detail));
     if (typeof window !== "undefined") {
       if (typeof window.bindAdminEvents === "function") {
         window.bindAdminEvents();
