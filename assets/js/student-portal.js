@@ -961,6 +961,16 @@ document.body.addEventListener("admin:component:loaded", (event) => {
         }
     }
 });
+document.body.addEventListener("admin-components-loaded", () => {
+    refreshAdminEls();
+    attachHandlers();
+    if (portalState.admin.isAuthorized) {
+        renderAdminDashboard();
+        loadAdminRoster();
+        loadAdminEvents();
+        loadAdminAttendance();
+    }
+});
 
 function handlePortalRefresh() {
     if (!portalState.activeStudent) return;
@@ -987,6 +997,13 @@ function handleThemeToggleClick() {
 function handleAdminAccessClick(event) {
     event.preventDefault();
     requestAdminAccess();
+}
+
+function handleEmailActionClick(event) {
+    const btn = event.target.closest('[data-email-action="send"]');
+    if (!btn) return;
+    event.preventDefault();
+    handleAdminEmailSubmit(event);
 }
 
 function handleStudentNotesFilterClick(event) {
@@ -1419,6 +1436,7 @@ function attachHandlers() {
     bindOnce(portalEls.emailPreviewCancel, "click", closeEmailPreview);
     bindOnce(portalEls.emailPreviewCancel2, "click", closeEmailPreview);
     bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
+    bindOnce(document, "click", handleEmailActionClick);
 }
 
 function bindAdminEvents() {
@@ -3463,6 +3481,59 @@ function setAdminEmailStatus(message, variant = "error") {
     portalEls.adminEmailStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function getBrevoApiKey() {
+    try {
+        return (
+            (typeof window !== "undefined" && window.BREVO_API_KEY) ||
+            document.body?.dataset?.brevoKey ||
+            ""
+        );
+    } catch (error) {
+        return "";
+    }
+}
+
+function getBrevoSender() {
+    const fallback = "noreply@aratkd.com";
+    try {
+        return (
+            (typeof window !== "undefined" && window.BREVO_SENDER) ||
+            document.body?.dataset?.brevoSender ||
+            fallback
+        );
+    } catch (error) {
+        return fallback;
+    }
+}
+
+async function sendEmailViaBrevo(pending) {
+    const apiKey = getBrevoApiKey();
+    if (!apiKey) {
+        throw new Error("Missing Brevo API key");
+    }
+    const payload = {
+        sender: { email: getBrevoSender(), name: "ARA TKD" },
+        to: (pending.recipients || []).map((email) => ({ email })),
+        subject: pending.subject || "",
+        htmlContent: pending.message || "",
+        textContent: pending.message || ""
+    };
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            "api-key": apiKey
+        },
+        body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Brevo send failed");
+    }
+    return res.json();
+}
+
 function showEmailPreview({ subject, message, recipients }) {
     if (!portalEls.emailPreviewModal) return;
     if (portalEls.emailPreviewSubject) {
@@ -3743,46 +3814,52 @@ function confirmAdminEmailSend(event) {
         closeEmailPreview();
         return;
     }
+    const apiKey = getBrevoApiKey();
     const url = buildApiUrl("/portal/admin/email/send");
-    if (!url) return;
     setEmailSendingState(true);
-    setAdminEmailStatus(`Sending to ~${pending.recipients.length} recipient(s)...`, "progress");
-    fetch(url, {
-        method: "POST",
-        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({
-            recipientType: pending.recipientType,
-            audience: pending.recipientType,
-            subject: pending.subject,
-            message: pending.message,
-            belt: pending.belt,
-            className: pending.className,
-            studentId: pending.studentId,
-            directEmail: pending.directEmails?.join(", ")
-        })
-    })
-        .then(async (res) => {
-            const clone = res.clone();
-            let payload = null;
-            try {
-                payload = await clone.json();
-            } catch (jsonErr) {
-                try {
-                    const text = await res.text();
-                    payload = { error: text };
-                } catch (textErr) {
-                    payload = null;
-                }
-            }
-            if (!res.ok) {
-                const reason =
-                    payload?.error ||
-                    payload?.message ||
-                    `${res.status} ${res.statusText || "Unable to send email."}`;
-                throw new Error(reason);
-            }
-            return payload;
-        })
+    setAdminEmailStatus(
+        `Sending to ~${pending.recipients.length} recipient(s)...`,
+        "progress"
+    );
+    const sendPromise =
+        apiKey && pending.recipients?.length
+            ? sendEmailViaBrevo(pending)
+            : fetch(url, {
+                  method: "POST",
+                  headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+                  body: JSON.stringify({
+                      recipientType: pending.recipientType,
+                      audience: pending.recipientType,
+                      subject: pending.subject,
+                      message: pending.message,
+                      belt: pending.belt,
+                      className: pending.className,
+                      studentId: pending.studentId,
+                      directEmail: pending.directEmails?.join(", ")
+                  })
+              }).then(async (res) => {
+                  const clone = res.clone();
+                  let payload = null;
+                  try {
+                      payload = await clone.json();
+                  } catch (jsonErr) {
+                      try {
+                          const text = await res.text();
+                          payload = { error: text };
+                      } catch (textErr) {
+                          payload = null;
+                      }
+                  }
+                  if (!res.ok) {
+                      const reason =
+                          payload?.error ||
+                          payload?.message ||
+                          `${res.status} ${res.statusText || "Unable to send email."}`;
+                      throw new Error(reason);
+                  }
+                  return payload;
+              });
+    Promise.resolve(sendPromise)
         .then(() => {
             appendMessageLogEntry({
                 subject: pending.subject,
