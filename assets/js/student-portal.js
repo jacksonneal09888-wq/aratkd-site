@@ -3873,6 +3873,7 @@ function confirmAdminEmailSend(event) {
         "progress"
     );
     let sendPromise = null;
+    const usingBrevo = Boolean(apiKey && pending.recipients?.length);
     if (apiKey && pending.recipients?.length) {
         sendPromise = sendEmailViaBrevo(pending);
     } else if (url) {
@@ -3922,10 +3923,10 @@ function confirmAdminEmailSend(event) {
                 audience: pending.recipientType,
                 recipients: pending.recipients
             });
-            setAdminEmailStatus(
-                `Email queued for delivery to ~${pending.recipients.length} recipient(s).`,
-                "success"
-            );
+            const queuedMessage = usingBrevo
+                ? `Email queued to Brevo for ${pending.recipients.length} recipient(s).`
+                : `Email queued for delivery to ~${pending.recipients.length} recipient(s).`;
+            setAdminEmailStatus(queuedMessage, "success");
             setAdminStatus("Email queued for delivery.", "success");
             pushMessagesToStudents(pending);
             if (portalEls.adminEmailBody) portalEls.adminEmailBody.value = "";
@@ -3937,7 +3938,10 @@ function confirmAdminEmailSend(event) {
         })
         .catch((error) => {
             console.error("email send", error);
-            setAdminEmailStatus(error.message || "Unable to send email.", "error");
+            const msg =
+                error?.message ||
+                (usingBrevo ? "Unable to send via Brevo. Check API key or sender." : "Unable to send email.");
+            setAdminEmailStatus(msg, "error");
         })
         .finally(() => {
             setEmailSendingState(false);
