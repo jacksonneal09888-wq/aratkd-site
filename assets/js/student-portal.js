@@ -848,6 +848,7 @@ const portalState = {
         studentDrawerMemory: {},
         classCompactMode: false,
         classFilter: "all",
+        commFilter: "all",
         messageLog: loadMessageLog(),
         pendingEmail: null,
         pendingClassRecipients: null,
@@ -1374,10 +1375,7 @@ function attachHandlers() {
     if (portalEls.commLogBody) {
         bindOnce(portalEls.commLogBody, "click", handleCommLogToggle);
     }
-    bindOnce(portalEls.commAudienceFilter, "change", renderCommunicationsLog);
-    bindOnce(portalEls.commDateFrom, "change", renderCommunicationsLog);
-    bindOnce(portalEls.commDateTo, "change", renderCommunicationsLog);
-    bindOnce(portalEls.commSubjectFilter, "input", renderCommunicationsLog);
+    bindOnce(document, "click", handleCommFilterClick);
     if (portalEls.adminTabs) {
         bindOnce(portalEls.adminTabs, "click", handleAdminTabClick);
     }
@@ -1408,6 +1406,19 @@ function attachHandlers() {
     bindOnce(portalEls.emailPreviewCancel, "click", closeEmailPreview);
     bindOnce(portalEls.emailPreviewCancel2, "click", closeEmailPreview);
     bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
+}
+
+function bindAdminEvents() {
+    attachHandlers();
+}
+
+function adminRefreshIfSignedIn() {
+    if (portalState.admin?.isAuthorized) {
+        renderAdminDashboard();
+        loadAdminRoster();
+        loadAdminEvents();
+        loadAdminAttendance();
+    }
 }
 
 async function handleLogin(event) {
@@ -3483,6 +3494,7 @@ function appendMessageLogEntry(entry) {
         timestamp: entry.timestamp || new Date().toISOString(),
         subject: entry.subject || "",
         audience: entry.audience || "all",
+        type: entry.type || "message",
         bodyExcerpt: (entry.body || "").slice(0, 100),
         recipients: entry.recipients || []
     };
@@ -3496,69 +3508,44 @@ function appendMessageLogEntry(entry) {
 function renderCommunicationsLog() {
     if (!portalEls.commLogBody) return;
     const log = portalState.admin.messageLog || [];
-    const from = portalEls.commDateFrom?.value ? new Date(portalEls.commDateFrom.value).getTime() : null;
-    const to = portalEls.commDateTo?.value ? new Date(portalEls.commDateTo.value).getTime() : null;
-    const audience = (portalEls.commAudienceFilter?.value || "all").toLowerCase();
-    const keyword = (portalEls.commSubjectFilter?.value || "").toLowerCase();
+    const filter = (portalState.admin.commFilter || "all").toLowerCase();
     const filtered = log.filter((entry) => {
-        const ts = new Date(entry.timestamp || 0).getTime();
-        if (from && ts < from) return false;
-        if (to && ts > to + 24 * 60 * 60 * 1000) return false;
-        if (audience !== "all" && (entry.audience || "").toLowerCase() !== audience) return false;
-        if (keyword && !(entry.subject || "").toLowerCase().includes(keyword)) return false;
-        return true;
+        if (filter === "all") return true;
+        const type = (entry.type || "message").toLowerCase();
+        return type.includes(filter);
     });
     portalEls.commLogBody.innerHTML = "";
     if (!filtered.length) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 5;
-        cell.textContent = "No messages yet.";
-        row.appendChild(cell);
-        portalEls.commLogBody.appendChild(row);
+        const li = document.createElement("li");
+        li.textContent = "No messages yet.";
+        portalEls.commLogBody.appendChild(li);
         return;
     }
     filtered
         .slice()
         .sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0))
         .forEach((entry) => {
-            const row = document.createElement("tr");
-            row.dataset.commId = entry.id;
-            row.innerHTML = `
-                <td><strong>${entry.subject || "—"}</strong><div class="admin-card__meta">${entry.bodyExcerpt || ""}</div></td>
-                <td>${entry.audience || "—"}</td>
-                <td>${entry.recipients?.length || 0}</td>
-                <td><span class="admin-pill admin-pill--success">sent</span></td>
-                <td>${entry.timestamp ? formatDateTime(entry.timestamp) : "—"}</td>
-            `;
-            const detailRow = document.createElement("tr");
-            detailRow.className = "comm-detail-row";
-            const detailCell = document.createElement("td");
-            detailCell.colSpan = 5;
-            const toggle = document.createElement("button");
-            toggle.type = "button";
-            toggle.className = "text-link-btn";
-            toggle.dataset.commToggle = entry.id;
-            toggle.textContent = "View recipients";
-            toggle.setAttribute("aria-expanded", "false");
-            const list = document.createElement("div");
-            list.className = "preview-recipient-list";
-            (entry.recipients || []).slice(0, 250).forEach((email) => {
-                const pill = document.createElement("span");
-                pill.className = "admin-pill";
-                pill.textContent = email;
-                list.appendChild(pill);
-            });
-            if ((entry.recipients || []).length > 250) {
-                const more = document.createElement("div");
-                more.className = "admin-card__meta";
-                more.textContent = `+${entry.recipients.length - 250} more`;
-                list.appendChild(more);
-            }
-            detailCell.append(toggle, list);
-            detailRow.appendChild(detailCell);
-            detailRow.hidden = true;
-            portalEls.commLogBody.append(row, detailRow);
+            const li = document.createElement("li");
+            li.className = "comm-log-item";
+            const header = document.createElement("div");
+            header.className = "comm-log-item__head";
+            const subject = document.createElement("strong");
+            subject.textContent = entry.subject || "—";
+            const tag = document.createElement("span");
+            tag.className = "admin-pill";
+            tag.textContent = (entry.type || "Message").toUpperCase();
+            header.append(subject, tag);
+
+            const meta = document.createElement("div");
+            meta.className = "admin-card__meta";
+            meta.textContent = `${entry.recipients?.length || 0} recipient(s) • ${entry.timestamp ? formatDateTime(entry.timestamp) : "—"}`;
+
+            const body = document.createElement("div");
+            body.className = "admin-card__meta";
+            body.textContent = entry.bodyExcerpt || "";
+
+            li.append(header, meta, body);
+            portalEls.commLogBody.appendChild(li);
         });
 }
 
@@ -3572,6 +3559,17 @@ function handleCommLogToggle(event) {
     const expanded = !detailRow.hidden;
     button.textContent = expanded ? "Hide recipients" : "View recipients";
     button.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function handleCommFilterClick(event) {
+    const button = event.target.closest("[data-comm-filter]");
+    if (!button) return;
+    const value = button.dataset.commFilter || "all";
+    portalState.admin.commFilter = value;
+    document.querySelectorAll("[data-comm-filter]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.commFilter === value);
+    });
+    renderCommunicationsLog();
 }
 
 function pushMessagesToStudents(pending) {

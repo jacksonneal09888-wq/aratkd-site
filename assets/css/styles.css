@@ -3882,6 +3882,13 @@ body.admin-modal-open {
     width: 100%;
     margin: 0 auto;
 }
+.admin-main > * {
+    display: block;
+}
+
+.admin-card {
+    margin-bottom: 2rem !important;
+}
 
 .admin-sidebar {
     position: sticky;
