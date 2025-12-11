@@ -1146,9 +1146,25 @@ function buildEmailRecipients({ recipientType, belt, className, studentId, direc
             const found = roster.find((s) => s.id?.toLowerCase() === studentId.toLowerCase());
             if (found) {
                 addStudentEmail(found);
-            } else {
+            } else if (!directEmails.length) {
                 missing.push(studentId);
             }
+        }
+        // allow direct email single-send without treating as missing
+        if (directEmails.length) {
+            directEmails.forEach((email) => {
+                if (emailRegex.test(email)) {
+                    recipients.add(email);
+                } else {
+                    invalid.push(email);
+                }
+            });
+            return {
+                recipients: Array.from(recipients),
+                studentIds: Array.from(studentIds),
+                missing,
+                invalid
+            };
         }
     } else if (recipientType === "active") {
         roster.forEach((student) => {
