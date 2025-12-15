@@ -534,6 +534,7 @@ const portalEls = {
     studentModalClose: document.getElementById("student-drawer-close"),
     studentModalTitle: document.getElementById("student-modal-title"),
     studentModalMeta: document.getElementById("student-modal-meta"),
+    studentModalIds: document.getElementById("student-modal-ids"),
     studentModalAvatar: document.getElementById("student-modal-avatar"),
     studentModalStatusPill: document.getElementById("student-modal-status-pill"),
     studentModalMembershipPill: document.getElementById("student-modal-membership-pill"),
@@ -715,6 +716,7 @@ function refreshAdminEls() {
         studentModalClose: "student-drawer-close",
         studentModalTitle: "student-modal-title",
         studentModalMeta: "student-modal-meta",
+        studentModalIds: "student-modal-ids",
         studentModalAvatar: "student-modal-avatar",
         studentModalStatusPill: "student-modal-status-pill",
         studentModalMembershipPill: "student-modal-membership-pill",
@@ -6325,6 +6327,15 @@ function renderStudentModal() {
     if (portalEls.studentModalMeta) {
         const parts = [student.id, student.phone, student.email].filter(Boolean);
         portalEls.studentModalMeta.textContent = parts.join(" · ") || "—";
+    }
+    if (portalEls.studentModalIds) {
+        const dob =
+            student.birthDate || student.birthdate || student.dob
+                ? formatDate(student.birthDate || student.birthdate || student.dob)
+                : "DOB not set";
+        const loginId = student.loginId || student.login || student.id || "";
+        const tokens = [loginId ? `Login: ${loginId}` : "", dob ? `DOB: ${dob}` : ""].filter(Boolean);
+        portalEls.studentModalIds.textContent = tokens.join(" · ") || "—";
     }
     const statusLabel = student.isSuspended ? "Deactivated" : student.status || "Active";
     if (portalEls.studentModalStatusPill) {
