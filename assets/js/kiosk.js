@@ -230,22 +230,28 @@ async function loadClasses() {
 
 const kioskClassCatalogFallback = [
   {
-    id: "little-ninjas",
-    name: "Little Ninjas",
-    focus: "Ages 4-6 • starts 4:30 PM",
+    id: "spar-essentials",
+    name: "All Ranks",
+    focus: "Sparring week: light rounds & footwork • 4:30 PM",
     schedule: ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"]
   },
   {
-    id: "basic",
-    name: "Basic Class",
-    focus: "White–Yellow • starts 5:00 PM",
+    id: "little-ninjas",
+    name: "Little Ninjas",
+    focus: "Gear check + playful sparring drills • 5:00 PM",
     schedule: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"]
   },
   {
-    id: "advanced",
-    name: "Advanced Class",
-    focus: "High Yellow–Black • starts 6:00 PM",
-    schedule: ["Mon 6:00 PM", "Wed 6:00 PM", "Fri 6:00 PM"]
+    id: "color-belts",
+    name: "Color Belts",
+    focus: "Point sparring entries, distancing, timing • 5:45 PM",
+    schedule: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"]
+  },
+  {
+    id: "black-belt",
+    name: "Black Belt / Leadership",
+    focus: "Advanced sparring rounds & ringcraft • 6:30 PM",
+    schedule: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
   }
 ];
 
@@ -269,9 +275,10 @@ if (isLocalFile) {
 function updateWeekTheme() {
   const now = new Date();
   const focus = themeState.override || getFocusForDate(now);
-  const label = focus?.label || "Poomsae Week";
+  const label = focus?.label || "Sparring Week";
   const message =
-    focus?.message || "Forms focus: polish stances, kihaps, and sharp sequences across all classes.";
+    focus?.message ||
+    "Sparring week: bring full gear, focus on timing, distancing, and clean entries.";
   if (els.weekLabel) {
     els.weekLabel.textContent = label;
   }
