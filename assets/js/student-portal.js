@@ -1637,6 +1637,7 @@ function getAdminAuthHeaders(base = {}) {
     const headers = { ...base };
     if (portalState.admin.token) {
         headers.Authorization = `Bearer ${portalState.admin.token}`;
+        headers["X-Admin-Token"] = portalState.admin.token;
     }
     return headers;
 }
@@ -2158,8 +2159,11 @@ function handleAdminEnrollSubmit(event) {
         setAdminEnrollStatus("Connect the portal API before adding students.");
         return;
     }
+    if (!portalState.admin.token) {
+        attemptRestoreAdminSession();
+    }
     if (!portalState.admin.isAuthorized || !portalState.admin.token) {
-        setAdminEnrollStatus("Unlock the admin dashboard first.");
+        setAdminEnrollStatus("Unlock the admin dashboard first (sign in again).");
         return;
     }
     if (portalState.admin.isCreatingStudent) {
