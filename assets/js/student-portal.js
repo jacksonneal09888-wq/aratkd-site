@@ -2202,15 +2202,24 @@ function handleAdminEnrollSubmit(event) {
         }),
         body: JSON.stringify(payload)
     })
-        .then((response) =>
-            response.json().then((data) => {
-                if (!response.ok) {
-                    const message = data?.error || "Unable to create student.";
-                    throw new Error(message);
+        .then(async (response) => {
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (err) {
+                try {
+                    const text = await response.text();
+                    data = text ? { error: text } : null;
+                } catch (textErr) {
+                    data = null;
                 }
-                return data;
-            })
-        )
+            }
+            if (!response.ok) {
+                const message = data?.error || data?.message || "Unable to create student.";
+                throw new Error(message);
+            }
+            return data;
+        })
         .then((data) => {
             portalState.admin.newStudent = {
                 student: data.student,
@@ -5823,6 +5832,18 @@ function handleRosterEditSubmit(event) {
         status: portalEls.adminRosterStatus?.value || "",
         membershipType: portalEls.adminRosterMembership?.value || ""
     };
+    const dobField = document.getElementById("admin-roster-dob");
+    if (dobField?.value) {
+        payload.birthDate = dobField.value;
+    }
+    const loginField = document.getElementById("admin-roster-login");
+    if (loginField?.value) {
+        payload.loginId = loginField.value;
+    }
+    const classTypeField = document.getElementById("admin-roster-class");
+    if (classTypeField?.value) {
+        payload.classType = classTypeField.value;
+    }
 
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
     setRosterEditStatus("Saving roster changes...", "progress");
