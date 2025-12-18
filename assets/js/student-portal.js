@@ -2275,27 +2275,23 @@ function attemptRestoreAdminSession() {
 
 function autoLoginFromPin() {
     try {
+        const userField = document.getElementById("admin-username");
+        const passField = document.getElementById("admin-password");
+        const pinField = document.getElementById("admin-pin");
+        if (!userField || !passField) {
+            return; // auth inputs not in DOM yet
+        }
         const params = new URLSearchParams(window.location.search);
         const pin = params.get("pin") || "";
         const triggerPin = (ADMIN_TRIGGER_PIN || "").trim();
         if (!pin || !triggerPin || pin !== triggerPin) {
             return;
         }
-        // If the admin form isn't present, skip auto-login to avoid null refs
-        const hasAuthForm =
-            portalEls.adminForm ||
-            document.getElementById("admin-auth-form") ||
-            document.getElementById("admin-username");
-        if (!hasAuthForm) return;
         const username =
             (document.body.dataset.adminUsername || "MasterAra").trim() || "MasterAra";
         const password =
             (document.body.dataset.adminPassword || "AraTKD").trim() || "AraTKD";
         if (!username || !password) return;
-        const userField = portalEls.adminUsername || document.getElementById("admin-username");
-        const passField = portalEls.adminPassword || document.getElementById("admin-password");
-        const pinField = portalEls.adminPin || document.getElementById("admin-pin");
-        if (!userField || !passField) return;
         userField.value = username;
         passField.value = password;
         if (pinField) {
