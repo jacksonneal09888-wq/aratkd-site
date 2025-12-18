@@ -2286,10 +2286,14 @@ function autoLoginFromPin() {
         const password =
             (document.body.dataset.adminPassword || "AraTKD").trim() || "AraTKD";
         if (!username || !password) return;
-        portalEls.adminUsername.value = username;
-        portalEls.adminPassword.value = password;
-        if (portalEls.adminPin) {
-            portalEls.adminPin.value = pin;
+        const userField = portalEls.adminUsername || document.getElementById("admin-username");
+        const passField = portalEls.adminPassword || document.getElementById("admin-password");
+        const pinField = portalEls.adminPin || document.getElementById("admin-pin");
+        if (!userField || !passField) return;
+        userField.value = username;
+        passField.value = password;
+        if (pinField) {
+            pinField.value = pin;
         }
         handleAdminLogin(new Event("submit"));
     } catch (error) {
