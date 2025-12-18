@@ -1637,7 +1637,6 @@ function getAdminAuthHeaders(base = {}) {
     const headers = { ...base };
     if (portalState.admin.token) {
         headers.Authorization = `Bearer ${portalState.admin.token}`;
-        headers["X-Admin-Token"] = portalState.admin.token;
     }
     return headers;
 }
