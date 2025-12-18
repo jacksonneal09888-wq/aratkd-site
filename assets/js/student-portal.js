@@ -2092,6 +2092,10 @@ function handleAdminLogin(event) {
             portalState.admin.token = data.token;
             persistAdminToken(data.token);
             setAdminStatus("Dashboard unlocked.", "success");
+            if (portalEls.adminDashboard) {
+                portalEls.adminDashboard.hidden = false;
+            }
+            renderAdminDashboard();
             resetAdminModalState();
             loadAdminActivity({ silent: true })
                 .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
@@ -2409,19 +2413,12 @@ function loadAdminActivity(options = {}) {
             if (!silent) {
                 setAdminStatus(error.message || "Unable to load activity right now.");
             }
-            portalState.admin.token = null;
             portalState.admin.summary = [];
             portalState.admin.events = [];
             portalState.admin.generatedAt = null;
-            portalState.admin.isAuthorized = false;
-            portalState.admin.newStudent = null;
-            if (portalEls.adminDashboard) {
-                portalEls.adminDashboard.hidden = true;
-            }
             if (portalEls.adminGeneratedAt) {
                 portalEls.adminGeneratedAt.textContent = "—";
             }
-            clearAdminSession();
             renderAdminEnrollSection();
         })
         .finally(() => {
