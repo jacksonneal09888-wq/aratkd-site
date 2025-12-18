@@ -955,6 +955,7 @@ document.body.addEventListener("admin:component:loaded", (event) => {
         loadAdminEvents();
         loadAdminAttendance();
         renderCommunicationsLog();
+        renderAdminEnrollSection();
     }
     if (tabId) {
         showAdminTab(tabId);
@@ -971,6 +972,7 @@ document.body.addEventListener("admin-components-loaded", () => {
         loadAdminRoster();
         loadAdminEvents();
         loadAdminAttendance();
+        renderAdminEnrollSection();
     }
 });
 
