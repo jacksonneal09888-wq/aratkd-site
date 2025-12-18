@@ -2264,6 +2264,11 @@ function attemptRestoreAdminSession() {
     }
     portalState.admin.token = storedToken;
     portalState.admin.isAuthorized = true;
+    if (portalEls.adminDashboard) {
+        portalEls.adminDashboard.hidden = false;
+    }
+    renderAdminDashboard();
+    renderAdminEnrollSection();
     loadAdminActivity({ silent: true })
         .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
         .catch(() => {
@@ -2297,7 +2302,8 @@ function autoLoginFromPin() {
         if (pinField) {
             pinField.value = pin;
         }
-        handleAdminLogin(new Event("submit"));
+        // Slight delay to ensure handlers are bound
+        setTimeout(() => handleAdminLogin(new Event("submit")), 0);
     } catch (error) {
         console.warn("autoLoginFromPin failed", error);
     }
