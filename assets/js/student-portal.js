@@ -2281,6 +2281,12 @@ function autoLoginFromPin() {
         if (!pin || !triggerPin || pin !== triggerPin) {
             return;
         }
+        // If the admin form isn't present, skip auto-login to avoid null refs
+        const hasAuthForm =
+            portalEls.adminForm ||
+            document.getElementById("admin-auth-form") ||
+            document.getElementById("admin-username");
+        if (!hasAuthForm) return;
         const username =
             (document.body.dataset.adminUsername || "MasterAra").trim() || "MasterAra";
         const password =
