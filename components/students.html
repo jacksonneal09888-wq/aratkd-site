@@ -1,3 +1,69 @@
+<section class="admin-card" id="admin-enroll" data-admin-panel="tab-students">
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">Create new student</p>
+      <h3>Add Student</h3>
+    </div>
+    <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
+  </div>
+  <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
+    <div class="admin-enroll__grid">
+      <label>
+        <span>Student Name</span>
+        <input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required>
+      </label>
+      <label>
+        <span>Date of Birth</span>
+        <input type="date" id="admin-enroll-dob" name="birthDate" required>
+      </label>
+      <label>
+        <span>Parent Email</span>
+        <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
+      </label>
+      <label>
+        <span>Phone</span>
+        <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
+      </label>
+      <label>
+        <span>Starting Belt</span>
+        <select id="admin-enroll-belt" name="belt">
+          <option value="White Belt">White Belt</option>
+          <option value="High White Belt">High White Belt</option>
+          <option value="Yellow Belt">Yellow Belt</option>
+          <option value="High Yellow Belt">High Yellow Belt</option>
+          <option value="Green Belt">Green Belt</option>
+          <option value="High Green Belt">High Green Belt</option>
+          <option value="Blue Belt">Blue Belt</option>
+          <option value="High Blue Belt">High Blue Belt</option>
+          <option value="Red Belt">Red Belt</option>
+          <option value="High Red Belt">High Red Belt</option>
+          <option value="Black Belt">Black Belt</option>
+        </select>
+      </label>
+      <label>
+        <span>Class Track</span>
+        <select id="admin-enroll-class-type" name="classType">
+          <option value="basic">Basic Class</option>
+          <option value="advanced">Advanced Class</option>
+          <option value="little-ninjas">Little Ninjas</option>
+        </select>
+      </label>
+      <label>
+        <span>Seed Attendance Days</span>
+        <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
+      </label>
+    </div>
+    <div class="admin-enroll__actions">
+      <button type="submit" class="cta-btn">Create Student</button>
+      <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
+    </div>
+  </form>
+  <div class="admin-enroll__result" id="admin-enroll-result" hidden>
+    <p class="admin-enroll__result-title">New student ready for login.</p>
+    <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+  </div>
+</section>
+
 <section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
   <div class="admin-summary__header">
     <div>
