@@ -10,9 +10,14 @@ const ADMIN_STORAGE_KEY = "araPortalAdminSession";
 const ADMIN_TAB_STORAGE_KEY = "araAdminActiveTab";
 const MESSAGE_LOG_KEY = "araAdminMessageLog";
 const API_BASE_URL = (() => {
+    const queryOverride =
+        typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search || "").get("apiBase") || ""
+            : "";
     const globalValue = typeof window !== "undefined" ? window.PORTAL_API_BASE : "";
-    const bodyValue = typeof document !== "undefined" && document.body ? document.body.dataset.apiBase : "";
-    const chosen = globalValue || bodyValue || "";
+    const bodyValue =
+        typeof document !== "undefined" && document.body ? document.body.dataset.apiBase : "";
+    const chosen = queryOverride || globalValue || bodyValue || "";
     if (!chosen) {
         return "";
     }
@@ -2245,7 +2250,8 @@ function handleAdminEnrollSubmit(event) {
         })
         .catch((error) => {
             console.error("Admin enrollment error:", error);
-            setAdminEnrollStatus(error.message || "Unable to create student.", "error");
+            const reason = error?.message || "Unable to create student.";
+            setAdminEnrollStatus(reason, "error");
         })
         .finally(() => {
             portalState.admin.isCreatingStudent = false;
@@ -2428,7 +2434,10 @@ function loadAdminActivity(options = {}) {
         .catch((error) => {
             console.error("Admin activity error:", error);
             if (!silent) {
-                setAdminStatus(error.message || "Unable to load activity right now.");
+                setAdminStatus(
+                    error.message || "Admin service unavailable. Check API base or CORS.",
+                    "error"
+                );
             }
             portalState.admin.summary = [];
             portalState.admin.events = [];
@@ -2524,7 +2533,7 @@ function loadAdminEvents(event) {
         .catch((error) => {
             console.warn("load events", error);
             if (portalEls.adminEventsBody) {
-                portalEls.adminEventsBody.innerHTML = `<tr><td colspan="6">${error.message || "Unable to load events."}</td></tr>`;
+                portalEls.adminEventsBody.innerHTML = `<tr><td colspan="6">${error.message || "Unable to load events. Check API base or CORS."}</td></tr>`;
             }
         });
 }
@@ -2655,7 +2664,7 @@ function loadAdminRoster(options = {}) {
         .catch((error) => {
             console.error("admin roster error:", error);
             if (!silent) {
-                setAdminStatus(error.message || "Unable to load roster.");
+                setAdminStatus(error.message || "Unable to load roster. Check API base or CORS.", "error");
             }
             throw error;
         })
