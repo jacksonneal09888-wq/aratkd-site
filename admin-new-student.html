@@ -86,7 +86,7 @@
             </form>
         </div>
     </main>
-    <script type="module" src="assets/js/student-portal.js?v=20241219" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20241220" defer></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("admin-new-student-form");
@@ -99,9 +99,20 @@
                     const raw =
                         sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
                         localStorage.getItem(ADMIN_STORAGE_KEY);
-                    if (!raw) return null;
-                    const parsed = JSON.parse(raw);
-                    return parsed?.token || null;
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed?.token) return parsed.token;
+                        } catch {
+                            /* fall through */
+                        }
+                    }
+                    const fallback =
+                        sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
+                        localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
+                        raw;
+                    if (fallback && typeof fallback === "string") return fallback;
+                    return null;
                 } catch (error) {
                     console.warn("readAdminToken failed", error);
                     return null;

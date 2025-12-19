@@ -2319,11 +2319,15 @@ function persistAdminToken(token) {
         if (!token) {
             sessionStorage.removeItem(ADMIN_STORAGE_KEY);
             localStorage.removeItem(ADMIN_STORAGE_KEY);
+            sessionStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+            localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
             return;
         }
         const payload = JSON.stringify({ token });
         sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
         localStorage.setItem(ADMIN_STORAGE_KEY, payload);
+        sessionStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
+        localStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
     } catch (error) {
         console.warn("Unable to persist admin session:", error);
     }
@@ -2334,9 +2338,20 @@ function readStoredAdminToken() {
         const stored =
             sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
             localStorage.getItem(ADMIN_STORAGE_KEY);
-        if (!stored) return null;
-        const payload = JSON.parse(stored);
-        return payload?.token || null;
+        if (stored) {
+            try {
+                const payload = JSON.parse(stored);
+                if (payload?.token) return payload.token;
+            } catch {
+                /* fall through */
+            }
+        }
+        const raw =
+            sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
+            localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
+            stored;
+        if (raw && typeof raw === "string") return raw;
+        return null;
     } catch (error) {
         console.warn("Unable to read admin session:", error);
         return null;
