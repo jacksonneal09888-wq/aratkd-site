@@ -14,6 +14,19 @@
                 <h1>Add New Member</h1>
                 <p>Capture personal info, membership tier, billing preferences, status, and first note.</p>
             </div>
+            <section class="admin-card" id="admin-new-student-auth">
+                <h3>Admin Access</h3>
+                <p class="muted">Unlock tools here if this tab does not detect your existing login.</p>
+                <div class="form-grid">
+                    <label>Username<input type="text" id="ans-username" autocomplete="username"></label>
+                    <label>Password<input type="password" id="ans-password" autocomplete="current-password"></label>
+                    <label>PIN (optional)<input type="text" id="ans-pin" inputmode="numeric" autocomplete="one-time-code"></label>
+                </div>
+                <div class="admin-actions" style="margin-top:0.75rem;">
+                    <button type="button" class="cta-btn" id="ans-login-btn">Unlock</button>
+                    <p class="form-status" id="ans-auth-status" aria-live="polite"></p>
+                </div>
+            </section>
             <form class="admin-new-student" id="admin-new-student-form">
                 <div class="admin-new-student__grid">
                     <div class="admin-card">
@@ -82,6 +95,7 @@
                     <button type="button" class="secondary-btn" id="admin-new-student-cancel">Cancel</button>
                     <button type="submit" class="cta-btn">Save Member</button>
                     <p class="form-status" id="admin-new-student-status" aria-live="polite"></p>
+                    <p class="form-status" id="admin-new-student-result" aria-live="polite"></p>
                 </div>
             </form>
         </div>
@@ -91,8 +105,15 @@
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("admin-new-student-form");
             const statusEl = document.getElementById("admin-new-student-status");
+            const resultEl = document.getElementById("admin-new-student-result");
             const cancelBtn = document.getElementById("admin-new-student-cancel");
             const ADMIN_STORAGE_KEY = "araPortalAdminSession";
+            const authCard = document.getElementById("admin-new-student-auth");
+            const authStatus = document.getElementById("ans-auth-status");
+            const loginBtn = document.getElementById("ans-login-btn");
+            const userField = document.getElementById("ans-username");
+            const passField = document.getElementById("ans-password");
+            const pinField = document.getElementById("ans-pin");
 
             const readAdminToken = () => {
                 try {
@@ -117,6 +138,33 @@
                     console.warn("readAdminToken failed", error);
                     return null;
                 }
+            };
+
+            const persistAdminToken = (token) => {
+                try {
+                    if (!token) {
+                        sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+                        localStorage.removeItem(ADMIN_STORAGE_KEY);
+                        sessionStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+                        localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+                        return;
+                    }
+                    const payload = JSON.stringify({ token });
+                    sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
+                    localStorage.setItem(ADMIN_STORAGE_KEY, payload);
+                    sessionStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
+                    localStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
+                } catch (error) {
+                    console.warn("persistAdminToken failed", error);
+                }
+            };
+
+            const setAuthStatus = (msg, variant = "") => {
+                if (!authStatus) return;
+                authStatus.textContent = msg || "";
+                authStatus.classList.toggle("is-success", variant === "success");
+                authStatus.classList.toggle("is-progress", variant === "progress");
+                authStatus.classList.toggle("is-error", variant === "error");
             };
 
             const buildApiBase = () => {
@@ -155,11 +203,66 @@
                 window.location.href = "portal-admin.html";
             });
 
+            const ensureAuthUI = () => {
+                const token = readAdminToken();
+                if (token && authCard) {
+                    authCard.style.display = "none";
+                    setAuthStatus("");
+                } else if (authCard) {
+                    authCard.style.display = "block";
+                    if (userField) {
+                        userField.value = document.body.dataset.adminUsername || "MasterAra";
+                    }
+                    if (passField) {
+                        passField.value = document.body.dataset.adminPassword || "AraTKD";
+                    }
+                    if (pinField) {
+                        const params = new URLSearchParams(window.location.search || "");
+                        pinField.value = params.get("pin") || document.body.dataset.adminTriggerPin || "";
+                    }
+                }
+            };
+
+            loginBtn?.addEventListener("click", () => {
+                const username = (userField?.value || "").trim();
+                const password = (passField?.value || "").trim();
+                const pin = (pinField?.value || "").trim();
+                if (!username || !password) {
+                    setAuthStatus("Enter username and password.", "error");
+                    return;
+                }
+                const url = buildApiUrl("/portal/admin/login");
+                if (!url) {
+                    setAuthStatus("Missing API base URL.", "error");
+                    return;
+                }
+                setAuthStatus("Verifying credentials...", "progress");
+                fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password, pin })
+                })
+                    .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (!ok || !data?.token) {
+                            throw new Error(data?.message || "Invalid credentials.");
+                        }
+                        persistAdminToken(data.token);
+                        setAuthStatus("Dashboard unlocked.", "success");
+                        ensureAuthUI();
+                    })
+                    .catch((err) => {
+                        console.error("Inline admin login failed", err);
+                        setAuthStatus(err?.message || "Unable to sign in.", "error");
+                    });
+            });
+
             form?.addEventListener("submit", (event) => {
                 event.preventDefault();
                 const token = readAdminToken();
                 if (!token) {
-                    setStatus("Sign in to the admin dashboard first.", "error");
+                    setStatus("Sign in to the admin dashboard first (use the box above).", "error");
+                    ensureAuthUI();
                     return;
                 }
                 const data = Object.fromEntries(new FormData(form).entries());
@@ -169,6 +272,10 @@
                     return;
                 }
                 setStatus("Saving student...", "progress");
+                if (resultEl) {
+                    resultEl.textContent = "";
+                    resultEl.classList.remove("is-success", "is-error");
+                }
                 fetch(url, {
                     method: "POST",
                     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
@@ -187,15 +294,26 @@
                         }
                         return payload;
                     })
-                    .then(() => {
+                    .then((response) => {
+                        const assignedId =
+                            response?.student?.id ||
+                            response?.student?.login ||
+                            response?.student?.studentId ||
+                            response?.login;
                         setStatus("Student created successfully.", "success");
+                        if (assignedId && resultEl) {
+                            resultEl.textContent = `New Student ID: ${assignedId}`;
+                            resultEl.classList.add("is-success");
+                        }
                         form.reset();
+                        ensureAuthUI();
                     })
                     .catch((err) => {
                         console.error(err);
                         setStatus(err.message || "Unable to save student.", "error");
                     });
             });
+            ensureAuthUI();
         });
     </script>
 </body>
