@@ -2318,14 +2318,12 @@ function persistAdminToken(token) {
     try {
         if (!token) {
             sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+            localStorage.removeItem(ADMIN_STORAGE_KEY);
             return;
         }
-        sessionStorage.setItem(
-            ADMIN_STORAGE_KEY,
-            JSON.stringify({
-                token
-            })
-        );
+        const payload = JSON.stringify({ token });
+        sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
+        localStorage.setItem(ADMIN_STORAGE_KEY, payload);
     } catch (error) {
         console.warn("Unable to persist admin session:", error);
     }
@@ -2333,10 +2331,10 @@ function persistAdminToken(token) {
 
 function readStoredAdminToken() {
     try {
-        const stored = sessionStorage.getItem(ADMIN_STORAGE_KEY);
-        if (!stored) {
-            return null;
-        }
+        const stored =
+            sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
+            localStorage.getItem(ADMIN_STORAGE_KEY);
+        if (!stored) return null;
         const payload = JSON.parse(stored);
         return payload?.token || null;
     } catch (error) {
