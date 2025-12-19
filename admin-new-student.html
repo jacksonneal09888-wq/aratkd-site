@@ -86,39 +86,96 @@
             </form>
         </div>
     </main>
-    <script type="module" src="assets/js/student-portal.js?v=20241125b" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20241219" defer></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("admin-new-student-form");
             const statusEl = document.getElementById("admin-new-student-status");
             const cancelBtn = document.getElementById("admin-new-student-cancel");
+            const ADMIN_STORAGE_KEY = "araPortalAdminSession";
+
+            const readAdminToken = () => {
+                try {
+                    const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY);
+                    if (!raw) return null;
+                    const parsed = JSON.parse(raw);
+                    return parsed?.token || null;
+                } catch (error) {
+                    console.warn("readAdminToken failed", error);
+                    return null;
+                }
+            };
+
+            const buildApiBase = () => {
+                const params = new URLSearchParams(window.location.search || "");
+                const override = params.get("apiBase") || "";
+                const bodyBase = document.body.dataset.apiBase || "";
+                const chosen = override || bodyBase;
+                if (!chosen) return "";
+                return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
+            };
+
+            const buildApiUrl = (path = "") => {
+                const base = buildApiBase();
+                if (!base || !path) return "";
+                return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+            };
+
+            const getAdminAuthHeaders = (base = {}) => {
+                const headers = { ...base };
+                const token = readAdminToken();
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                return headers;
+            };
+
             const setStatus = (msg, variant = "") => {
                 if (!statusEl) return;
                 statusEl.textContent = msg || "";
                 statusEl.classList.toggle("is-success", variant === "success");
                 statusEl.classList.toggle("is-progress", variant === "progress");
+                statusEl.classList.toggle("is-error", variant === "error");
             };
+
             cancelBtn?.addEventListener("click", () => {
                 window.location.href = "portal-admin.html";
             });
+
             form?.addEventListener("submit", (event) => {
                 event.preventDefault();
-                if (typeof getAdminAuthHeaders !== "function") {
-                    setStatus("Admin tools not loaded. Refresh the page.", "error");
+                const token = readAdminToken();
+                if (!token) {
+                    setStatus("Sign in to the admin dashboard first.", "error");
                     return;
                 }
                 const data = Object.fromEntries(new FormData(form).entries());
                 const url = buildApiUrl("/portal/admin/students/full");
+                if (!url) {
+                    setStatus("Missing API base URL.", "error");
+                    return;
+                }
                 setStatus("Saving student...", "progress");
                 fetch(url, {
                     method: "POST",
                     headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify(data)
                 })
-                    .then((res) => res.json().then((d) => ({ ok: res.ok, data: d })))
-                    .then(({ ok, data }) => {
-                        if (!ok) throw new Error(data?.error || "Unable to save student.");
-                        setStatus(`Student saved. ID: ${data.login?.studentId || "—"}`, "success");
+                    .then(async (res) => {
+                        let payload = null;
+                        try {
+                            payload = await res.json();
+                        } catch (err) {
+                            const text = await res.text().catch(() => "");
+                            payload = text ? { error: text } : null;
+                        }
+                        if (!res.ok) {
+                            throw new Error(payload?.error || payload?.message || "Unable to save student.");
+                        }
+                        return payload;
+                    })
+                    .then(() => {
+                        setStatus("Student created successfully.", "success");
                         form.reset();
                     })
                     .catch((err) => {
