@@ -230,27 +230,27 @@ async function loadClasses() {
 
 const kioskClassCatalogFallback = [
   {
-    id: "spar-essentials",
+    id: "poomsae-essentials",
     name: "All Ranks",
-    focus: "Sparring week: light rounds & footwork • 4:30 PM",
+    focus: "Poomsae week: forms, stances, and precision • 4:30 PM",
     schedule: ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"]
   },
   {
     id: "little-ninjas",
     name: "Little Ninjas",
-    focus: "Gear check + playful sparring drills • 5:00 PM",
+    focus: "Poomsae basics + balance drills • 5:00 PM",
     schedule: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"]
   },
   {
     id: "color-belts",
     name: "Color Belts",
-    focus: "Point sparring entries, distancing, timing • 5:45 PM",
+    focus: "Form corrections, rhythm, kihap timing • 5:45 PM",
     schedule: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"]
   },
   {
     id: "black-belt",
     name: "Black Belt / Leadership",
-    focus: "Advanced sparring rounds & ringcraft • 6:30 PM",
+    focus: "Advanced poomsae detail work • 6:30 PM",
     schedule: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
   }
 ];
@@ -275,15 +275,31 @@ if (isLocalFile) {
 function updateWeekTheme() {
   const now = new Date();
   const focus = themeState.override || getFocusForDate(now);
-  const label = focus?.label || "Sparring Week";
+  const label = focus?.label || "Poomsae Week";
   const message =
     focus?.message ||
-    "Sparring week: bring full gear, focus on timing, distancing, and clean entries.";
+    "Poomsae week: sharpen forms, stances, and precision.";
   if (els.weekLabel) {
     els.weekLabel.textContent = label;
   }
   if (els.weekMessage) {
     els.weekMessage.textContent = message;
+  }
+}
+
+async function fetchWeekTheme() {
+  try {
+    const res = await fetch(`assets/data/week-theme.json?v=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data?.label || data?.message) {
+      themeState.override = {
+        label: data.label || themeState.override?.label,
+        message: data.message || themeState.override?.message
+      };
+    }
+  } catch (error) {
+    console.warn("Unable to load custom week theme:", error);
   }
 }
 
