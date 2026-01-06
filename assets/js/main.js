@@ -6,7 +6,7 @@ const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_GID = "1691351878";
+const GOOGLE_CALENDAR_GID = "1930105653";
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
 const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;
@@ -777,6 +777,9 @@ function parseSheetCalendar(csvText) {
     if (index < lines.length) {
         const headerCells = splitCsvLine(lines[index]);
         calendar.monthLabel = (headerCells[0] || "").replace(/^"+|"+$/g, "").trim();
+        if (calendar.monthLabel) {
+            calendar.monthLabel = calendar.monthLabel.replace(/^([A-Za-z]+)(\d{4})$/, "$1 $2");
+        }
         const noteCell = headerCells.find((cell, cellIndex) => cellIndex > 0 && cell);
         if (noteCell) {
             const rawNote = noteCell.replace(/^"+|"+$/g, "").replace(/^\*+\s*/, "").trim();
@@ -805,6 +808,13 @@ function parseSheetCalendar(csvText) {
         if (!calendar.monthLabel) {
             calendar.monthLabel = today.toLocaleDateString("en-US", CALENDAR_MONTH_OPTIONS);
         }
+    }
+    if (!/\d/.test(calendar.monthLabel)) {
+        const inferredMonthLabel = new Date(calendar.year, calendar.month, 1).toLocaleDateString(
+            "en-US",
+            CALENDAR_MONTH_OPTIONS
+        );
+        calendar.monthLabel = inferredMonthLabel;
     }
 
     advance();
