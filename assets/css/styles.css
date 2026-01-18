@@ -517,6 +517,20 @@ body {
     margin-top: 1.5rem;
 }
 
+.hero-flyer {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 2.5rem 3.25rem rgba(8, 9, 10, 0.35);
+    border: 1px solid rgba(8, 9, 10, 0.1);
+    background: #0b0b0b;
+}
+
+.hero-flyer img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .hero-highlight {
     position: relative;
     padding: 2.5rem;
