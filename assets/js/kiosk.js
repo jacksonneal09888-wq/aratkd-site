@@ -3,7 +3,7 @@ const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
-const themeState = { override: null };
+const themeState = { override: null, rotation: null };
 
 const state = {
   selectedClass: null,
@@ -44,6 +44,26 @@ const FOCUS_TEMPLATE = [
 ];
 const FOCUS_RANGE_START = new Date(2025, 8, 1); // 2025-09-01
 const FOCUS_RANGE_END = new Date(2026, 11, 31); // 2026-12-31
+const FALLBACK_FOCUS = {
+  sparring: {
+    allRanks: "Sparring week: timing, control, and ring awareness • 4:30 PM",
+    littleNinjas: "Sparring basics + safe contact drills • 5:00 PM",
+    colorBelts: "Footwork, combos, and distance control • 5:45 PM",
+    blackBelt: "Advanced sparring strategy + counters • 6:30 PM"
+  },
+  poomsae: {
+    allRanks: "Poomsae week: forms, stances, and precision • 4:30 PM",
+    littleNinjas: "Poomsae basics + balance drills • 5:00 PM",
+    colorBelts: "Form corrections, rhythm, kihap timing • 5:45 PM",
+    blackBelt: "Advanced poomsae detail work • 6:30 PM"
+  }
+};
+const FALLBACK_SCHEDULES = {
+  allRanks: ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"],
+  littleNinjas: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"],
+  colorBelts: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"],
+  blackBelt: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
+};
 
 function formatEventWindow(event) {
   if (!event) return "";
@@ -55,6 +75,78 @@ function formatEventWindow(event) {
   const startLabel = startDate ? startDate.toLocaleString(undefined, options) : "";
   const endLabel = endDate ? endDate.toLocaleString(undefined, options) : "";
   return endLabel ? `${startLabel} → ${endLabel}` : startLabel;
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function normalizeRotation(rotation) {
+  if (!rotation || !rotation.start || !Array.isArray(rotation.themes)) return null;
+  const startDate = new Date(`${rotation.start}T00:00:00`);
+  if (Number.isNaN(startDate.getTime())) return null;
+  const themes = rotation.themes
+    .map((theme) => ({
+      key: theme.key || "",
+      label: theme.label || "",
+      message: theme.message || ""
+    }))
+    .filter((theme) => theme.label || theme.message);
+  if (!themes.length) return null;
+  const weeks = Number(rotation.weeks) || 2;
+  return { start: startDate, weeks, themes };
+}
+
+function getRotationTheme(date, rotation) {
+  if (!rotation || !rotation.start || !rotation.themes?.length) return null;
+  const blockDays = rotation.weeks * 7;
+  const diffMs = startOfDay(date).getTime() - startOfDay(rotation.start).getTime();
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  const index = diffDays < 0 ? 0 : Math.floor(diffDays / blockDays) % rotation.themes.length;
+  return rotation.themes[index] || null;
+}
+
+function getActiveTheme(date = new Date()) {
+  const rotationTheme = themeState.rotation ? getRotationTheme(date, themeState.rotation) : null;
+  return rotationTheme || themeState.override || getFocusForDate(date) || null;
+}
+
+function getThemeKey(label = "") {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("sparring")) return "sparring";
+  if (normalized.includes("poomsae")) return "poomsae";
+  return "poomsae";
+}
+
+function buildFallbackClasses(theme) {
+  const themeKey = getThemeKey(theme?.label || "");
+  const focus = FALLBACK_FOCUS[themeKey] || FALLBACK_FOCUS.poomsae;
+  return [
+    {
+      id: "all-ranks",
+      name: "All Ranks",
+      focus: focus.allRanks,
+      schedule: FALLBACK_SCHEDULES.allRanks
+    },
+    {
+      id: "little-ninjas",
+      name: "Little Ninjas",
+      focus: focus.littleNinjas,
+      schedule: FALLBACK_SCHEDULES.littleNinjas
+    },
+    {
+      id: "color-belts",
+      name: "Color Belts",
+      focus: focus.colorBelts,
+      schedule: FALLBACK_SCHEDULES.colorBelts
+    },
+    {
+      id: "black-belt",
+      name: "Black Belt / Leadership",
+      focus: focus.blackBelt,
+      schedule: FALLBACK_SCHEDULES.blackBelt
+    }
+  ];
 }
 
 function setStatus(message, type = "") {
@@ -198,8 +290,9 @@ function isAllowedDay(date = new Date()) {
 }
 
 async function loadClasses() {
+  const fallbackClasses = buildFallbackClasses(getActiveTheme());
   if (!apiBase) {
-    renderClasses(kioskClassCatalogFallback);
+    renderClasses(fallbackClasses);
     return;
   }
   try {
@@ -208,7 +301,7 @@ async function loadClasses() {
       throw new Error("Unable to load classes");
     }
     const data = await res.json();
-    const classes = Array.isArray(data.classes) ? data.classes : kioskClassCatalogFallback;
+    const classes = Array.isArray(data.classes) ? data.classes : fallbackClasses;
     const events = Array.isArray(data.events)
       ? data.events.map((event) => ({
           id: `event:${event.id}`,
@@ -224,36 +317,9 @@ async function loadClasses() {
   } catch (error) {
     console.warn(error);
     setStatus("Offline? Showing default class list.", "error");
-    renderClasses(kioskClassCatalogFallback);
+    renderClasses(fallbackClasses);
   }
 }
-
-const kioskClassCatalogFallback = [
-  {
-    id: "poomsae-essentials",
-    name: "All Ranks",
-    focus: "Poomsae week: forms, stances, and precision • 4:30 PM",
-    schedule: ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"]
-  },
-  {
-    id: "little-ninjas",
-    name: "Little Ninjas",
-    focus: "Poomsae basics + balance drills • 5:00 PM",
-    schedule: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"]
-  },
-  {
-    id: "color-belts",
-    name: "Color Belts",
-    focus: "Form corrections, rhythm, kihap timing • 5:45 PM",
-    schedule: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"]
-  },
-  {
-    id: "black-belt",
-    name: "Black Belt / Leadership",
-    focus: "Advanced poomsae detail work • 6:30 PM",
-    schedule: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
-  }
-];
 
 if (els.studentId) {
   els.studentId.addEventListener("input", (event) => {
@@ -263,18 +329,9 @@ if (els.studentId) {
   });
 }
 
-renderKeypad();
-loadClasses();
-fetchWeekTheme().finally(updateWeekTheme);
-updateWeekTheme();
-
-if (isLocalFile) {
-  setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
-}
-
 function updateWeekTheme() {
   const now = new Date();
-  const focus = themeState.override || getFocusForDate(now);
+  const focus = getActiveTheme(now);
   const label = focus?.label || "Poomsae Week";
   const message =
     focus?.message ||
@@ -292,6 +349,7 @@ async function fetchWeekTheme() {
     const res = await fetch(`assets/data/week-theme.json?v=${Date.now()}`);
     if (!res.ok) return;
     const data = await res.json();
+    themeState.rotation = normalizeRotation(data?.rotation);
     if (data?.label || data?.message) {
       themeState.override = {
         label: data.label || themeState.override?.label,
@@ -324,3 +382,15 @@ function getFocusForDate(date) {
   }
   return null;
 }
+
+async function initKiosk() {
+  renderKeypad();
+  await fetchWeekTheme();
+  updateWeekTheme();
+  await loadClasses();
+  if (isLocalFile) {
+    setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
+  }
+}
+
+initKiosk();

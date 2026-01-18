@@ -1,4 +1,18 @@
 {
-  "label": "Sparring Week",
-  "message": "Sparring week: sharpen timing, control, and ring awareness."
+  "rotation": {
+    "start": "2026-01-19",
+    "weeks": 2,
+    "themes": [
+      {
+        "key": "sparring",
+        "label": "Sparring Week",
+        "message": "Sparring week: sharpen timing, control, and ring awareness."
+      },
+      {
+        "key": "poomsae",
+        "label": "Poomsae Week",
+        "message": "Poomsae week: sharpen forms, stances, and precision."
+      }
+    ]
+  }
 }
