@@ -341,7 +341,7 @@ const BELT_SEQUENCE = [
         name: "High White Belt",
         slug: "high-white",
         focus: "Early footwork, loud kihaps, and sharp low/high blocks with balance checks.",
-        studyGuide: "assets/Images/Kicho%202.mp4",
+        studyGuide: "assets/Images/Kicho%201.mp4",
         testingChecklist: "assets/materials/tkd-curriculum-high-white-belt.png",
         image: "assets/Images/belts/high-white-belt.svg"
     },
