@@ -1,7 +1,7 @@
 const BOT_CONFIG = {
     name: "Master Ara",
     welcome: "Hi, I’m Master Ara 🥋. Ask me about belts, study guides, kicks, schedules, or the student portal. I'll guide you—or email Master Ara if I can't.",
-    fallbackEmail: "afetkd@gmail.com",
+    fallbackEmail: "aratkdsports@gmail.com",
     storageKey: "masterAraFallbacks"
 };
 

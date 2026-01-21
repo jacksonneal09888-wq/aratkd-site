@@ -100,7 +100,7 @@ const BASE_CALENDAR_DAY_OVERRIDES = {
                 "Winter Games Registration Closes",
                 "All Day",
                 "event",
-                "Last call to join Ara's team roster. Email afetkd@gmail.com to secure your spot."
+                "Last call to join Ara's team roster. Email aratkdsports@gmail.com to secure your spot."
             )
         ]
     },
@@ -687,7 +687,7 @@ function initDojoCalendar() {
     const createCalendarNote = () => {
         const note = document.createElement("p");
         note.className = "dojo-calendar__note";
-        note.textContent = "Green belts and up are welcome to reinforce forms in the White Belt class. Schedule is subject to change depending on attendance - call (919) 799-7500 or email afetkd@gmail.com.";
+        note.textContent = "Green belts and up are welcome to reinforce forms in the White Belt class. Schedule is subject to change depending on attendance - call (919) 799-7500 or email aratkdsports@gmail.com.";
         return note;
     };
 
