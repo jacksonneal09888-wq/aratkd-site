@@ -115,7 +115,7 @@
                     <ul class="contact-list">
                         <li><strong>Address:</strong> 420 E 3rd St, Siler City, NC 27344</li>
                         <li><strong>Phone:</strong> <a href="tel:19197997500">(919) 799-7500</a></li>
-                        <li><strong>Email:</strong> <a href="mailto:aratkdsports@gmail.com">aratkdsports@gmail.com</a></li>
+                        <li><strong>Email:</strong> <a href="mailto:aratkdsports@gmail.com?subject=Coach%20Fatima%20Class%20Inquiry">aratkdsports@gmail.com</a></li>
                     </ul>
                     <p class="contact-note">Drop by during open hours.</p>
                 </div>
@@ -145,6 +145,7 @@
                     <textarea id="message" name="message" rows="4" placeholder="Tell us about your fitness goals"></textarea>
 
                     <button type="submit" class="cta-btn" id="trial-submit">Send</button>
+                    <button type="button" class="secondary-btn" id="trial-email-btn">Email Instead</button>
                     <p class="form-status" id="trial-status" aria-live="polite"></p>
                 </form>
             </div>
@@ -180,10 +181,31 @@
     <script>
         const trialForm = document.getElementById("trial-form");
         const trialStatus = document.getElementById("trial-status");
+        const trialEmailBtn = document.getElementById("trial-email-btn");
 
         if (trialForm) {
             trialForm.addEventListener("submit", () => {
                 trialStatus.textContent = "Thank you! We will contact you shortly.";
+            });
+        }
+
+        if (trialForm && trialEmailBtn) {
+            trialEmailBtn.addEventListener("click", () => {
+                const formData = new FormData(trialForm);
+                const name = (formData.get("name") || "").toString().trim() || "N/A";
+                const email = (formData.get("email") || "").toString().trim() || "N/A";
+                const phone = (formData.get("phone") || "").toString().trim() || "N/A";
+                const program = (formData.get("program") || "").toString().trim() || "N/A";
+                const message = (formData.get("message") || "").toString().trim() || "N/A";
+                const subject = "Coach Fatima Class Inquiry";
+                const body = [
+                    `Name: ${name}`,
+                    `Email: ${email}`,
+                    `Phone: ${phone}`,
+                    `Class Interest: ${program}`,
+                    `Message: ${message}`
+                ].join("\\n");
+                window.location.href = `mailto:aratkdsports@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             });
         }
     </script>
