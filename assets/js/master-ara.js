@@ -15,7 +15,7 @@ const CURRICULUM = [
         "resources": [
             {
                 "title": "Study Video",
-                "resource": "assets/materials/white-belt-form-video.mp4",
+                "resource": "assets/Images/Kicho%201.mp4",
                 "type": "video",
                 "tags": [
                     "study",
