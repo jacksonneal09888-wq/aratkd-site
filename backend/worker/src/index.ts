@@ -17,7 +17,7 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
-const ALLOWED_METHODS = 'GET,POST,OPTIONS';
+const ALLOWED_METHODS = 'GET,POST,PATCH,OPTIONS';
 const ALLOWED_HEADERS = 'Content-Type,Authorization,X-Admin-Key,X-Kiosk-Key';
 
 app.use(
