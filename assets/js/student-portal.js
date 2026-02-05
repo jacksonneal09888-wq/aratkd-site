@@ -6083,11 +6083,14 @@ function handleAttendanceAdjust(event) {
     const submitter = event?.submitter;
     const isRemoval = submitter?.dataset?.adjust === "remove";
     const rawValue = Number.parseInt(portalEls.adminAttendanceAdjustValue?.value || "0", 10);
-    if (!Number.isFinite(rawValue) || rawValue <= 0) {
-        setAttendanceAdjustStatus("Enter how many sessions to adjust.", "error");
+    if (!Number.isFinite(rawValue) || rawValue === 0) {
+        setAttendanceAdjustStatus("Enter a positive or negative session count (e.g. 3 or -2).", "error");
         return;
     }
-    const delta = isRemoval ? rawValue * -1 : rawValue;
+    let delta = rawValue;
+    if (isRemoval && rawValue > 0) {
+        delta = rawValue * -1;
+    }
     const classType = portalEls.adminAttendanceAdjustClass?.value || "basic";
     const classLevel = portalEls.adminAttendanceAdjustLevel?.value || "";
     const note = portalEls.adminAttendanceAdjustNote?.value || "";
