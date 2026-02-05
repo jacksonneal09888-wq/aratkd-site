@@ -27,6 +27,8 @@ const HAS_REMOTE_API = Boolean(API_BASE_URL);
 const ADMIN_TRIGGER_PIN =
     (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
     "";
+const ADMIN_STUDENT_QUERY =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search || "").get("student")?.trim() || "" : "";
 const ADMIN_AUTO_REFRESH_MS = 60000;
 const ADMIN_AUTO_REFRESH_RETRY_MS = 6000;
 let hiddenKeyStreak = 0;
@@ -837,6 +839,7 @@ const portalState = {
         refreshFailures: 0,
         refreshInFlight: false,
         lastRefreshAt: null,
+        pendingStudentId: ADMIN_STUDENT_QUERY || null,
         summary: [],
         events: [],
         generatedAt: null,
@@ -1037,11 +1040,15 @@ function handleStudentNotesFilterClick(event) {
 
 function handleRosterNewTab() {
     const student = portalState.admin.rosterSelected;
-    if (!student) return;
-    window.open(
-        `${window.location.pathname}?student=${encodeURIComponent(student.id)}#admin`,
-        "_blank"
-    );
+    if (!student?.id) {
+        setAdminStatus("Select a student first.");
+        return;
+    }
+    const url = `${window.location.pathname}?student=${encodeURIComponent(student.id)}#admin`;
+    const opened = window.open(url, "_blank", "noopener");
+    if (!opened) {
+        window.location.href = url;
+    }
 }
 
 function handleStudentDrawerOpen(event) {
@@ -1049,6 +1056,10 @@ function handleStudentDrawerOpen(event) {
     const student = portalState.admin.rosterSelected;
     if (!student?.id) {
         setAdminStatus("Select a student first.");
+        return;
+    }
+    if (!portalEls.studentModal) {
+        setAdminStatus("Student panel not available. Refresh the page.");
         return;
     }
     openStudentModal(student.id);
@@ -1398,7 +1409,11 @@ function attachHandlers() {
     bindOnce(portalEls.adminRosterBody, "click", handleAdminRosterAction);
 
     bindOnce(portalEls.adminRosterEditForm, "submit", handleRosterEditSubmit);
-    bindOnce(portalEls.adminRosterSave, "click", handleAdminMembershipSave);
+    if (portalEls.adminRosterSave) {
+        if (portalEls.adminRosterSave.type !== "submit") {
+            bindOnce(portalEls.adminRosterSave, "click", handleAdminMembershipSave);
+        }
+    }
     bindOnce(portalEls.studentModalNotesFilter, "click", handleStudentNotesFilterClick);
     bindOnce(portalEls.adminAttendanceAdjustForm, "submit", handleAttendanceAdjust);
     bindOnce(portalEls.adminRosterDetail, "click", handleRosterDetailButtons);
@@ -2216,6 +2231,16 @@ function handleAdminRosterRefresh(event) {
     loadAdminRoster();
 }
 
+function applyPendingStudentSelection() {
+    const pending = portalState.admin.pendingStudentId;
+    if (!pending) return;
+    const roster = portalState.admin.roster || [];
+    const match = roster.find((student) => student.id?.toLowerCase() === pending.toLowerCase());
+    if (!match) return;
+    portalState.admin.pendingStudentId = null;
+    openStudentModal(match.id);
+}
+
 function handleAdminEnrollSubmit(event) {
     event.preventDefault();
     if (!portalEls.adminEnrollForm) return;
@@ -2732,6 +2757,7 @@ function loadAdminRoster(options = {}) {
             }
             renderAdminRoster();
             renderRosterDetail();
+            applyPendingStudentSelection();
             if (!silent) {
                 setAdminStatus("Roster updated.", "success");
             }
