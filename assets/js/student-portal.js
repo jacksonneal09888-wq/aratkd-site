@@ -27,6 +27,8 @@ const HAS_REMOTE_API = Boolean(API_BASE_URL);
 const ADMIN_TRIGGER_PIN =
     (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
     "";
+const ADMIN_AUTO_REFRESH_MS = 60000;
+const ADMIN_AUTO_REFRESH_RETRY_MS = 6000;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
 
@@ -830,6 +832,11 @@ const portalState = {
     admin: {
         token: null,
         isLoading: false,
+        refreshTimer: null,
+        refreshRetryTimer: null,
+        refreshFailures: 0,
+        refreshInFlight: false,
+        lastRefreshAt: null,
         summary: [],
         events: [],
         generatedAt: null,
@@ -2104,6 +2111,7 @@ function handleAdminLogin(event) {
             }
             renderAdminDashboard();
             resetAdminModalState();
+            scheduleAdminAutoRefresh();
             loadAdminActivity({ silent: true })
                 .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
                 .catch(() => {});
@@ -2120,31 +2128,83 @@ function handleAdminLogin(event) {
         });
 }
 
-function handleAdminRefresh() {
-    if (!HAS_REMOTE_API) {
-        setAdminStatus("Connect the portal API before using admin tools.");
+function stopAdminAutoRefresh() {
+    if (portalState.admin.refreshTimer) {
+        clearInterval(portalState.admin.refreshTimer);
+        portalState.admin.refreshTimer = null;
+    }
+    if (portalState.admin.refreshRetryTimer) {
+        clearTimeout(portalState.admin.refreshRetryTimer);
+        portalState.admin.refreshRetryTimer = null;
+    }
+}
+
+function scheduleAdminAutoRefresh() {
+    stopAdminAutoRefresh();
+    if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) {
         return;
+    }
+    portalState.admin.refreshTimer = setInterval(() => {
+        refreshAdminData({ silent: true });
+    }, ADMIN_AUTO_REFRESH_MS);
+}
+
+function scheduleAdminRefreshRetry() {
+    if (portalState.admin.refreshRetryTimer || !portalState.admin.isAuthorized) {
+        return;
+    }
+    portalState.admin.refreshRetryTimer = setTimeout(() => {
+        portalState.admin.refreshRetryTimer = null;
+        refreshAdminData({ silent: true });
+    }, ADMIN_AUTO_REFRESH_RETRY_MS);
+}
+
+function refreshAdminData(options = {}) {
+    const { silent = false } = options;
+    if (!HAS_REMOTE_API) {
+        if (!silent) setAdminStatus("Connect the portal API before using admin tools.");
+        return Promise.reject(new Error("Portal API missing"));
     }
     if (!portalState.admin.isAuthorized) {
-        setAdminStatus("Sign in as Master Ara to refresh data.");
-        return;
+        if (!silent) setAdminStatus("Sign in as Master Ara to refresh data.");
+        return Promise.reject(new Error("Missing admin auth"));
     }
-    if (portalState.admin.isLoading) {
-        return;
+    if (portalState.admin.refreshInFlight) {
+        return Promise.resolve(false);
     }
-    setAdminStatus("Refreshing activity...", "progress");
+    portalState.admin.refreshInFlight = true;
+    portalState.admin.lastRefreshAt = new Date().toISOString();
+    if (!silent) {
+        setAdminStatus("Refreshing activity...", "progress");
+    }
     setAdminLoadingState(true);
-    Promise.all([loadAdminActivity({ silent: true }), loadAdminRoster({ silent: true }), loadAdminEvents()])
+    return Promise.all([
+        loadAdminActivity({ silent: true }),
+        loadAdminRoster({ silent: true }),
+        loadAdminEvents()
+    ])
         .then(() => {
-            setAdminStatus("Dashboard updated.", "success");
+            portalState.admin.refreshFailures = 0;
+            if (!silent) {
+                setAdminStatus("Dashboard updated.", "success");
+            }
         })
         .catch((error) => {
-            console.error("Admin refresh error:", error);
-            setAdminStatus(error.message || "Unable to refresh right now.");
+            portalState.admin.refreshFailures += 1;
+            if (!silent) {
+                setAdminStatus(error.message || "Unable to refresh right now.");
+            }
+            scheduleAdminRefreshRetry();
         })
         .finally(() => {
+            portalState.admin.refreshInFlight = false;
             setAdminLoadingState(false);
         });
+}
+
+function handleAdminRefresh(event) {
+    event?.preventDefault();
+    refreshAdminData({ silent: false });
 }
 
 function handleAdminRosterRefresh(event) {
@@ -2269,6 +2329,7 @@ function attemptRestoreAdminSession() {
     }
     portalState.admin.token = storedToken;
     portalState.admin.isAuthorized = true;
+    scheduleAdminAutoRefresh();
     if (portalEls.adminDashboard) {
         portalEls.adminDashboard.hidden = false;
     }
@@ -2363,6 +2424,7 @@ function clearAdminSession() {
     portalState.admin.isAuthorized = false;
     portalState.admin.newStudent = null;
     portalState.admin.rosterAttendanceSummary = {};
+    stopAdminAutoRefresh();
     persistAdminToken(null);
 }
 
