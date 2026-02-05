@@ -537,6 +537,7 @@ const portalEls = {
     adminAttendanceAdjustLevel: document.getElementById("admin-attendance-adjust-level"),
     adminAttendanceAdjustNote: document.getElementById("admin-attendance-adjust-note"),
     adminAttendanceAdjustStatus: document.getElementById("admin-attendance-adjust-status"),
+    adminAttendanceAdjustOpen: document.getElementById("admin-attendance-adjust-open"),
     adminTrigger: document.getElementById("admin-trigger"),
     studentModal: document.getElementById("student-drawer"),
     studentModalBackdrop: document.getElementById("student-drawer-backdrop"),
@@ -691,6 +692,7 @@ function refreshAdminEls() {
         adminAttendanceAdjustLevel: "admin-attendance-adjust-level",
         adminAttendanceAdjustNote: "admin-attendance-adjust-note",
         adminAttendanceAdjustStatus: "admin-attendance-adjust-status",
+        adminAttendanceAdjustOpen: "admin-attendance-adjust-open",
         adminTrigger: "admin-trigger",
         commDateFrom: "comm-date-from",
         commDateTo: "comm-date-to",
@@ -1416,6 +1418,7 @@ function attachHandlers() {
     }
     bindOnce(portalEls.studentModalNotesFilter, "click", handleStudentNotesFilterClick);
     bindOnce(portalEls.adminAttendanceAdjustForm, "submit", handleAttendanceAdjust);
+    bindOnce(portalEls.adminAttendanceAdjustOpen, "click", toggleAttendanceAdjustForm);
     bindOnce(portalEls.adminRosterDetail, "click", handleRosterDetailButtons);
     bindOnce(portalEls.adminRosterNewtab, "click", handleRosterNewTab);
     bindOnce(portalEls.adminStudentDrawerOpen, "click", handleStudentDrawerOpen);
@@ -3432,6 +3435,9 @@ function renderAdminRoster() {
         const row = document.createElement("tr");
         row.dataset.studentId = student.id || "";
         row.classList.add("admin-roster-row");
+        if (portalState.admin.rosterSelected?.id?.toLowerCase() === student.id?.toLowerCase()) {
+            row.classList.add("is-selected");
+        }
         const idCell = document.createElement("td");
         idCell.innerHTML = `<strong>${student.id}</strong>`;
         const nameCell = document.createElement("td");
@@ -3489,6 +3495,13 @@ function renderAdminRoster() {
         row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
         portalEls.adminRosterBody.appendChild(row);
     });
+
+    if (!portalState.admin.rosterSelected && roster.length) {
+        portalState.admin.rosterSelected = roster[0];
+        renderRosterDetail();
+        renderStudentModal();
+        loadRosterProfile(roster[0].id);
+    }
 }
 
 function getVisibleRoster() {
@@ -5817,7 +5830,16 @@ function handleAdminRosterAction(event) {
     if (!button && row) {
         const targetId = row.dataset.studentId;
         if (targetId) {
-            openStudentModal(targetId);
+            const roster = portalState.admin.roster || [];
+            const selected = roster.find(
+                (student) => student.id?.toLowerCase() === targetId.toLowerCase()
+            );
+            if (selected) {
+                portalState.admin.rosterSelected = selected;
+            }
+            renderRosterDetail();
+            renderStudentModal();
+            loadRosterProfile(targetId);
         }
         return;
     }
@@ -5951,6 +5973,7 @@ function closeStudentModal() {
 function handleRosterEditSubmit(event) {
     event?.preventDefault();
     if (!portalState.admin.rosterSelected) {
+        setRosterEditStatus("Select a student first.", "error");
         setAdminStatus("Select a student first.");
         return;
     }
@@ -6075,6 +6098,7 @@ function setAttendanceAdjustStatus(message, variant = "error") {
 function handleAttendanceAdjust(event) {
     event?.preventDefault();
     if (!portalState.admin.rosterSelected) {
+        setAttendanceAdjustStatus("Select a student first.", "error");
         setAdminStatus("Select a student first.");
         return;
     }
@@ -6095,6 +6119,17 @@ function handleAttendanceAdjust(event) {
     const classLevel = portalEls.adminAttendanceAdjustLevel?.value || "";
     const note = portalEls.adminAttendanceAdjustNote?.value || "";
     adjustStudentAttendance(studentId, delta, { classType, classLevel, note });
+}
+
+function toggleAttendanceAdjustForm() {
+    if (!portalEls.adminAttendanceAdjustForm) return;
+    const isHidden = portalEls.adminAttendanceAdjustForm.hidden;
+    portalEls.adminAttendanceAdjustForm.hidden = !isHidden;
+    if (portalEls.adminAttendanceAdjustOpen) {
+        portalEls.adminAttendanceAdjustOpen.textContent = isHidden
+            ? "Hide Attendance Adjust"
+            : "Adjust Attendance";
+    }
 }
 
 function adjustStudentAttendance(studentId, delta, options = {}) {
@@ -6649,7 +6684,12 @@ function handleStudentModalSave(event) {
 
 function handleRosterDetailButtons(event) {
     const button = event.target.closest('[data-roster-action]');
-    if (!button || !portalState.admin.rosterSelected) return;
+    if (!button) return;
+    if (!portalState.admin.rosterSelected) {
+        setRosterEditStatus("Select a student first.", "error");
+        setAdminStatus("Select a student first.");
+        return;
+    }
     const action = button.dataset.rosterAction;
     const studentId = portalState.admin.rosterSelected.id;
     if (action === 'report') {

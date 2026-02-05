@@ -3090,6 +3090,10 @@ body.admin-modal-open {
     padding: 0.35rem 0.65rem;
 }
 
+.admin-roster-row.is-selected {
+    background: rgba(229, 243, 252, 0.55);
+}
+
 .admin-report-card {
     position: fixed;
     inset: 0;
