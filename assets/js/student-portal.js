@@ -2789,13 +2789,21 @@ function renderAdminDashboard() {
             reportBtn.dataset.action = "report";
             reportBtn.dataset.studentId = entry.studentId;
             reportBtn.textContent = "Report Card";
-            const suspendBtn = document.createElement("button");
-            suspendBtn.type = "button";
-            suspendBtn.className = "text-link-btn";
-            suspendBtn.dataset.action = entry.isSuspended ? "resume" : "suspend";
-            suspendBtn.dataset.studentId = entry.studentId;
-            suspendBtn.textContent = entry.isSuspended ? "Reactivate" : "Deactivate";
-            actionsWrap.append(reportBtn, suspendBtn);
+            const deactivateBtn = document.createElement("button");
+            deactivateBtn.type = "button";
+            deactivateBtn.className = "text-link-btn";
+            deactivateBtn.dataset.action = "suspend";
+            deactivateBtn.dataset.studentId = entry.studentId;
+            deactivateBtn.textContent = "Deactivate";
+
+            const reactivateBtn = document.createElement("button");
+            reactivateBtn.type = "button";
+            reactivateBtn.className = "text-link-btn";
+            reactivateBtn.dataset.action = "resume";
+            reactivateBtn.dataset.studentId = entry.studentId;
+            reactivateBtn.textContent = "Reactivate";
+
+            actionsWrap.append(reportBtn, deactivateBtn, reactivateBtn);
             actionsCell.appendChild(actionsWrap);
 
             row.append(studentCell, totalCell, loginCell, latestCell, lastCell, statusCell, actionsCell);
