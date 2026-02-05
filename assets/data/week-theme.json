@@ -1,17 +1,27 @@
 {
   "rotation": {
-    "start": "2026-01-19",
-    "weeks": 2,
+    "start": "2026-02-02",
+    "weeks": 1,
     "themes": [
-      {
-        "key": "sparring",
-        "label": "Sparring Week",
-        "message": "Sparring week: sharpen timing, control, and ring awareness."
-      },
       {
         "key": "poomsae",
         "label": "Poomsae Week",
         "message": "Poomsae week: sharpen forms, stances, and precision."
+      },
+      {
+        "key": "breaking",
+        "label": "Breaking Practice & Poomsae",
+        "message": "Board breaking mechanics plus form refinement to build precision and power."
+      },
+      {
+        "key": "sparring",
+        "label": "Sparring Week",
+        "message": "Sparring week: sharpen timing, control, and ring awareness. Bring sparring gear."
+      },
+      {
+        "key": "self-defense",
+        "label": "Sparring & Self-Defense",
+        "message": "Blend sparring combinations with practical self-defense scenarios."
       }
     ]
   }

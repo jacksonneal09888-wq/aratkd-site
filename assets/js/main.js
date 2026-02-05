@@ -6,7 +6,7 @@ const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_GID = "1930105653";
+const GOOGLE_CALENDAR_GID = "2000494508";
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
 const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;

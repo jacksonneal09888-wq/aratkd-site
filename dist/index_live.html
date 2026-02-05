@@ -41,6 +41,16 @@
     <main id="top">
         <section class="hero">
             <div class="container hero-content">
+                <div class="hero-aside">
+                    <div class="hero-flyer-grid">
+                        <div class="hero-flyer">
+                            <img src="assets/Images/Little%20ninjas%202026%20-1.png" alt="Little Ninjas 2026 banner">
+                        </div>
+                        <div class="hero-flyer">
+                            <img src="taekwondo%20flayer%20enero.jpg" alt="Taekwondo benefits flyer">
+                        </div>
+                    </div>
+                </div>
                 <div class="hero-copy">
                     <span class="hero-tag">Welcome to Ara TKD</span>
                     <h1>Building Strong Minds &amp; Bodies in Siler City</h1>
@@ -128,9 +138,9 @@
                     </article>
                     <article class="profile-card">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--elle" src="assets/Images/Instructor%20Elle.png" alt="Instructor Eldie Ara demonstrating martial arts technique">
+                            <img class="profile-card__photo profile-card__photo--elle" src="assets/Images/Instructor%20Elle.png" alt="Instructor Elide Ara demonstrating martial arts technique">
                         </figure>
-                        <h3>Instructor Eldie Ara</h3>
+                        <h3>Instructor Elide Ara</h3>
                         <p class="profile-title">3rd Degree Black Belt</p>
                         <p>Champions advanced forms and sparring precision, mentoring competitors and leadership students to elevate performance while modeling confidence and courtesy.</p>
                     </article>
@@ -304,14 +314,17 @@
                     <ul class="contact-list">
                         <li><strong>Address:</strong> 420 E 3rd St, Siler City, NC 27344</li>
                         <li><strong>Phone:</strong> <a href="tel:19197997500">(919) 799-7500</a></li>
-                        <li><strong>Email:</strong> <a href="/cdn-cgi/l/email-protection#7c15121a133c1d0e1d081718521f1311"><span class="__cf_email__" data-cfemail="e48d8a828ba4859685908f80ca878b89">[email&#160;protected]</span></a></li>
+                        <li><strong>Email:</strong> <a href="mailto:aratkdsports@gmail.com?subject=Ara%20TKD%20Inquiry">aratkdsports@gmail.com</a></li>
                     </ul>
-                    <p class="contact-note">Located near downtown Siler City with convenient parking &mdash; text (919) 799-7500 to plan your TKD intro or drop by during open hours.</p>
+                    <p class="contact-note">Located near downtown Siler City with convenient parking &mdash; text (919) 799-7500 to plan your first visit or drop by during open hours.</p>
+                    <div class="contact-actions">
+                        <a class="secondary-btn" href="https://www.facebook.com/silercity/" target="_blank" rel="noopener">Message us on Facebook</a>
+                    </div>
                 </div>
-                <form class="contact-form" id="trial-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com">
-                    <h3>Reserve Your Trial Class</h3>
+                <form class="contact-form" id="contact-form" method="POST" action="https://formsubmit.co/aratkdsports@gmail.com">
+                    <h3>Send Us a Message</h3>
                     <input type="hidden" name="_next" value="https://aratkd.com/?submitted=true">
-                    <input type="hidden" name="_subject" value="New Trial Class Request">
+                    <input type="hidden" name="_subject" value="New Contact Request">
                     <input type="text" name="_honey" style="display:none">
                     <label for="name">Student Name</label>
                     <input type="text" id="name" name="name" required>
@@ -333,8 +346,9 @@
                     <label for="message">Message</label>
                     <textarea id="message" name="message" rows="4" placeholder="Tell us about your goals"></textarea>
 
-                    <button type="submit" class="cta-btn" id="trial-submit">Send</button>
-                    <p class="form-status" id="trial-status" aria-live="polite"></p>
+                    <button type="submit" class="cta-btn" id="contact-submit">Send</button>
+                    <button type="button" class="secondary-btn" id="contact-email-btn">Email Instead</button>
+                    <p class="form-status" id="contact-status" aria-live="polite"></p>
                 </form>
             </div>
         </section>
@@ -367,12 +381,33 @@
     </footer>
 
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        const trialForm = document.getElementById("trial-form");
-        const trialStatus = document.getElementById("trial-status");
+        const contactForm = document.getElementById("contact-form");
+        const contactStatus = document.getElementById("contact-status");
+        const contactEmailBtn = document.getElementById("contact-email-btn");
 
-        if (trialForm) {
-            trialForm.addEventListener("submit", () => {
-                trialStatus.textContent = "Thank you! We will contact you shortly.";
+        if (contactForm) {
+            contactForm.addEventListener("submit", () => {
+                contactStatus.textContent = "Thank you! We will contact you shortly.";
+            });
+        }
+
+        if (contactForm && contactEmailBtn) {
+            contactEmailBtn.addEventListener("click", () => {
+                const formData = new FormData(contactForm);
+                const name = (formData.get("name") || "").toString().trim() || "N/A";
+                const email = (formData.get("email") || "").toString().trim() || "N/A";
+                const phone = (formData.get("phone") || "").toString().trim() || "N/A";
+                const program = (formData.get("program") || "").toString().trim() || "N/A";
+                const message = (formData.get("message") || "").toString().trim() || "N/A";
+                const subject = "Ara TKD New Client / Referral";
+                const body = [
+                    `Student Name: ${name}`,
+                    `Email: ${email}`,
+                    `Phone: ${phone}`,
+                    `Program Interest: ${program}`,
+                    `Message: ${message}`
+                ].join("\\n");
+                window.location.href = `mailto:aratkdsports@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             });
         }
     </script>
