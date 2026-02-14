@@ -3920,13 +3920,12 @@ body.admin-modal-open {
 
 .admin-topbar__actions {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, max-content);
-    gap: 0.45rem;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
     justify-content: end;
     align-items: center;
-    padding: 0.35rem;
-    border-radius: 999px;
+    padding: 0.4rem;
+    border-radius: 0.9rem;
     background: var(--surface-2);
     border: 1px solid var(--border-soft);
 }
@@ -3934,12 +3933,13 @@ body.admin-modal-open {
 .admin-topbar__actions .btn-ghost,
 .admin-topbar__actions .btn-primary,
 .admin-topbar__actions .theme-toggle {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.82rem;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.84rem;
     box-shadow: none;
-    border-radius: 999px;
-    min-height: 30px;
+    border-radius: 0.75rem;
+    min-height: 32px;
     justify-content: center;
+    width: 100%;
 }
 
 @media (max-width: 980px) {
@@ -4825,8 +4825,8 @@ body.admin-modal-open {
 }
 
 .admin-topbar__actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 0.5rem;
     align-items: center;
     justify-content: end;
@@ -4847,7 +4847,7 @@ body.admin-modal-open {
     min-height: 32px;
     border-radius: 0.75rem;
     justify-content: center;
-    min-width: 96px;
+    width: 100%;
     text-transform: none;
 }
 
@@ -4858,7 +4858,6 @@ body.admin-modal-open {
 }
 
 .admin-topbar__actions .theme-toggle {
-    min-width: 72px;
     padding-inline: 0.6rem;
 }
 
