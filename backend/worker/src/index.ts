@@ -45,6 +45,8 @@ app.options('*', (c) =>
 const TOKEN_TTL_SECONDS = 60 * 60 * 24;
 const ARCHIVE_RETENTION_DAYS = 30;
 const ACTIVE_STUDENT_FILTER = '(is_archived IS NULL OR is_archived = 0)';
+let archiveColumnChecked = false;
+let archiveColumnSupported = false;
 
 const getJwtSecret = (env: Env) => env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || 'change-me';
 const getKioskSecret = (env: Env) => env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || 'kiosk-dev-key';
@@ -53,6 +55,23 @@ const getAdminCredentials = (env: Env) => ({
   password: env.ADMIN_MASTER_PASSWORD || 'AraTKD',
   pin: env.ADMIN_MASTER_PIN || ''
 });
+
+const ensureArchiveColumn = async (db: D1Database) => {
+  if (archiveColumnChecked) return archiveColumnSupported;
+  const { results } = await db.prepare(`PRAGMA table_info(students)`).all();
+  archiveColumnSupported = (results || []).some((row: any) => row.name === 'is_archived');
+  archiveColumnChecked = true;
+  return archiveColumnSupported;
+};
+
+const resolveArchiveFilter = async (db: D1Database, alias?: string) => {
+  const supported = await ensureArchiveColumn(db);
+  if (!supported) return '1=1';
+  if (alias) {
+    return `(${alias}.is_archived IS NULL OR ${alias}.is_archived = 0)`;
+  }
+  return ACTIVE_STUDENT_FILTER;
+};
 
 const kioskClassCatalog = [
   {
@@ -386,6 +405,8 @@ const fetchEmailRecipients = async (
 ) => {
   const limit = 1200;
   const audienceKey = (audience || 'all').toLowerCase();
+  const activeFilter = await resolveArchiveFilter(db);
+  const activeFilterAlias = await resolveArchiveFilter(db, 's');
   if (audienceKey === 'student' && opts.studentId) {
     const row = await fetchStudentById(db, opts.studentId);
     return filterEmailRecipients(row ? [row] : []);
@@ -402,7 +423,7 @@ const fetchEmailRecipients = async (
          FROM students s
          INNER JOIN attendance_sessions a ON a.student_id = s.id
          WHERE s.email IS NOT NULL AND s.email != ''
-           AND ${ACTIVE_STUDENT_FILTER.replace('is_archived', 's.is_archived')}
+           AND ${activeFilterAlias}
            AND LOWER(a.class_type) LIKE ?1
          ORDER BY s.name ASC
          LIMIT ?2`
@@ -419,7 +440,7 @@ const fetchEmailRecipients = async (
         `SELECT id, name, email
          FROM students
          WHERE email IS NOT NULL AND email != ''
-           AND ${ACTIVE_STUDENT_FILTER}
+           AND ${activeFilter}
            AND LOWER(current_belt) LIKE ?1
          ORDER BY name ASC
          LIMIT ?2`
@@ -435,7 +456,7 @@ const fetchEmailRecipients = async (
       `SELECT id, name, email, is_suspended, status
        FROM students
        WHERE email IS NOT NULL AND email != ''
-         AND ${ACTIVE_STUDENT_FILTER}
+         AND ${activeFilter}
          ${isActiveFilter ? "AND (is_suspended IS NULL OR is_suspended = 0) AND (LOWER(status) IS NULL OR LOWER(status) != 'suspended')" : ''}
        ORDER BY name ASC
        LIMIT ?1`
@@ -483,13 +504,13 @@ const sendBrevoEmail = async (
   return response.json();
 };
 
-const fetchStudentById = (
+const fetchStudentById = async (
   db: D1Database,
   studentId: string,
   options: { includeArchived?: boolean } = {}
 ) => {
   const lookup = studentId.trim().toLowerCase();
-  const archiveFilter = options.includeArchived ? '' : `AND ${ACTIVE_STUDENT_FILTER}`;
+  const archiveFilter = options.includeArchived ? '' : `AND ${await resolveArchiveFilter(db)}`;
   return db
     .prepare(
       `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, is_archived, archived_at, archived_reason, archived_by, created_at, updated_at
@@ -503,6 +524,8 @@ const fetchStudentById = (
 };
 
 const purgeArchivedStudents = async (db: D1Database) => {
+  const supported = await ensureArchiveColumn(db);
+  if (!supported) return 0;
   const cutoff = new Date(
     Date.now() - ARCHIVE_RETENTION_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
@@ -1257,6 +1280,9 @@ app.get('/portal/admin/activity', async (c) => {
     return authError;
   }
   await purgeArchivedStudents(c.env.PORTAL_DB);
+  const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
+  const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
+  const activeFilterAlias = await resolveArchiveFilter(c.env.PORTAL_DB, 's');
 
   let limit = 200;
   const queryLimit = c.req.query('limit');
@@ -1271,7 +1297,7 @@ app.get('/portal/admin/activity', async (c) => {
     `SELECT student_id, action, actor, created_at
      FROM login_events
      WHERE student_id IN (
-       SELECT id FROM students WHERE ${ACTIVE_STUDENT_FILTER}
+       SELECT id FROM students WHERE ${activeFilter}
      )
      ORDER BY datetime(created_at) DESC
      LIMIT ?1`
@@ -1305,9 +1331,9 @@ app.get('/portal/admin/activity', async (c) => {
          LIMIT 1
        ) AS latest_belt_uploaded
      FROM login_events le
-     LEFT JOIN students s ON s.id = le.student_id AND ${ACTIVE_STUDENT_FILTER.replace('is_archived', 's.is_archived')}
+     LEFT JOIN students s ON s.id = le.student_id AND ${activeFilterAlias}
      WHERE le.student_id IN (
-       SELECT id FROM students WHERE ${ACTIVE_STUDENT_FILTER}
+       SELECT id FROM students WHERE ${activeFilter}
      )
      GROUP BY le.student_id
      ORDER BY datetime(last_event) DESC`
@@ -1563,7 +1589,7 @@ app.get('/portal/admin/students', async (c) => {
   const { results } = await c.env.PORTAL_DB.prepare(
     `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at
      FROM students
-     WHERE ${ACTIVE_STUDENT_FILTER}
+     WHERE ${activeFilter}
      ORDER BY name ASC
      LIMIT ?1`
   )
@@ -1612,6 +1638,10 @@ app.post('/portal/admin/students/:studentId/archive', async (c) => {
   const authError = await authenticateAdminRequest(c);
   if (authError) return authError;
   await purgeArchivedStudents(c.env.PORTAL_DB);
+  const archiveSupported = await ensureArchiveColumn(c.env.PORTAL_DB);
+  if (!archiveSupported) {
+    return c.json({ error: 'Archive support not enabled. Run migrations.' }, 500);
+  }
 
   const studentId = c.req.param('studentId').trim();
   if (!studentId) {
