@@ -29,11 +29,31 @@ const ADMIN_TRIGGER_PIN =
     (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
     "";
 const ADMIN_STUDENT_QUERY =
-    typeof window !== "undefined" ? new URLSearchParams(window.location.search || "").get("student")?.trim() || "" : "";
+    typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search || "").get("student")?.trim() || ""
+        : "";
+const ADMIN_PANEL_QUERY =
+    typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search || "").get("panel")?.trim() || ""
+        : "";
 const ADMIN_AUTO_REFRESH_MS = 60000;
 const ADMIN_AUTO_REFRESH_RETRY_MS = 6000;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
+
+function normalizeAdminPanel(value) {
+    if (!value) return null;
+    const normalized = value.toString().trim().toLowerCase();
+    if (["student", "profile", "detail", "details", "panel"].includes(normalized)) {
+        return "student";
+    }
+    if (["report", "report-card", "reportcard", "card"].includes(normalized)) {
+        return "report";
+    }
+    return null;
+}
+
+const ADMIN_PANEL_TARGET = normalizeAdminPanel(ADMIN_PANEL_QUERY);
 
 const nativeFetch = (...args) => globalThis.fetch(...args);
 
@@ -86,6 +106,10 @@ const PORTAL_MODE =
         ? document.body.dataset.portalMode || "student"
         : "student";
 const IS_ADMIN_MODE = PORTAL_MODE === "admin";
+
+if (typeof document !== "undefined" && document.body && ADMIN_PANEL_TARGET) {
+    document.body.dataset.adminPanelView = ADMIN_PANEL_TARGET;
+}
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // Allow certificate uploads up to 10MB
 const ACCEPTED_TYPES = [
@@ -875,6 +899,7 @@ const portalState = {
         refreshInFlight: false,
         lastRefreshAt: null,
         pendingStudentId: ADMIN_STUDENT_QUERY || null,
+        pendingPanel: ADMIN_PANEL_TARGET,
         summary: [],
         events: [],
         generatedAt: null,
@@ -1080,16 +1105,62 @@ function handleStudentNotesFilterClick(event) {
     setRosterNotesFilter(button.dataset.noteFilter || "all");
 }
 
+function setAdminPanelView(view) {
+    if (typeof document === "undefined" || !document.body) return;
+    if (!view) {
+        delete document.body.dataset.adminPanelView;
+        return;
+    }
+    document.body.dataset.adminPanelView = view;
+}
+
+function buildAdminStudentUrl(studentId, panel) {
+    if (!studentId || typeof window === "undefined") return "";
+    const url = new URL(window.location.href);
+    url.searchParams.set("student", studentId);
+    const normalized = normalizeAdminPanel(panel);
+    if (normalized) {
+        url.searchParams.set("panel", normalized);
+    } else {
+        url.searchParams.delete("panel");
+    }
+    url.hash = "admin";
+    return url.toString();
+}
+
+function openAdminStudentTab(studentId, panel) {
+    const url = buildAdminStudentUrl(studentId, panel);
+    if (!url) return false;
+    const opened = window.open(url, "_blank", "noopener");
+    return Boolean(opened);
+}
+
+function openStudentPanelInNewTab(studentId) {
+    const opened = openAdminStudentTab(studentId, "student");
+    if (!opened) {
+        openStudentModal(studentId);
+    }
+    return opened;
+}
+
+function openReportCardInNewTab(studentId) {
+    const opened = openAdminStudentTab(studentId, "report");
+    if (!opened) {
+        setAdminPanelView("report");
+        openReportCard(studentId);
+    }
+    return opened;
+}
+
 function handleRosterNewTab() {
     const student = portalState.admin.rosterSelected;
     if (!student?.id) {
         setAdminStatus("Select a student first.");
         return;
     }
-    const url = `${window.location.pathname}?student=${encodeURIComponent(student.id)}#admin`;
-    const opened = window.open(url, "_blank", "noopener");
+    const opened = openStudentPanelInNewTab(student.id);
     if (!opened) {
-        window.location.href = url;
+        setAdminStatus("Opening student detail here instead.", "progress");
     }
 }
 
@@ -2307,6 +2378,13 @@ function applyPendingStudentSelection() {
     const match = roster.find((student) => student.id?.toLowerCase() === pending.toLowerCase());
     if (!match) return;
     portalState.admin.pendingStudentId = null;
+    const pendingPanel = normalizeAdminPanel(portalState.admin.pendingPanel) || "student";
+    portalState.admin.pendingPanel = null;
+    if (pendingPanel === "report") {
+        setAdminPanelView("report");
+        openReportCard(match.id);
+        return;
+    }
     openStudentModal(match.id);
 }
 
@@ -4855,7 +4933,7 @@ function handleAdminSummaryAction(event) {
     const action = button.dataset.action;
     if (!studentId || !action) return;
     if (action === "report") {
-        openReportCard(studentId);
+        openReportCardInNewTab(studentId);
         return;
     }
     if (action === "archive" || action === "remove") {
@@ -6517,7 +6595,7 @@ function handleAdminRosterAction(event) {
         return;
     }
     if (action === "report") {
-        openReportCard(studentId);
+        openReportCardInNewTab(studentId);
         return;
     }
     const suspend = action === "suspend";
@@ -7292,7 +7370,7 @@ function handleStudentModalAction(event) {
         return;
     }
     if (action === "report") {
-        openReportCard(studentId);
+        openReportCardInNewTab(studentId);
         return;
     }
     if (action === "deactivate" || action === "activate") {
@@ -7358,7 +7436,7 @@ function handleRosterDetailButtons(event) {
     const action = button.dataset.rosterAction;
     const studentId = portalState.admin.rosterSelected.id;
     if (action === 'report') {
-        openReportCard(studentId);
+        openReportCardInNewTab(studentId);
         return;
     }
     if (action === 'note') {
