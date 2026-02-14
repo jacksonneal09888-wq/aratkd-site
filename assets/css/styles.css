@@ -5804,8 +5804,16 @@ body[data-portal-mode="admin"] .class-drawer {
 body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     width: 100vw;
     min-width: 100vw;
+    max-width: 100vw;
     border-radius: 0;
     box-shadow: none;
+    border-left: none;
+}
+
+.portal-admin .class-drawer .admin-drawer__panel {
+    width: 100vw !important;
+    min-width: 100vw !important;
+    max-width: 100vw !important;
 }
 
 .student-modal:not([hidden]) .student-modal__panel {
