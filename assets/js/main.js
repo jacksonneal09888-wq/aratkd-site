@@ -7,7 +7,8 @@ const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
 const SITE_API_BASE = (() => {
     const bodyValue = document.body?.dataset?.apiBase || "";
     const globalValue = window.PORTAL_API_BASE || "";
-    const chosen = bodyValue || globalValue || "";
+    const fallback = "https://portal-api.jacksonneal09888.workers.dev";
+    const chosen = bodyValue || globalValue || fallback;
     if (!chosen) {
         return "";
     }

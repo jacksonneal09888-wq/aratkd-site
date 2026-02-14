@@ -3925,6 +3925,10 @@ body.admin-modal-open {
     gap: 0.5rem;
     justify-content: flex-end;
     align-items: center;
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
 }
 
 .admin-topbar__actions .btn-ghost,
@@ -3932,6 +3936,13 @@ body.admin-modal-open {
 .admin-topbar__actions .theme-toggle {
     padding: 0.5rem 0.85rem;
     font-size: 0.9rem;
+    box-shadow: none;
+}
+
+.admin-topbar__actions .btn-ghost,
+.admin-topbar__actions .theme-toggle {
+    background: transparent;
+    border-color: transparent;
 }
 
 @media (max-width: 900px) {
@@ -4798,6 +4809,10 @@ body.admin-modal-open {
     gap: 0.45rem;
     align-items: center;
     justify-content: flex-end;
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
 }
 
 .admin-topbar__actions .btn-ghost,
@@ -4807,6 +4822,13 @@ body.admin-modal-open {
     font-size: 0.85rem;
     line-height: 1;
     white-space: nowrap;
+    box-shadow: none;
+}
+
+.admin-topbar__actions .btn-ghost,
+.admin-topbar__actions .theme-toggle {
+    background: transparent;
+    border-color: transparent;
 }
 
 @media (max-width: 900px) {
