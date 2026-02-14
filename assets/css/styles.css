@@ -4779,11 +4779,10 @@ body.admin-modal-open {
 }
 
 .admin-topbar {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    gap: 0.75rem 1rem;
 }
 
 .admin-topbar__title {
@@ -4796,7 +4795,7 @@ body.admin-modal-open {
 .admin-topbar__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.45rem;
     align-items: center;
     justify-content: flex-end;
 }
@@ -4804,11 +4803,16 @@ body.admin-modal-open {
 .admin-topbar__actions .btn-ghost,
 .admin-topbar__actions .btn-primary,
 .admin-topbar__actions .theme-toggle {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.9rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 @media (max-width: 900px) {
+    .admin-topbar {
+        grid-template-columns: 1fr;
+    }
     .admin-topbar__actions {
         justify-content: flex-start;
     }

@@ -3622,6 +3622,10 @@ function showAdminTab(tabId) {
     }
 
     if (activeTab === "tab-banners") {
+        const bannerPanel = document.getElementById("admin-banners");
+        if (bannerPanel) {
+            bannerPanel.hidden = false;
+        }
         if (portalState.admin.isAuthorized) {
             if (!portalState.admin.bannersGeneratedAt && !portalState.admin.isBannersLoading) {
                 loadAdminBanners({ silent: true }).catch(() => {});
