@@ -30,6 +30,12 @@ app.use(
   })
 );
 
+app.use('*', async (c, next) => {
+  await next();
+  c.header('Cache-Control', 'no-store');
+  c.header('Pragma', 'no-cache');
+});
+
 app.options('*', (c) =>
   c.newResponse(null, {
     status: 204,

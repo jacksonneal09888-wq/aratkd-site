@@ -4799,6 +4799,50 @@ body.admin-modal-open {
     font-weight: 800;
 }
 
+.portal-admin .admin-nav__item {
+    min-height: 36px;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8rem;
+    line-height: 1.1;
+}
+
+.portal-admin .admin-nav__icon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.72rem;
+}
+
+.portal-admin .admin-nav__badge {
+    font-size: 0.65rem;
+}
+
+.portal-admin .btn-ghost,
+.portal-admin .btn-primary,
+.portal-admin .secondary-btn,
+.portal-admin .cta-btn {
+    min-height: 34px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.7rem;
+    font-size: 0.85rem;
+    line-height: 1.1;
+}
+
+.portal-admin .text-link-btn {
+    text-decoration: none;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.5rem;
+}
+
+.portal-admin .text-link-btn:hover,
+.portal-admin .text-link-btn:focus {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.portal-admin .text-link-btn.is-danger:hover,
+.portal-admin .text-link-btn.is-danger:focus {
+    background: rgba(239, 68, 68, 0.12);
+}
+
 .admin-sidebar__footer {
     margin-top: 1rem;
     padding: 0.75rem;

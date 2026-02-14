@@ -4,6 +4,8 @@ const yearTarget = document.getElementById("year");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
+const nativeFetch = (...args) => globalThis.fetch(...args);
+const fetchFresh = (url, options = {}) => nativeFetch(url, { ...options, cache: "no-store" });
 const SITE_API_BASE = (() => {
     const bodyValue = document.body?.dataset?.apiBase || "";
     const globalValue = window.PORTAL_API_BASE || "";
@@ -255,7 +257,7 @@ function initHeroBanners() {
         return;
     }
 
-    fetch(`${SITE_API_BASE}/site/banners`, {
+    fetchFresh(`${SITE_API_BASE}/site/banners`, {
         method: "GET",
         mode: "cors",
         credentials: "omit"
@@ -793,7 +795,7 @@ function initSheetCalendar() {
         });
     });
 
-    fetch(getCalendarCsvUrl(), { cache: "no-store", redirect: "follow" })
+    fetchFresh(getCalendarCsvUrl(), { redirect: "follow" })
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to load calendar CSV: ${response.status}`);

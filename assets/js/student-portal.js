@@ -24,6 +24,7 @@ const API_BASE_URL = (() => {
     return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
 })();
 const HAS_REMOTE_API = Boolean(API_BASE_URL);
+const FORCE_REMOTE_DATA = true;
 const ADMIN_TRIGGER_PIN =
     (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
     "";
@@ -33,6 +34,21 @@ const ADMIN_AUTO_REFRESH_MS = 60000;
 const ADMIN_AUTO_REFRESH_RETRY_MS = 6000;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
+
+const nativeFetch = (...args) => globalThis.fetch(...args);
+
+function fetchFresh(url, options = {}) {
+    return nativeFetch(url, { ...options, cache: "no-store" });
+}
+
+if (FORCE_REMOTE_DATA && typeof localStorage !== "undefined") {
+    try {
+        localStorage.removeItem(STORAGE_KEYS.progress);
+        localStorage.removeItem(STORAGE_KEYS.certificates);
+    } catch (error) {
+        console.warn("Unable to clear local caches", error);
+    }
+}
 
 function readStoredAdminTab() {
     try {
@@ -844,8 +860,8 @@ function bindOnce(el, event, handler) {
 const portalState = {
     activeStudent: readStoredStudentProfile(),
     isLoading: false,
-    progress: readStore(STORAGE_KEYS.progress),
-    certificates: readStore(STORAGE_KEYS.certificates),
+    progress: FORCE_REMOTE_DATA ? {} : readStore(STORAGE_KEYS.progress),
+    certificates: FORCE_REMOTE_DATA ? {} : readStore(STORAGE_KEYS.certificates),
     sessionToken: readAuthToken(),
     readiness: loadReadinessStore(),
     currentReadiness: null,
@@ -949,8 +965,10 @@ function normalizeRosterTable() {
     placeholderCells.forEach((cell) => cell.setAttribute("colspan", desiredHeaders.length));
 }
 
-normalizeStoredCertificates();
-migrateLegacyCertificates();
+if (!FORCE_REMOTE_DATA) {
+    normalizeStoredCertificates();
+    migrateLegacyCertificates();
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     attachHandlers();
@@ -1578,8 +1596,14 @@ async function handleLogin(event) {
             });
         }
 
-        setStatus(`Welcome back, ${studentProfile.name.split(" ")[0]}!`, "success");
-        await syncStudentProgress(studentProfile.id);
+        const freshProfile = await fetchStudentProfile();
+        if (freshProfile) {
+            portalState.activeStudent = freshProfile;
+            persistStudentProfile(freshProfile);
+        }
+
+        setStatus(`Welcome back, ${(portalState.activeStudent?.name || studentProfile.name).split(" ")[0]}!`, "success");
+        await syncStudentProgress(portalState.activeStudent.id);
         renderPortal();
     } catch (error) {
         console.error("handleLogin: Authentication failed.", error);
@@ -1708,14 +1732,16 @@ async function attemptRestoreSession() {
     }
 
     portalState.sessionToken = token;
-    const storedProfile = readStoredStudentProfile();
-    if (
-        storedProfile &&
-        storedProfile.id &&
-        storedProfile.id.toLowerCase() === savedId.toLowerCase()
-    ) {
-        portalState.activeStudent = storedProfile;
-        renderPortal();
+    if (!FORCE_REMOTE_DATA) {
+        const storedProfile = readStoredStudentProfile();
+        if (
+            storedProfile &&
+            storedProfile.id &&
+            storedProfile.id.toLowerCase() === savedId.toLowerCase()
+        ) {
+            portalState.activeStudent = storedProfile;
+            renderPortal();
+        }
     }
 
     try {
@@ -1789,7 +1815,7 @@ async function authenticateStudent(studentId, birthDate) {
         throw new Error("Portal login is unavailable.");
     }
 
-    const response = await fetch(url, {
+    const response = await fetchFresh(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -1829,7 +1855,7 @@ async function fetchStudentProfile() {
     const url = buildApiUrl("/portal/profile");
     if (!url) return null;
 
-    const response = await fetch(url, {
+    const response = await fetchFresh(url, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${token}`
@@ -1871,7 +1897,7 @@ function recordPortalActivity(studentId, action = "login", extraPayload = {}) {
         Object.assign(payload, extraPayload);
     }
 
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -1909,7 +1935,7 @@ function recordCertificateProgress(studentId, belt, certificate) {
         Authorization: `Bearer ${token}`
     };
 
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "POST",
         headers,
         body: JSON.stringify(payload),
@@ -1944,9 +1970,10 @@ function recordCertificateProgress(studentId, belt, certificate) {
                 clearSession();
                 togglePortal(false);
                 setStatus("Your session expired. Please sign in again.");
-                return;
+                throw error;
             }
             console.warn("recordCertificateProgress error:", error);
+            throw error;
         });
 }
 
@@ -1967,7 +1994,7 @@ function syncStudentProgress(studentId, options = {}) {
         return Promise.resolve();
     }
 
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         mode: "cors",
         credentials: "omit",
@@ -2028,20 +2055,22 @@ function applyServerProgressRecords(student, records, options = {}) {
     let serverUnlocked = defaultUnlocked;
 
     const existingCertificates = portalState.certificates[student.id] ?? {};
-    const pendingAwardIndex = Object.values(existingCertificates).reduce((highest, record) => {
-        if (!record || !record.pendingSync) {
-            return highest;
-        }
-        const belt =
-            resolveBeltDataBySlug(record.beltSlug) ||
-            resolveBeltDataByName(record.belt) ||
-            null;
-        if (!belt) {
-            return highest;
-        }
-        const beltIndex = resolveBeltIndex(belt.name);
-        return Math.max(highest, beltIndex);
-    }, baseIndex);
+    const pendingAwardIndex = FORCE_REMOTE_DATA
+        ? baseIndex
+        : Object.values(existingCertificates).reduce((highest, record) => {
+              if (!record || !record.pendingSync) {
+                  return highest;
+              }
+              const belt =
+                  resolveBeltDataBySlug(record.beltSlug) ||
+                  resolveBeltDataByName(record.belt) ||
+                  null;
+              if (!belt) {
+                  return highest;
+              }
+              const beltIndex = resolveBeltIndex(belt.name);
+              return Math.max(highest, beltIndex);
+          }, baseIndex);
     const pendingUnlockIndex = Math.min(pendingAwardIndex + 1, lastIndex);
     const serverCertificates = {};
 
@@ -2078,7 +2107,7 @@ function applyServerProgressRecords(student, records, options = {}) {
         if (serverCertificates[beltName]) {
             return;
         }
-        if (record && record.pendingSync) {
+        if (record && record.pendingSync && !FORCE_REMOTE_DATA) {
             serverCertificates[beltName] = { ...record };
             return;
         }
@@ -2136,7 +2165,7 @@ function handleAdminLogin(event) {
     setAdminLoadingState(true);
 
     const url = buildApiUrl("/portal/admin/login");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -2334,7 +2363,7 @@ function handleAdminEnrollSubmit(event) {
     portalState.admin.isCreatingStudent = true;
     syncAdminEnrollButtonState();
 
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({
             "Content-Type": "application/json"
@@ -2528,7 +2557,7 @@ function loadAdminActivity(options = {}) {
     const url = buildApiUrl("/portal/admin/activity");
     if (!url) return Promise.reject(new Error("Missing API base"));
 
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -2612,7 +2641,7 @@ function loadAdminAttendance(event) {
     if (!url) return Promise.reject(new Error("Missing API base"));
     portalState.admin.isAttendanceLoading = true;
     renderAdminAttendance();
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -2657,7 +2686,7 @@ function loadAdminEvents(event) {
     }
     const url = buildApiUrl("/portal/admin/events");
     if (!url) return Promise.reject(new Error("Missing API base"));
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -2700,7 +2729,7 @@ function loadAdminBanners(options = {}) {
     portalState.admin.isBannersLoading = true;
     renderAdminBanners();
 
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -2912,7 +2941,7 @@ function handleAdminBannerSubmit(event) {
 
     const url = buildApiUrl("/portal/admin/banners");
     setAdminBannerStatus("Adding banner...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload)
@@ -2985,7 +3014,7 @@ function commitBannerOrder() {
     const order = (portalState.admin.banners || []).map((banner) => banner.id).filter(Boolean);
     if (!order.length) return;
     const url = buildApiUrl("/portal/admin/banners/reorder");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ order })
@@ -3033,7 +3062,7 @@ function saveBannerEdits(item) {
 
     const url = buildApiUrl("/portal/admin/banners");
     setAdminBannerStatus("Saving banner...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload)
@@ -3066,7 +3095,7 @@ function deleteBanner(bannerId) {
     if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) return;
     const url = buildApiUrl(`/portal/admin/banners/${encodeURIComponent(bannerId)}`);
     setAdminBannerStatus("Removing banner...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "DELETE",
         headers: getAdminAuthHeaders()
     })
@@ -3105,7 +3134,7 @@ function handleAdminEventSubmit(event) {
         isActive: portalEls.adminEventActive?.checked || false
     };
     setAdminEventsStatus("Saving event...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload)
@@ -3143,7 +3172,7 @@ function toggleAdminEvent(eventId, activate) {
     if (!HAS_REMOTE_API) return;
     const url = buildApiUrl(`/portal/admin/events/${encodeURIComponent(eventId)}/toggle`);
     setAdminEventsStatus(activate ? "Activating event..." : "Hiding event...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ active: activate })
@@ -3177,7 +3206,7 @@ function loadAdminRoster(options = {}) {
 
     portalState.admin.isRosterLoading = true;
     renderAdminRoster();
-    return fetch(url, {
+    return fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -4281,7 +4310,7 @@ async function sendEmailViaBrevo(pending) {
         textContent: pending.message || "",
         attachments: attachment ? [attachment] : undefined
     };
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const res = await fetchFresh("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -4589,7 +4618,7 @@ function confirmAdminEmailSend(event) {
     if (apiKey && pending.recipients?.length) {
         sendPromise = sendEmailViaBrevo(pending);
     } else if (url) {
-        sendPromise = fetch(url, {
+        sendPromise = fetchFresh(url, {
             method: "POST",
             headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -4861,7 +4890,7 @@ function archiveStudent(studentId) {
     if (!url) return;
 
     setAdminStatus(`Archiving ${label}...`, "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ reason })
@@ -4905,7 +4934,7 @@ function updateStudentSuspension(studentId, suspend, reason = "") {
     }
     const url = buildApiUrl("/portal/admin/suspensions");
     if (!url) return;
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({
             "Content-Type": "application/json"
@@ -4972,7 +5001,7 @@ function openReportCard(studentId) {
     const url = buildApiUrl(`/portal/admin/report-card/${encodeURIComponent(studentId)}`);
     if (!url) return;
     setAdminStatus("Generating report card...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -5083,7 +5112,7 @@ async function loadAttendanceSummary(studentId) {
     if (!url) return;
 
     try {
-        const res = await fetch(url, {
+        const res = await fetchFresh(url, {
             method: "GET",
             headers: {
                 Authorization: `Bearer ${portalState.sessionToken || readAuthToken()}`
@@ -5597,6 +5626,10 @@ function runCertificateOcr(file) {
 
 async function handleCertificateUpload(file, belt, beltIndex) {
     if (!portalState.activeStudent) return;
+    if (FORCE_REMOTE_DATA && !HAS_REMOTE_API) {
+        setStatus("Portal data requires an online connection. Please try again when connected.", "error");
+        return;
+    }
 
     if (file.size > MAX_FILE_SIZE) {
         setStatus("Files up to 10MB please. Compress large photos if needed.", "error");
@@ -5618,7 +5651,7 @@ async function handleCertificateUpload(file, belt, beltIndex) {
         return;
     }
 
-    setStatus("Processing certificate...", "progress");
+    setStatus("Uploading certificate...", "progress");
     try {
         const studentId = portalState.activeStudent.id;
         const payload = await prepareCertificatePayload(
@@ -5633,15 +5666,23 @@ async function handleCertificateUpload(file, belt, beltIndex) {
             return;
         }
 
-        storeCertificate(studentId, payload);
+        const data = await recordCertificateProgress(studentId, belt, payload);
+        if (!data && FORCE_REMOTE_DATA) {
+            setStatus("Upload failed. Please try again.", "error");
+            return;
+        }
+
+        const mergedPayload = {
+            ...payload,
+            uploadedAt: data?.uploadedAt || payload.uploadedAt,
+            source: "server",
+            pendingSync: false
+        };
+        storeCertificate(studentId, mergedPayload);
 
         const nextUnlockIndex = beltIndex + 1;
         updateProgress(portalState.activeStudent, nextUnlockIndex);
         recordPortalActivity(studentId, `certificate:${belt.slug}`);
-
-        const syncPromise = HAS_REMOTE_API
-            ? recordCertificateProgress(studentId, belt, payload)
-            : Promise.resolve();
 
         const hasNext = nextUnlockIndex < BELT_SEQUENCE.length;
         const nextBeltName = hasNext ? BELT_SEQUENCE[nextUnlockIndex].name : null;
@@ -5652,12 +5693,13 @@ async function handleCertificateUpload(file, belt, beltIndex) {
         setStatus(successMessage, "success");
         renderPortal();
 
-        syncPromise.finally(() => {
-            syncStudentProgress(studentId, { silent: true });
-        });
+        await syncStudentProgress(studentId, { silent: true });
     } catch (error) {
         console.warn("handleCertificateUpload error:", error);
         setStatus("We couldn't process that file. Please try again.", "error");
+        if (portalState.activeStudent?.id) {
+            syncStudentProgress(portalState.activeStudent.id, { silent: true });
+        }
     }
 }
 
@@ -5778,9 +5820,10 @@ function storeCertificate(studentId, certificate) {
             existing.storageKey ||
             existing.dataUrl
         ),
-        source: certificate.source || existing.source || "local",
-        pendingSync:
-            typeof certificate.pendingSync === "boolean"
+        source: FORCE_REMOTE_DATA ? "server" : certificate.source || existing.source || "local",
+        pendingSync: FORCE_REMOTE_DATA
+            ? false
+            : typeof certificate.pendingSync === "boolean"
                 ? certificate.pendingSync
                 : true
     };
@@ -6006,7 +6049,7 @@ async function handleBeltTestApplication(event) {
     }
 
     try {
-        const response = await fetch(form.action, {
+        const response = await fetchFresh(form.action, {
             method: form.method,
             body: new URLSearchParams(formData).toString(),
             headers: {
@@ -6127,10 +6170,16 @@ function readStore(key) {
 }
 
 function persistProgress() {
+    if (FORCE_REMOTE_DATA) {
+        return;
+    }
     writeStore(STORAGE_KEYS.progress, portalState.progress);
 }
 
 function persistCertificates() {
+    if (FORCE_REMOTE_DATA) {
+        return;
+    }
     const certificates = portalState.certificates || {};
     const snapshot = {};
 
@@ -6497,7 +6546,7 @@ function loadRosterProfile(studentId) {
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}/profile`);
     if (!url) return;
     setAdminStatus("Loading roster detail...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -6618,7 +6667,7 @@ function handleRosterEditSubmit(event) {
 
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
     setRosterEditStatus("Saving roster changes...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "PATCH",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload)
@@ -6671,7 +6720,7 @@ function handleAdminMembershipSave(event) {
     const studentId = portalState.admin.rosterSelected.id;
     const membershipType = portalEls.adminRosterMembership?.value || "";
     const url = buildApiUrl("/portal/admin/students/membership");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ studentId, membershipType })
@@ -6752,7 +6801,7 @@ function adjustStudentAttendance(studentId, delta, options = {}) {
     const url = buildApiUrl("/portal/admin/attendance/adjust");
     if (!url) return;
     setAttendanceAdjustStatus("Applying attendance change...", "progress");
-    fetch(url, {
+    fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
@@ -6840,7 +6889,7 @@ function handleAdminNoteSubmit(event) {
 function loadRosterNotes(studentId) {
     if (!HAS_REMOTE_API || !studentId) return;
     const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
-    fetch(url, {
+    fetchFresh(url, {
         method: "GET",
         headers: getAdminAuthHeaders(),
         mode: "cors",
@@ -6866,7 +6915,7 @@ async function addStudentNote(studentId, entry) {
         throw new Error("Missing student or API.");
     }
     const url = buildApiUrl(`/portal/admin/students/${studentId}/notes`);
-    const res = await fetch(url, {
+    const res = await fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
@@ -6888,7 +6937,7 @@ async function updateStudent(studentId, payload) {
         throw new Error("Missing student or API.");
     }
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
-    const res = await fetch(url, {
+    const res = await fetchFresh(url, {
         method: "PATCH",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
