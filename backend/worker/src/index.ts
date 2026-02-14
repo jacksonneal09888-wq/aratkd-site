@@ -17,7 +17,7 @@ interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
-const ALLOWED_METHODS = 'GET,POST,PATCH,OPTIONS';
+const ALLOWED_METHODS = 'GET,POST,PATCH,DELETE,OPTIONS';
 const ALLOWED_HEADERS = 'Content-Type,Authorization,X-Admin-Key,X-Kiosk-Key';
 
 app.use(
@@ -174,6 +174,70 @@ const fetchAllEvents = async (db: D1Database): Promise<SpecialEvent[]> => {
     )
     .all();
   return (results || []).map(mapSpecialEvent);
+};
+
+type SiteBanner = {
+  id: string;
+  title: string | null;
+  imageUrl: string;
+  linkUrl: string | null;
+  altText: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const mapSiteBanner = (row: any): SiteBanner => ({
+  id: row.id,
+  title: row.title || null,
+  imageUrl: row.image_url,
+  linkUrl: row.link_url || null,
+  altText: row.alt_text || null,
+  isActive: Boolean(row.is_active),
+  sortOrder: Number.isFinite(Number(row.sort_order)) ? Number(row.sort_order) : 0,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
+const fetchSiteBanners = async (
+  db: D1Database,
+  options?: { includeInactive?: boolean }
+): Promise<SiteBanner[]> => {
+  const includeInactive = Boolean(options?.includeInactive);
+  const { results } = await db
+    .prepare(
+      includeInactive
+        ? `SELECT id, title, image_url, link_url, alt_text, is_active, sort_order, created_at, updated_at
+           FROM site_banners
+           ORDER BY sort_order ASC, updated_at DESC`
+        : `SELECT id, title, image_url, link_url, alt_text, is_active, sort_order, created_at, updated_at
+           FROM site_banners
+           WHERE is_active = 1
+           ORDER BY sort_order ASC, updated_at DESC`
+    )
+    .all();
+  return (results || []).map(mapSiteBanner);
+};
+
+const coerceBoolean = (value: unknown, fallback: boolean) => {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value > 0;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) return true;
+    if (['false', '0', 'no', 'n', 'off'].includes(normalized)) return false;
+  }
+  return fallback;
+};
+
+const getNextBannerSortOrder = async (db: D1Database) => {
+  const row = await db
+    .prepare(`SELECT MAX(sort_order) AS max_order FROM site_banners`)
+    .first<{ max_order?: number | null }>();
+  const maxOrder = Number.isFinite(Number(row?.max_order)) ? Number(row?.max_order) : -1;
+  return maxOrder + 1;
 };
 
 const seedAttendanceSessions = async (
@@ -630,6 +694,14 @@ const buildAttendanceSummary = async (
 
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
 
+app.get('/site/banners', async (c) => {
+  const banners = await fetchSiteBanners(c.env.PORTAL_DB, { includeInactive: false });
+  return c.json({
+    banners,
+    generatedAt: new Date().toISOString()
+  });
+});
+
 app.post('/portal/admin/login', async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const username = (body.username || '').trim();
@@ -652,6 +724,161 @@ app.post('/portal/admin/login', async (c) => {
   const expiresAt = new Date(Date.now() + TOKEN_TTL_SECONDS * 1000).toISOString();
 
   return c.json({ token, expiresAt });
+});
+
+app.get('/portal/admin/banners', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const banners = await fetchSiteBanners(c.env.PORTAL_DB, { includeInactive: true });
+  return c.json({
+    banners,
+    generatedAt: new Date().toISOString()
+  });
+});
+
+app.post('/portal/admin/banners', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const body = await c.req.json().catch(() => ({}));
+  const rawId = (body.id || '').toString().trim();
+  const title = (body.title || '').toString().trim() || null;
+  const imageUrl = (body.imageUrl || body.image_url || body.image || '').toString().trim();
+  const linkUrl = (body.linkUrl || body.link_url || '').toString().trim() || null;
+  const altText = (body.altText || body.alt_text || '').toString().trim() || null;
+  const sortInput = body.sortOrder ?? body.sort_order;
+  const requestedSort =
+    Number.isFinite(Number(sortInput)) && sortInput !== '' ? Number(sortInput) : null;
+  const now = new Date().toISOString();
+
+  if (rawId) {
+    const existing = await c.env.PORTAL_DB.prepare(
+      `SELECT id, title, image_url, link_url, alt_text, is_active, sort_order, created_at, updated_at
+       FROM site_banners
+       WHERE id = ?1`
+    )
+      .bind(rawId)
+      .first<any>();
+    if (!existing) {
+      return c.json({ error: 'Banner not found' }, 404);
+    }
+    const resolvedImage = imageUrl || existing.image_url;
+    if (!resolvedImage) {
+      return c.json({ error: 'imageUrl is required' }, 400);
+    }
+    const isActive = coerceBoolean(body.isActive ?? body.is_active, Boolean(existing.is_active));
+    const nextSort =
+      requestedSort !== null
+        ? requestedSort
+        : Number.isFinite(Number(existing.sort_order))
+            ? Number(existing.sort_order)
+            : 0;
+
+    await c.env.PORTAL_DB.prepare(
+      `UPDATE site_banners
+         SET title = ?1,
+             image_url = ?2,
+             link_url = ?3,
+             alt_text = ?4,
+             is_active = ?5,
+             sort_order = ?6,
+             updated_at = ?7
+       WHERE id = ?8`
+    )
+      .bind(
+        title ?? existing.title,
+        resolvedImage,
+        linkUrl ?? existing.link_url,
+        altText ?? existing.alt_text,
+        isActive ? 1 : 0,
+        nextSort,
+        now,
+        rawId
+      )
+      .run();
+
+    const updated = await c.env.PORTAL_DB.prepare(
+      `SELECT id, title, image_url, link_url, alt_text, is_active, sort_order, created_at, updated_at
+       FROM site_banners
+       WHERE id = ?1`
+    )
+      .bind(rawId)
+      .first<any>();
+    return c.json({ ok: true, banner: mapSiteBanner(updated) });
+  }
+
+  if (!imageUrl) {
+    return c.json({ error: 'imageUrl is required' }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  const isActive = coerceBoolean(body.isActive ?? body.is_active, true);
+  const sortOrder = requestedSort !== null ? requestedSort : await getNextBannerSortOrder(c.env.PORTAL_DB);
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO site_banners
+       (id, title, image_url, link_url, alt_text, is_active, sort_order, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)`
+  )
+    .bind(id, title, imageUrl, linkUrl, altText, isActive ? 1 : 0, sortOrder, now)
+    .run();
+
+  return c.json({
+    ok: true,
+    banner: {
+      id,
+      title,
+      imageUrl,
+      linkUrl,
+      altText,
+      isActive,
+      sortOrder,
+      createdAt: now,
+      updatedAt: now
+    }
+  });
+});
+
+app.post('/portal/admin/banners/reorder', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const body = await c.req.json().catch(() => ({}));
+  const order = Array.isArray(body.order) ? body.order.filter(Boolean) : [];
+  if (!order.length) {
+    return c.json({ error: 'order array is required' }, 400);
+  }
+
+  const now = new Date().toISOString();
+  for (let idx = 0; idx < order.length; idx += 1) {
+    const id = String(order[idx]).trim();
+    if (!id) continue;
+    await c.env.PORTAL_DB.prepare(
+      `UPDATE site_banners
+         SET sort_order = ?1,
+             updated_at = ?2
+       WHERE id = ?3`
+    )
+      .bind(idx, now, id)
+      .run();
+  }
+
+  const banners = await fetchSiteBanners(c.env.PORTAL_DB, { includeInactive: true });
+  return c.json({ ok: true, banners });
+});
+
+app.delete('/portal/admin/banners/:bannerId', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const bannerId = c.req.param('bannerId').trim();
+  if (!bannerId) {
+    return c.json({ error: 'Banner id is required' }, 400);
+  }
+
+  await c.env.PORTAL_DB.prepare(`DELETE FROM site_banners WHERE id = ?1`).bind(bannerId).run();
+  return c.json({ ok: true });
 });
 
 app.post('/portal/login-event', async (c) => {
@@ -754,6 +981,12 @@ app.post('/portal/progress', async (c) => {
   const uploadedIso = uploadedAt.toISOString();
   const createdIso = new Date().toISOString();
 
+  const existingProgress = await c.env.PORTAL_DB.prepare(
+    `SELECT id FROM belt_progress WHERE student_id = ?1 AND belt_slug = ?2`
+  )
+    .bind(studentId, beltSlug)
+    .first<{ id?: string }>();
+
   await c.env.PORTAL_DB.prepare(
     `INSERT INTO belt_progress (student_id, belt_slug, file_name, uploaded_at, created_at)
      VALUES (?1, ?2, ?3, ?4, ?5)
@@ -765,7 +998,22 @@ app.post('/portal/progress', async (c) => {
     .bind(studentId, beltSlug, fileName, uploadedIso, createdIso)
     .run();
 
-  return c.json({ ok: true, beltSlug, uploadedAt: uploadedIso });
+  let attendanceReset = false;
+  let attendance = null;
+  if (!existingProgress?.id) {
+    await c.env.PORTAL_DB.prepare(`DELETE FROM attendance_sessions WHERE student_id = ?1`)
+      .bind(studentId)
+      .run();
+    attendanceReset = true;
+    const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+    attendance = await buildAttendanceSummary(
+      c.env.PORTAL_DB,
+      studentId,
+      student?.current_belt || ''
+    );
+  }
+
+  return c.json({ ok: true, beltSlug, uploadedAt: uploadedIso, attendanceReset, attendance });
 });
 
 app.get('/portal/progress/:studentId', async (c) => {

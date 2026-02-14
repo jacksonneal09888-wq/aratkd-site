@@ -4,6 +4,15 @@ const yearTarget = document.getElementById("year");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const SOUND_STORAGE_KEY = "ara:soundFx";
 const SOUND_TARGET_SELECTOR = ".cta-btn, .secondary-btn, .floating-cta";
+const SITE_API_BASE = (() => {
+    const bodyValue = document.body?.dataset?.apiBase || "";
+    const globalValue = window.PORTAL_API_BASE || "";
+    const chosen = bodyValue || globalValue || "";
+    if (!chosen) {
+        return "";
+    }
+    return chosen.endsWith("/") ? chosen.slice(0, -1) : chosen;
+})();
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
 const GOOGLE_CALENDAR_GID = "2000494508";
@@ -237,6 +246,62 @@ initParallaxBackground();
 initHoverSoundEffects();
 initDojoCalendar();
 initSheetCalendar();
+initHeroBanners();
+
+function initHeroBanners() {
+    const grid = document.querySelector("[data-banner-grid]");
+    if (!grid || !SITE_API_BASE) {
+        return;
+    }
+
+    fetch(`${SITE_API_BASE}/site/banners`, {
+        method: "GET",
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Unable to load banners.");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            const banners = Array.isArray(data?.banners) ? data.banners : [];
+            if (!banners.length) {
+                return;
+            }
+            renderHeroBanners(grid, banners);
+        })
+        .catch((error) => {
+            console.warn("hero banners", error);
+        });
+}
+
+function renderHeroBanners(grid, banners) {
+    if (!grid) return;
+    grid.innerHTML = "";
+    banners.forEach((banner, index) => {
+        if (!banner?.imageUrl) return;
+        const wrapper = document.createElement("div");
+        wrapper.className = "hero-flyer";
+
+        const img = document.createElement("img");
+        img.src = banner.imageUrl;
+        img.alt = banner.altText || banner.title || `Ara TKD banner ${index + 1}`;
+        img.loading = index === 0 ? "eager" : "lazy";
+
+        if (banner.linkUrl) {
+            const link = document.createElement("a");
+            link.href = banner.linkUrl;
+            link.appendChild(img);
+            wrapper.appendChild(link);
+        } else {
+            wrapper.appendChild(img);
+        }
+
+        grid.appendChild(wrapper);
+    });
+}
 
 function initRevealAnimations() {
     const revealElements = document.querySelectorAll("[data-reveal]");

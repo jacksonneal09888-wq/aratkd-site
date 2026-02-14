@@ -114,6 +114,10 @@
                                         <span class="admin-nav__icon" aria-hidden="true">🧾</span>
                                         <span>Communications</span>
                                     </button>
+                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-banners">
+                                        <span class="admin-nav__icon" aria-hidden="true">🖼️</span>
+                                        <span>Website Banners</span>
+                                    </button>
                                     <button type="button" class="admin-nav__item" data-admin-tab="tab-settings">
                                         <span class="admin-nav__icon" aria-hidden="true">⚙️</span>
                                         <span>Settings</span>
@@ -539,6 +543,44 @@
                                     <div class="admin-enroll__result" id="admin-enroll-result" hidden>
                                         <p class="admin-enroll__result-title">New student ready for login.</p>
                                         <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+                                    </div>
+                                </section>
+
+                                <section class="admin-card" id="admin-banners" data-admin-panel="tab-banners">
+                                    <div class="admin-card__header">
+                                        <h3 class="admin-card__title">Homepage Banners</h3>
+                                        <p class="admin-card__meta">Control the rotating flyers on the homepage hero.</p>
+                                    </div>
+                                    <form class="admin-banner-form" id="admin-banner-form" autocomplete="off">
+                                        <div class="admin-banner-form__grid">
+                                            <label>
+                                                <span>Banner title</span>
+                                                <input type="text" id="admin-banner-title" placeholder="Little Ninjas Promo">
+                                            </label>
+                                            <label>
+                                                <span>Image URL</span>
+                                                <input type="url" id="admin-banner-image" placeholder="https://.../banner.jpg" required>
+                                            </label>
+                                            <label>
+                                                <span>Link URL (optional)</span>
+                                                <input type="url" id="admin-banner-link" placeholder="https://aratkd.com/programs">
+                                            </label>
+                                            <label>
+                                                <span>Alt text</span>
+                                                <input type="text" id="admin-banner-alt" placeholder="Kids class flyer">
+                                            </label>
+                                        </div>
+                                        <label class="checkbox-row">
+                                            <input type="checkbox" id="admin-banner-active" checked>
+                                            <span>Active on homepage</span>
+                                        </label>
+                                        <div class="admin-banner-form__actions">
+                                            <button type="submit" class="cta-btn">Add Banner</button>
+                                            <p class="form-status" id="admin-banner-status" aria-live="polite"></p>
+                                        </div>
+                                    </form>
+                                    <div class="admin-banner-list" id="admin-banner-list">
+                                        <p class="admin-card__meta">Sign in to load banners.</p>
                                     </div>
                                 </section>
 

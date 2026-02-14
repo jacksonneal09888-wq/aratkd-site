@@ -46,7 +46,8 @@ function readStoredAdminTab() {
             "tab-membership",
             "tab-email",
             "tab-settings",
-            "tab-communications"
+            "tab-communications",
+            "tab-banners"
         ]);
         return stored && allowedTabs.has(stored) ? stored : null;
     } catch (error) {
@@ -507,6 +508,14 @@ const portalEls = {
     adminEmailBody: document.getElementById("email-body"),
     adminEmailTemplate: document.getElementById("email-template"),
     adminEmailStatus: document.getElementById("email-status"),
+    adminBannerForm: document.getElementById("admin-banner-form"),
+    adminBannerList: document.getElementById("admin-banner-list"),
+    adminBannerStatus: document.getElementById("admin-banner-status"),
+    adminBannerTitle: document.getElementById("admin-banner-title"),
+    adminBannerImage: document.getElementById("admin-banner-image"),
+    adminBannerLink: document.getElementById("admin-banner-link"),
+    adminBannerAlt: document.getElementById("admin-banner-alt"),
+    adminBannerActive: document.getElementById("admin-banner-active"),
     emailRecipientPreview: document.getElementById("email-recipient-preview"),
     emailPreviewTrigger: document.getElementById("email-preview-trigger"),
     adminRoster: document.getElementById("admin-roster"),
@@ -662,6 +671,14 @@ function refreshAdminEls() {
         adminEmailBody: "email-body",
         adminEmailTemplate: "email-template",
         adminEmailStatus: "email-status",
+        adminBannerForm: "admin-banner-form",
+        adminBannerList: "admin-banner-list",
+        adminBannerStatus: "admin-banner-status",
+        adminBannerTitle: "admin-banner-title",
+        adminBannerImage: "admin-banner-image",
+        adminBannerLink: "admin-banner-link",
+        adminBannerAlt: "admin-banner-alt",
+        adminBannerActive: "admin-banner-active",
         adminRoster: "admin-roster",
         adminRosterBody: "admin-roster-body",
         adminRosterRefresh: "admin-roster-refresh",
@@ -846,6 +863,9 @@ const portalState = {
         events: [],
         generatedAt: null,
         attendance: [],
+        banners: [],
+        bannersGeneratedAt: null,
+        isBannersLoading: false,
         isAuthorized: false,
         isExpanded: false,
         reportCard: null,
@@ -971,6 +991,7 @@ document.body.addEventListener("admin:component:loaded", (event) => {
         loadAdminRoster();
         loadAdminEvents();
         loadAdminAttendance();
+        loadAdminBanners();
         renderCommunicationsLog();
         renderAdminEnrollSection();
     }
@@ -989,6 +1010,7 @@ document.body.addEventListener("admin-components-loaded", () => {
         loadAdminRoster();
         loadAdminEvents();
         loadAdminAttendance();
+        loadAdminBanners();
         renderAdminEnrollSection();
     }
 });
@@ -1432,6 +1454,8 @@ function attachHandlers() {
     bindOnce(portalEls.adminEventsRefresh, "click", loadAdminEvents);
     bindOnce(portalEls.adminEventsForm, "submit", handleAdminEventSubmit);
     bindOnce(portalEls.adminEventsBody, "click", handleAdminEventAction);
+    bindOnce(portalEls.adminBannerForm, "submit", handleAdminBannerSubmit);
+    bindOnce(portalEls.adminBannerList, "click", handleAdminBannerAction);
     bindOnce(portalEls.adminSummaryDownload, "click", downloadAdminSummary);
     bindOnce(portalEls.adminExpand, "click", toggleAdminPanelSize);
     bindOnce(portalEls.adminSummaryBody, "click", handleAdminSummaryAction);
@@ -1905,6 +1929,12 @@ function recordCertificateProgress(studentId, belt, certificate) {
         })
         .then((data) => {
             markCertificateSynced(studentId, belt.slug, data?.uploadedAt || payload.uploadedAt);
+            if (data?.attendance) {
+                portalState.attendanceSummary[studentId] = data.attendance;
+                updateAttendanceSummaryDisplay(studentId);
+            } else if (data?.attendanceReset) {
+                loadAttendanceSummary(studentId);
+            }
             return data;
         })
         .catch((error) => {
@@ -2131,7 +2161,13 @@ function handleAdminLogin(event) {
             resetAdminModalState();
             scheduleAdminAutoRefresh();
             loadAdminActivity({ silent: true })
-                .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
+                .then(() =>
+                    Promise.all([
+                        loadAdminRoster({ silent: true }),
+                        loadAdminEvents(),
+                        loadAdminBanners({ silent: true })
+                    ])
+                )
                 .catch(() => {});
         })
         .catch((error) => {
@@ -2199,7 +2235,8 @@ function refreshAdminData(options = {}) {
     return Promise.all([
         loadAdminActivity({ silent: true }),
         loadAdminRoster({ silent: true }),
-        loadAdminEvents()
+        loadAdminEvents(),
+        loadAdminBanners({ silent: true })
     ])
         .then(() => {
             portalState.admin.refreshFailures = 0;
@@ -2364,7 +2401,13 @@ function attemptRestoreAdminSession() {
     renderAdminDashboard();
     renderAdminEnrollSection();
     loadAdminActivity({ silent: true })
-        .then(() => Promise.all([loadAdminRoster({ silent: true }), loadAdminEvents()]))
+        .then(() =>
+            Promise.all([
+                loadAdminRoster({ silent: true }),
+                loadAdminEvents(),
+                loadAdminBanners({ silent: true })
+            ])
+        )
         .catch(() => {
             portalState.admin.token = null;
             portalState.admin.isAuthorized = false;
@@ -2638,6 +2681,410 @@ function loadAdminEvents(event) {
             if (portalEls.adminEventsBody) {
                 portalEls.adminEventsBody.innerHTML = `<tr><td colspan="6">${error.message || "Unable to load events. Check API base or CORS."}</td></tr>`;
             }
+        });
+}
+
+function loadAdminBanners(options = {}) {
+    const { silent = false } = options;
+    if (!HAS_REMOTE_API) {
+        return Promise.reject(new Error("Portal API missing"));
+    }
+    if (!portalState.admin.isAuthorized) {
+        if (!silent) {
+            setAdminStatus("Sign in first.");
+        }
+        return Promise.reject(new Error("Missing admin auth"));
+    }
+    const url = buildApiUrl("/portal/admin/banners");
+    if (!url) return Promise.reject(new Error("Missing API base"));
+    portalState.admin.isBannersLoading = true;
+    renderAdminBanners();
+
+    return fetch(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then((res) => {
+            if (res.status === 401) throw new Error("Admin session expired.");
+            if (!res.ok) throw new Error("Unable to load banners.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.banners = Array.isArray(data.banners) ? data.banners : [];
+            portalState.admin.bannersGeneratedAt = data.generatedAt || null;
+            renderAdminBanners();
+            if (!silent) {
+                setAdminBannerStatus(
+                    portalState.admin.banners.length ? "Banners updated." : "No banners saved yet.",
+                    "success"
+                );
+            }
+        })
+        .catch((error) => {
+            console.warn("load banners", error);
+            if (!silent) {
+                setAdminBannerStatus(error.message || "Unable to load banners.", "error");
+            }
+            renderAdminBanners();
+        })
+        .finally(() => {
+            portalState.admin.isBannersLoading = false;
+            renderAdminBanners();
+        });
+}
+
+function renderAdminBanners() {
+    if (!portalEls.adminBannerList) return;
+    const list = portalEls.adminBannerList;
+    list.innerHTML = "";
+
+    if (!portalState.admin.isAuthorized) {
+        const note = document.createElement("p");
+        note.className = "admin-card__meta";
+        note.textContent = "Sign in to manage homepage banners.";
+        list.appendChild(note);
+        return;
+    }
+
+    const banners = Array.isArray(portalState.admin.banners)
+        ? portalState.admin.banners
+        : [];
+
+    if (!banners.length) {
+        const empty = document.createElement("p");
+        empty.className = "admin-card__meta";
+        empty.textContent = portalState.admin.isBannersLoading
+            ? "Loading banners..."
+            : "No banners found yet. Add the first banner above.";
+        list.appendChild(empty);
+        return;
+    }
+
+    banners.forEach((banner, index) => {
+        if (!banner?.id) return;
+        const item = document.createElement("div");
+        item.className = "admin-banner-item";
+        item.dataset.bannerId = banner.id;
+        item.dataset.bannerIndex = String(index);
+
+        const preview = document.createElement("div");
+        preview.className = "admin-banner-item__preview";
+
+        const img = document.createElement("img");
+        img.src = banner.imageUrl || "";
+        img.alt = banner.altText || banner.title || `Banner ${index + 1}`;
+        img.loading = "lazy";
+
+        const meta = document.createElement("div");
+        const title = document.createElement("strong");
+        title.textContent = banner.title || "Untitled banner";
+        const status = document.createElement("div");
+        status.className = "admin-card__meta";
+        status.textContent = banner.isActive ? "Active on homepage" : "Hidden";
+        meta.append(title, status);
+
+        preview.append(img, meta);
+
+        const grid = document.createElement("div");
+        grid.className = "admin-banner-item__grid";
+
+        const titleLabel = document.createElement("label");
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = "Title";
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.value = banner.title || "";
+        titleInput.dataset.bannerField = "title";
+        titleLabel.append(titleSpan, titleInput);
+
+        const imageLabel = document.createElement("label");
+        const imageSpan = document.createElement("span");
+        imageSpan.textContent = "Image URL";
+        const imageInput = document.createElement("input");
+        imageInput.type = "url";
+        imageInput.value = banner.imageUrl || "";
+        imageInput.dataset.bannerField = "imageUrl";
+        imageLabel.append(imageSpan, imageInput);
+
+        const linkLabel = document.createElement("label");
+        const linkSpan = document.createElement("span");
+        linkSpan.textContent = "Link URL";
+        const linkInput = document.createElement("input");
+        linkInput.type = "url";
+        linkInput.value = banner.linkUrl || "";
+        linkInput.dataset.bannerField = "linkUrl";
+        linkLabel.append(linkSpan, linkInput);
+
+        const altLabel = document.createElement("label");
+        const altSpan = document.createElement("span");
+        altSpan.textContent = "Alt text";
+        const altInput = document.createElement("input");
+        altInput.type = "text";
+        altInput.value = banner.altText || "";
+        altInput.dataset.bannerField = "altText";
+        altLabel.append(altSpan, altInput);
+
+        const activeLabel = document.createElement("label");
+        activeLabel.className = "checkbox-row";
+        const activeInput = document.createElement("input");
+        activeInput.type = "checkbox";
+        activeInput.checked = Boolean(banner.isActive);
+        activeInput.dataset.bannerField = "isActive";
+        const activeSpan = document.createElement("span");
+        activeSpan.textContent = "Active";
+        activeLabel.append(activeInput, activeSpan);
+
+        grid.append(titleLabel, imageLabel, linkLabel, altLabel, activeLabel);
+
+        const actions = document.createElement("div");
+        actions.className = "admin-banner-item__actions";
+
+        const upBtn = document.createElement("button");
+        upBtn.type = "button";
+        upBtn.className = "secondary-btn";
+        upBtn.dataset.bannerAction = "move-up";
+        upBtn.textContent = "Move up";
+        if (index === 0) {
+            upBtn.disabled = true;
+        }
+
+        const downBtn = document.createElement("button");
+        downBtn.type = "button";
+        downBtn.className = "secondary-btn";
+        downBtn.dataset.bannerAction = "move-down";
+        downBtn.textContent = "Move down";
+        if (index === banners.length - 1) {
+            downBtn.disabled = true;
+        }
+
+        const saveBtn = document.createElement("button");
+        saveBtn.type = "button";
+        saveBtn.className = "cta-btn";
+        saveBtn.dataset.bannerAction = "save";
+        saveBtn.textContent = "Save changes";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "text-link-btn";
+        deleteBtn.dataset.bannerAction = "delete";
+        deleteBtn.textContent = "Remove";
+
+        actions.append(upBtn, downBtn, saveBtn, deleteBtn);
+
+        item.append(preview, grid, actions);
+        list.appendChild(item);
+    });
+}
+
+function handleAdminBannerSubmit(event) {
+    event?.preventDefault();
+    if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    if (
+        !portalEls.adminBannerImage ||
+        !portalEls.adminBannerTitle ||
+        !portalEls.adminBannerLink ||
+        !portalEls.adminBannerAlt ||
+        !portalEls.adminBannerActive
+    ) {
+        return;
+    }
+
+    const payload = {
+        title: portalEls.adminBannerTitle.value.trim(),
+        imageUrl: portalEls.adminBannerImage.value.trim(),
+        linkUrl: portalEls.adminBannerLink.value.trim(),
+        altText: portalEls.adminBannerAlt.value.trim(),
+        isActive: portalEls.adminBannerActive.checked,
+        sortOrder: Array.isArray(portalState.admin.banners)
+            ? portalState.admin.banners.length
+            : 0
+    };
+
+    if (!payload.imageUrl) {
+        setAdminBannerStatus("Image URL is required.", "error");
+        return;
+    }
+
+    const url = buildApiUrl("/portal/admin/banners");
+    setAdminBannerStatus("Adding banner...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(payload)
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to add banner.");
+            return res.json();
+        })
+        .then((data) => {
+            const banner = data?.banner;
+            if (banner) {
+                portalState.admin.banners = [...(portalState.admin.banners || []), banner];
+                renderAdminBanners();
+                portalEls.adminBannerForm?.reset();
+                if (portalEls.adminBannerActive) {
+                    portalEls.adminBannerActive.checked = true;
+                }
+                setAdminBannerStatus("Banner added.", "success");
+                commitBannerOrder();
+            }
+        })
+        .catch((error) => {
+            console.error("add banner", error);
+            setAdminBannerStatus(error.message || "Unable to add banner.", "error");
+        });
+}
+
+function handleAdminBannerAction(event) {
+    const actionBtn = event.target.closest("[data-banner-action]");
+    if (!actionBtn) return;
+    const action = actionBtn.dataset.bannerAction;
+    const item = actionBtn.closest("[data-banner-id]");
+    const bannerId = item?.dataset?.bannerId;
+    if (!bannerId) return;
+
+    if (action === "move-up") {
+        shiftBannerOrder(bannerId, -1);
+        return;
+    }
+    if (action === "move-down") {
+        shiftBannerOrder(bannerId, 1);
+        return;
+    }
+    if (action === "delete") {
+        deleteBanner(bannerId);
+        return;
+    }
+    if (action === "save") {
+        saveBannerEdits(item);
+    }
+}
+
+function shiftBannerOrder(bannerId, direction) {
+    const banners = Array.isArray(portalState.admin.banners)
+        ? [...portalState.admin.banners]
+        : [];
+    const index = banners.findIndex((banner) => banner.id === bannerId);
+    const nextIndex = index + direction;
+    if (index === -1 || nextIndex < 0 || nextIndex >= banners.length) return;
+    const temp = banners[index];
+    banners[index] = banners[nextIndex];
+    banners[nextIndex] = temp;
+    portalState.admin.banners = banners;
+    renderAdminBanners();
+    commitBannerOrder();
+}
+
+function commitBannerOrder() {
+    if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) return;
+    const order = (portalState.admin.banners || []).map((banner) => banner.id).filter(Boolean);
+    if (!order.length) return;
+    const url = buildApiUrl("/portal/admin/banners/reorder");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ order })
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to reorder banners.");
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.banners = Array.isArray(data.banners) ? data.banners : portalState.admin.banners;
+            renderAdminBanners();
+        })
+        .catch((error) => {
+            console.error("reorder banners", error);
+            setAdminBannerStatus(error.message || "Unable to reorder banners.", "error");
+        });
+}
+
+function saveBannerEdits(item) {
+    if (!item || !HAS_REMOTE_API || !portalState.admin.isAuthorized) return;
+    const bannerId = item.dataset.bannerId;
+    if (!bannerId) return;
+    const getField = (name) =>
+        item.querySelector(`[data-banner-field='${name}']`);
+    const titleInput = getField("title");
+    const imageInput = getField("imageUrl");
+    const linkInput = getField("linkUrl");
+    const altInput = getField("altText");
+    const activeInput = getField("isActive");
+
+    const payload = {
+        id: bannerId,
+        title: titleInput?.value?.trim() || "",
+        imageUrl: imageInput?.value?.trim() || "",
+        linkUrl: linkInput?.value?.trim() || "",
+        altText: altInput?.value?.trim() || "",
+        isActive: Boolean(activeInput?.checked),
+        sortOrder: item.dataset.bannerIndex ? Number(item.dataset.bannerIndex) : undefined
+    };
+
+    if (!payload.imageUrl) {
+        setAdminBannerStatus("Image URL is required.", "error");
+        return;
+    }
+
+    const url = buildApiUrl("/portal/admin/banners");
+    setAdminBannerStatus("Saving banner...", "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(payload)
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to save banner.");
+            return res.json();
+        })
+        .then((data) => {
+            const updated = data?.banner;
+            if (!updated) return;
+            const banners = Array.isArray(portalState.admin.banners)
+                ? [...portalState.admin.banners]
+                : [];
+            const index = banners.findIndex((banner) => banner.id === bannerId);
+            if (index >= 0) {
+                banners[index] = updated;
+                portalState.admin.banners = banners;
+            }
+            renderAdminBanners();
+            setAdminBannerStatus("Banner saved.", "success");
+        })
+        .catch((error) => {
+            console.error("save banner", error);
+            setAdminBannerStatus(error.message || "Unable to save banner.", "error");
+        });
+}
+
+function deleteBanner(bannerId) {
+    if (!HAS_REMOTE_API || !portalState.admin.isAuthorized) return;
+    const url = buildApiUrl(`/portal/admin/banners/${encodeURIComponent(bannerId)}`);
+    setAdminBannerStatus("Removing banner...", "progress");
+    fetch(url, {
+        method: "DELETE",
+        headers: getAdminAuthHeaders()
+    })
+        .then((res) => {
+            if (!res.ok) throw new Error("Unable to remove banner.");
+            return res.json();
+        })
+        .then(() => {
+            portalState.admin.banners = (portalState.admin.banners || []).filter(
+                (banner) => banner.id !== bannerId
+            );
+            renderAdminBanners();
+            setAdminBannerStatus("Banner removed.", "success");
+            commitBannerOrder();
+        })
+        .catch((error) => {
+            console.error("remove banner", error);
+            setAdminBannerStatus(error.message || "Unable to remove banner.", "error");
         });
 }
 
@@ -3659,6 +4106,13 @@ function setAdminEmailStatus(message, variant = "error") {
     portalEls.adminEmailStatus.textContent = message || "";
     portalEls.adminEmailStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminEmailStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function setAdminBannerStatus(message, variant = "error") {
+    if (!portalEls.adminBannerStatus) return;
+    portalEls.adminBannerStatus.textContent = message || "";
+    portalEls.adminBannerStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminBannerStatus.classList.toggle("is-progress", variant === "progress");
 }
 
 function getBrevoApiKey() {
