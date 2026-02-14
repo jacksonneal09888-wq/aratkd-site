@@ -5797,6 +5797,17 @@ body[data-portal-mode="admin"] .student-modal__panel {
     box-shadow: none;
 }
 
+body[data-portal-mode="admin"] .class-drawer {
+    justify-content: stretch;
+}
+
+body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
+    width: 100vw;
+    min-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+}
+
 .student-modal:not([hidden]) .student-modal__panel {
     transform: translateX(0);
 }
