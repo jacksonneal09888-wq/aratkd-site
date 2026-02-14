@@ -9,6 +9,7 @@ const COMPONENTS = {
   "tab-membership": "/components/membership.html",
   "tab-email": "/components/email.html",
   "tab-communications": "/components/communications.html",
+  "tab-banners": "/components/banners.html",
   "tab-settings": "/components/settings.html"
 };
 
