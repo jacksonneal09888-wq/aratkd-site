@@ -3934,9 +3934,11 @@ body.admin-modal-open {
 .admin-topbar__actions .btn-ghost,
 .admin-topbar__actions .btn-primary,
 .admin-topbar__actions .theme-toggle {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.9rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.82rem;
     box-shadow: none;
+    border-radius: 999px;
+    min-height: 30px;
 }
 
 .admin-topbar__actions .btn-ghost,
@@ -4823,7 +4825,8 @@ body.admin-modal-open {
     line-height: 1;
     white-space: nowrap;
     box-shadow: none;
-    min-height: 32px;
+    min-height: 30px;
+    border-radius: 999px;
 }
 
 .admin-topbar__actions .btn-ghost,
