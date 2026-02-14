@@ -1281,7 +1281,6 @@ app.get('/portal/admin/activity', async (c) => {
   }
   await purgeArchivedStudents(c.env.PORTAL_DB);
   const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
-  const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
   const activeFilterAlias = await resolveArchiveFilter(c.env.PORTAL_DB, 's');
 
   let limit = 200;
