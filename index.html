@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260214-14">
 </head>
 <body data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <header class="site-header">
@@ -360,6 +360,47 @@
                 </form>
             </div>
         </section>
+
+        <section class="section parent-group-section" id="parents-group">
+            <div class="container group-grid">
+                <div class="group-card">
+                    <header class="section-header">
+                        <h2>ARA TKD Parents Group</h2>
+                        <p>Get class updates, schedule changes, and community announcements in one place.</p>
+                    </header>
+                    <ul class="group-benefits">
+                        <li>Weekly announcements and reminders</li>
+                        <li>Event alerts and testing updates</li>
+                        <li>Direct access to the parent community</li>
+                    </ul>
+                    <div class="group-actions">
+                        <a class="cta-btn" href="https://groups.google.com/g/aratkd-parents" target="_blank" rel="noopener">Join / Open Group</a>
+                        <a class="secondary-btn" href="mailto:aratkd-parents+subscribe@googlegroups.com?subject=Subscribe%20Me%20to%20ARA%20TKD%20Parents%20Group">Email Subscribe</a>
+                    </div>
+                    <p class="group-note">Sign in with your Google account to join. You can also subscribe by email if you prefer.</p>
+                </div>
+                <div class="group-card group-card--light">
+                    <h3>Parents Group Chat Box</h3>
+                    <p class="group-note">Send a message to the parent group inbox. Replies will appear in the Google Group.</p>
+                    <form class="group-form" id="parent-group-form" method="POST" action="https://formsubmit.co/aratkd-parents@googlegroups.com">
+                        <input type="hidden" name="_next" value="https://aratkd.com/?group-submitted=true#parents-group">
+                        <input type="hidden" name="_subject" value="ARA TKD Parents Group Message">
+                        <input type="text" name="_honey" style="display:none">
+                        <label for="parent-name">Parent Name</label>
+                        <input type="text" id="parent-name" name="name" required>
+
+                        <label for="parent-email">Email</label>
+                        <input type="email" id="parent-email" name="email" required>
+
+                        <label for="parent-message">Message</label>
+                        <textarea id="parent-message" name="message" rows="4" placeholder="Share updates, questions, or notes for the parent group." required></textarea>
+
+                        <button type="submit" class="cta-btn" id="parent-group-submit">Send to Parents Group</button>
+                        <p class="form-status" id="parent-group-status" aria-live="polite"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="site-footer">
@@ -392,6 +433,8 @@
         const contactForm = document.getElementById("contact-form");
         const contactStatus = document.getElementById("contact-status");
         const contactEmailBtn = document.getElementById("contact-email-btn");
+        const parentGroupForm = document.getElementById("parent-group-form");
+        const parentGroupStatus = document.getElementById("parent-group-status");
 
         if (contactForm) {
             contactForm.addEventListener("submit", () => {
@@ -416,6 +459,14 @@
                     `Message: ${message}`
                 ].join("\\n");
                 window.location.href = `mailto:aratkdsports@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            });
+        }
+
+        if (parentGroupForm) {
+            parentGroupForm.addEventListener("submit", () => {
+                if (parentGroupStatus) {
+                    parentGroupStatus.textContent = "Thanks! Your message is on the way to the parents group.";
+                }
             });
         }
     </script>
