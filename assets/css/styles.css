@@ -2176,6 +2176,15 @@ body {
     color: var(--color-primary-dark);
 }
 
+.text-link-btn.is-danger {
+    color: #b91c1c;
+}
+
+.text-link-btn.is-danger:hover,
+.text-link-btn.is-danger:focus {
+    color: #7f1d1d;
+}
+
 .belt-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

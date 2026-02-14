@@ -43,6 +43,8 @@ app.options('*', (c) =>
 );
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24;
+const ARCHIVE_RETENTION_DAYS = 30;
+const ACTIVE_STUDENT_FILTER = '(is_archived IS NULL OR is_archived = 0)';
 
 const getJwtSecret = (env: Env) => env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || 'change-me';
 const getKioskSecret = (env: Env) => env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || 'kiosk-dev-key';
@@ -336,6 +338,9 @@ const BELT_ORDER = [
 
 const sanitizeStudentRecord = (row: any) => {
   if (!row) return null;
+  const isArchived = Boolean(row.is_archived);
+  const baseStatus = row.status || (row.is_suspended ? 'suspended' : 'active');
+  const status = isArchived ? 'archived' : baseStatus;
   return {
     id: row.id,
     name: row.name,
@@ -344,13 +349,17 @@ const sanitizeStudentRecord = (row: any) => {
     phone: row.phone || null,
     email: row.email || null,
     membershipType: row.membership_type || null,
-    status: row.status || (row.is_suspended ? 'suspended' : 'active'),
+    status,
     parentName: row.parent_name || null,
     emergencyContact: row.emergency_contact || null,
     address: row.address || null,
     isSuspended: Boolean(row.is_suspended),
     suspendedReason: row.suspended_reason || null,
     suspendedAt: row.suspended_at || null,
+    isArchived,
+    archivedAt: row.archived_at || null,
+    archivedReason: row.archived_reason || null,
+    archivedBy: row.archived_by || null,
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
   };
@@ -393,6 +402,7 @@ const fetchEmailRecipients = async (
          FROM students s
          INNER JOIN attendance_sessions a ON a.student_id = s.id
          WHERE s.email IS NOT NULL AND s.email != ''
+           AND ${ACTIVE_STUDENT_FILTER.replace('is_archived', 's.is_archived')}
            AND LOWER(a.class_type) LIKE ?1
          ORDER BY s.name ASC
          LIMIT ?2`
@@ -409,6 +419,7 @@ const fetchEmailRecipients = async (
         `SELECT id, name, email
          FROM students
          WHERE email IS NOT NULL AND email != ''
+           AND ${ACTIVE_STUDENT_FILTER}
            AND LOWER(current_belt) LIKE ?1
          ORDER BY name ASC
          LIMIT ?2`
@@ -424,6 +435,7 @@ const fetchEmailRecipients = async (
       `SELECT id, name, email, is_suspended, status
        FROM students
        WHERE email IS NOT NULL AND email != ''
+         AND ${ACTIVE_STUDENT_FILTER}
          ${isActiveFilter ? "AND (is_suspended IS NULL OR is_suspended = 0) AND (LOWER(status) IS NULL OR LOWER(status) != 'suspended')" : ''}
        ORDER BY name ASC
        LIMIT ?1`
@@ -471,17 +483,53 @@ const sendBrevoEmail = async (
   return response.json();
 };
 
-const fetchStudentById = (db: D1Database, studentId: string) => {
+const fetchStudentById = (
+  db: D1Database,
+  studentId: string,
+  options: { includeArchived?: boolean } = {}
+) => {
   const lookup = studentId.trim().toLowerCase();
+  const archiveFilter = options.includeArchived ? '' : `AND ${ACTIVE_STUDENT_FILTER}`;
   return db
     .prepare(
-      `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at
+      `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, is_archived, archived_at, archived_reason, archived_by, created_at, updated_at
        FROM students
        WHERE LOWER(id) = ?1
+       ${archiveFilter}
        LIMIT 1`
     )
     .bind(lookup)
     .first<any>();
+};
+
+const purgeArchivedStudents = async (db: D1Database) => {
+  const cutoff = new Date(
+    Date.now() - ARCHIVE_RETENTION_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+  const { results } = await db
+    .prepare(
+      `SELECT id
+       FROM students
+       WHERE is_archived = 1
+         AND archived_at IS NOT NULL
+         AND archived_at <= ?1`
+    )
+    .bind(cutoff)
+    .all();
+
+  const ids = (results || []).map((row: any) => row.id).filter(Boolean);
+  if (!ids.length) return 0;
+
+  for (const id of ids) {
+    await db.prepare(`DELETE FROM attendance_sessions WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM belt_progress WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM login_events WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM student_notes WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM memberships WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM student_payments WHERE student_id = ?1`).bind(id).run();
+    await db.prepare(`DELETE FROM students WHERE id = ?1`).bind(id).run();
+  }
+  return ids.length;
 };
 
 const normalizeBeltSlug = (name: string) => {
@@ -892,6 +940,8 @@ app.post('/portal/login-event', async (c) => {
     return c.json({ error: 'studentId is required' }, 400);
   }
 
+  await purgeArchivedStudents(c.env.PORTAL_DB);
+
   const isLoginAttempt = action === 'login';
   let token: string | null = null;
   let studentProfile: any = null;
@@ -1206,6 +1256,7 @@ app.get('/portal/admin/activity', async (c) => {
   if (authError) {
     return authError;
   }
+  await purgeArchivedStudents(c.env.PORTAL_DB);
 
   let limit = 200;
   const queryLimit = c.req.query('limit');
@@ -1219,6 +1270,9 @@ app.get('/portal/admin/activity', async (c) => {
   const eventsQuery = await c.env.PORTAL_DB.prepare(
     `SELECT student_id, action, actor, created_at
      FROM login_events
+     WHERE student_id IN (
+       SELECT id FROM students WHERE ${ACTIVE_STUDENT_FILTER}
+     )
      ORDER BY datetime(created_at) DESC
      LIMIT ?1`
   )
@@ -1251,7 +1305,10 @@ app.get('/portal/admin/activity', async (c) => {
          LIMIT 1
        ) AS latest_belt_uploaded
      FROM login_events le
-     LEFT JOIN students s ON s.id = le.student_id
+     LEFT JOIN students s ON s.id = le.student_id AND ${ACTIVE_STUDENT_FILTER.replace('is_archived', 's.is_archived')}
+     WHERE le.student_id IN (
+       SELECT id FROM students WHERE ${ACTIVE_STUDENT_FILTER}
+     )
      GROUP BY le.student_id
      ORDER BY datetime(last_event) DESC`
   ).all();
@@ -1289,6 +1346,7 @@ app.get('/portal/admin/attendance', async (c) => {
   if (authError) {
     return authError;
   }
+  await purgeArchivedStudents(c.env.PORTAL_DB);
 
   let limit = 50;
   const queryLimit = c.req.query('limit');
@@ -1314,6 +1372,9 @@ app.get('/portal/admin/attendance', async (c) => {
     let percent = percentCache.get(row.student_id);
     if (percent === undefined) {
       const student = await fetchStudentById(c.env.PORTAL_DB, row.student_id);
+      if (!student) {
+        continue;
+      }
       const summary = await buildAttendanceSummary(
         c.env.PORTAL_DB,
         row.student_id,
@@ -1488,6 +1549,7 @@ app.get('/portal/admin/students', async (c) => {
   if (authError) {
     return authError;
   }
+  await purgeArchivedStudents(c.env.PORTAL_DB);
 
   let limit = 500;
   const queryLimit = c.req.query('limit');
@@ -1501,6 +1563,7 @@ app.get('/portal/admin/students', async (c) => {
   const { results } = await c.env.PORTAL_DB.prepare(
     `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, created_at, updated_at
      FROM students
+     WHERE ${ACTIVE_STUDENT_FILTER}
      ORDER BY name ASC
      LIMIT ?1`
   )
@@ -1543,6 +1606,60 @@ app.post('/portal/admin/students/membership', async (c) => {
 
   const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
   return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
+});
+
+app.post('/portal/admin/students/:studentId/archive', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  await purgeArchivedStudents(c.env.PORTAL_DB);
+
+  const studentId = c.req.param('studentId').trim();
+  if (!studentId) {
+    return c.json({ error: 'Student id is required' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId, {
+    includeArchived: true
+  });
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  if (student.is_archived) {
+    return c.json({
+      ok: true,
+      archivedAt: student.archived_at,
+      student: sanitizeStudentRecord(student)
+    });
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const reason = (body.reason || '').toString().trim();
+  const archivedBy = (body.archivedBy || 'admin').toString().trim() || 'admin';
+  const now = new Date().toISOString();
+
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE students
+       SET is_archived = 1,
+           archived_at = ?1,
+           archived_reason = ?2,
+           archived_by = ?3,
+           status = 'archived',
+           updated_at = ?4
+     WHERE id = ?5`
+  )
+    .bind(now, reason || null, archivedBy, now, student.id)
+    .run();
+
+  const updated = await fetchStudentById(c.env.PORTAL_DB, student.id, {
+    includeArchived: true
+  });
+
+  return c.json({
+    ok: true,
+    archivedAt: now,
+    student: sanitizeStudentRecord(updated)
+  });
 });
 
 app.patch('/portal/admin/students/:studentId', async (c) => {

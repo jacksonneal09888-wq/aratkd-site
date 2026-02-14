@@ -3341,7 +3341,14 @@ function renderAdminDashboard() {
             reactivateBtn.dataset.studentId = entry.studentId;
             reactivateBtn.textContent = "Reactivate";
 
-            actionsWrap.append(reportBtn, deactivateBtn, reactivateBtn);
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "text-link-btn is-danger";
+            removeBtn.dataset.action = "remove";
+            removeBtn.dataset.studentId = entry.studentId;
+            removeBtn.textContent = "Remove";
+
+            actionsWrap.append(reportBtn, deactivateBtn, reactivateBtn, removeBtn);
             actionsCell.appendChild(actionsWrap);
 
             row.append(studentCell, totalCell, loginCell, latestCell, lastCell, statusCell, actionsCell);
@@ -4023,7 +4030,15 @@ function renderAdminRoster() {
         reportBtn.dataset.studentId = student.id;
         reportBtn.textContent = "Report Card";
 
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "text-link-btn is-danger";
+        removeBtn.dataset.action = "remove";
+        removeBtn.dataset.studentId = student.id;
+        removeBtn.textContent = "Remove";
+
         actionsWrap.append(openBtn, reportBtn, suspendBtn);
+        actionsWrap.append(removeBtn);
         actionsCell.appendChild(actionsWrap);
 
         row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
@@ -4814,12 +4829,72 @@ function handleAdminSummaryAction(event) {
         openReportCard(studentId);
         return;
     }
+    if (action === "remove") {
+        archiveStudent(studentId);
+        return;
+    }
     const suspend = action === "suspend";
     let reason = "";
     if (suspend) {
         reason = window.prompt("Enter suspension reason", "Billing issue") || "";
     }
     updateStudentSuspension(studentId, suspend, reason);
+}
+
+function archiveStudent(studentId) {
+    if (!HAS_REMOTE_API) return;
+    if (!portalState.admin.isAuthorized) {
+        setAdminStatus("Sign in first.");
+        return;
+    }
+    if (!studentId) return;
+    const student = (portalState.admin.roster || []).find(
+        (entry) => entry.id?.toLowerCase() === studentId.toLowerCase()
+    );
+    const label = student?.name || studentId;
+    const confirmText =
+        `Archive ${label}?\\n\\n` +
+        `This will hide the student for 30 days, then permanently remove them.`;
+    if (!window.confirm(confirmText)) return;
+    const reason = window.prompt("Reason for removal (optional)", "") || "";
+    const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}/archive`);
+    if (!url) return;
+
+    setAdminStatus(`Archiving ${label}...`, "progress");
+    fetch(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ reason })
+    })
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error("Unable to archive student.");
+            }
+            return res.json();
+        })
+        .then(() => {
+            portalState.admin.roster = (portalState.admin.roster || []).filter(
+                (entry) => entry.id?.toLowerCase() !== studentId.toLowerCase()
+            );
+            portalState.admin.summary = (portalState.admin.summary || []).filter(
+                (entry) => entry.studentId?.toLowerCase() !== studentId.toLowerCase()
+            );
+            if (
+                portalState.admin.rosterSelected?.id?.toLowerCase() ===
+                studentId.toLowerCase()
+            ) {
+                portalState.admin.rosterSelected = null;
+            }
+            renderAdminRoster();
+            renderRosterDetail();
+            renderStudentModal();
+            renderAdminDashboard();
+            setAdminStatus(`${label} archived for 30 days.`, "success");
+        })
+        .catch((error) => {
+            console.error("archiveStudent error:", error);
+            setAdminStatus(error.message || "Unable to archive student.", "error");
+        });
 }
 
 function updateStudentSuspension(studentId, suspend, reason = "") {
@@ -7249,6 +7324,10 @@ function handleRosterDetailButtons(event) {
         setStudentModalPanel("notes");
         if (portalEls.studentModalNoteType) portalEls.studentModalNoteType.value = "payment";
         portalEls.studentModalNoteMessage?.focus();
+        return;
+    }
+    if (action === 'remove') {
+        archiveStudent(studentId);
         return;
     }
     if (action === 'deactivate' || action === 'activate') {
