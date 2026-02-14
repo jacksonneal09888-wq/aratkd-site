@@ -1581,6 +1581,7 @@ app.get('/portal/admin/students', async (c) => {
     return authError;
   }
   await purgeArchivedStudents(c.env.PORTAL_DB);
+  const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
 
   let limit = 500;
   const queryLimit = c.req.query('limit');
