@@ -38,6 +38,7 @@ const ADMIN_PANEL_QUERY =
         : "";
 const ADMIN_AUTO_REFRESH_MS = 60000;
 const ADMIN_AUTO_REFRESH_RETRY_MS = 6000;
+const ARCHIVE_RETENTION_DAYS = 30;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
 
@@ -83,7 +84,8 @@ function readStoredAdminTab() {
             "tab-email",
             "tab-settings",
             "tab-communications",
-            "tab-banners"
+            "tab-banners",
+            "tab-archive"
         ]);
         return stored && allowedTabs.has(stored) ? stored : null;
     } catch (error) {
@@ -556,6 +558,10 @@ const portalEls = {
     adminBannerLink: document.getElementById("admin-banner-link"),
     adminBannerAlt: document.getElementById("admin-banner-alt"),
     adminBannerActive: document.getElementById("admin-banner-active"),
+    adminArchive: document.getElementById("admin-archive"),
+    adminArchiveBody: document.getElementById("admin-archive-body"),
+    adminArchiveStatus: document.getElementById("admin-archive-status"),
+    adminArchiveRefresh: document.getElementById("admin-archive-refresh"),
     emailRecipientPreview: document.getElementById("email-recipient-preview"),
     emailPreviewTrigger: document.getElementById("email-preview-trigger"),
     adminRoster: document.getElementById("admin-roster"),
@@ -719,6 +725,10 @@ function refreshAdminEls() {
         adminBannerLink: "admin-banner-link",
         adminBannerAlt: "admin-banner-alt",
         adminBannerActive: "admin-banner-active",
+        adminArchive: "admin-archive",
+        adminArchiveBody: "admin-archive-body",
+        adminArchiveStatus: "admin-archive-status",
+        adminArchiveRefresh: "admin-archive-refresh",
         adminRoster: "admin-roster",
         adminRosterBody: "admin-roster-body",
         adminRosterRefresh: "admin-roster-refresh",
@@ -907,6 +917,9 @@ const portalState = {
         banners: [],
         bannersGeneratedAt: null,
         isBannersLoading: false,
+        archived: [],
+        archivedGeneratedAt: null,
+        isArchiveLoading: false,
         isAuthorized: false,
         isExpanded: false,
         reportCard: null,
@@ -1517,6 +1530,7 @@ function attachHandlers() {
     }
     bindOnce(portalEls.adminRefresh, "click", handleAdminRefresh);
     bindOnce(portalEls.adminRosterRefresh, "click", handleAdminRosterRefresh);
+    bindOnce(portalEls.adminArchiveRefresh, "click", handleAdminArchiveRefresh);
     bindOnce(portalEls.adminLauncher, "click", handleAdminAccessClick);
     bindOnce(portalEls.adminTrigger, "click", handleAdminAccessClick);
     bindOnce(portalEls.adminRosterBody, "click", handleAdminRosterAction);
@@ -2332,12 +2346,16 @@ function refreshAdminData(options = {}) {
         setAdminStatus("Refreshing activity...", "progress");
     }
     setAdminLoadingState(true);
-    return Promise.all([
+    const refreshTasks = [
         loadAdminActivity({ silent: true }),
         loadAdminRoster({ silent: true }),
         loadAdminEvents(),
         loadAdminBanners({ silent: true })
-    ])
+    ];
+    if (portalState.admin.activeTab === "tab-archive") {
+        refreshTasks.push(loadAdminArchive({ silent: true }));
+    }
+    return Promise.all(refreshTasks)
         .then(() => {
             portalState.admin.refreshFailures = 0;
             if (!silent) {
@@ -2369,6 +2387,15 @@ function handleAdminRosterRefresh(event) {
         return;
     }
     loadAdminRoster();
+}
+
+function handleAdminArchiveRefresh(event) {
+    event?.preventDefault();
+    if (!portalState.admin.isAuthorized) {
+        setAdminArchiveStatus("Sign in first.");
+        return;
+    }
+    loadAdminArchive();
 }
 
 function applyPendingStudentSelection() {
@@ -3332,6 +3359,67 @@ function loadAdminRoster(options = {}) {
         });
 }
 
+function loadAdminArchive(options = {}) {
+    const { silent = false } = options;
+    if (!HAS_REMOTE_API) {
+        if (!silent) setAdminArchiveStatus("Connect the portal API before using archive tools.");
+        return Promise.reject(new Error("Portal API missing"));
+    }
+    if (!portalState.admin.isAuthorized) {
+        if (!silent) setAdminArchiveStatus("Sign in first.");
+        return Promise.reject(new Error("Missing admin auth"));
+    }
+    if (portalState.admin.isArchiveLoading) {
+        return Promise.resolve(false);
+    }
+    const url = buildApiUrl("/portal/admin/students/archived");
+    if (!url) return Promise.reject(new Error("Missing API base"));
+
+    portalState.admin.isArchiveLoading = true;
+    renderAdminArchive();
+    return fetchFresh(url, {
+        method: "GET",
+        headers: getAdminAuthHeaders(),
+        mode: "cors",
+        credentials: "omit"
+    })
+        .then(async (res) => {
+            if (res.status === 401) {
+                throw new Error("Admin session expired.");
+            }
+            if (!res.ok) {
+                let reason = "Unable to load archive.";
+                try {
+                    const data = await res.json();
+                    reason = data?.error || data?.message || reason;
+                } catch {
+                    reason = `${res.status} ${res.statusText}` || reason;
+                }
+                throw new Error(reason);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            portalState.admin.archived = Array.isArray(data.students) ? data.students : [];
+            portalState.admin.archivedGeneratedAt = data.generatedAt || null;
+            renderAdminArchive();
+            if (!silent) {
+                setAdminArchiveStatus("Archive updated.", "success");
+            }
+        })
+        .catch((error) => {
+            console.error("admin archive error:", error);
+            if (!silent) {
+                setAdminArchiveStatus(error.message || "Unable to load archive.", "error");
+            }
+            throw error;
+        })
+        .finally(() => {
+            portalState.admin.isArchiveLoading = false;
+            renderAdminArchive();
+        });
+}
+
 function renderAdminDashboard() {
     if (!portalEls.adminDashboard || !portalEls.adminSummaryBody || !portalEls.adminEventsList) {
         return;
@@ -3709,6 +3797,7 @@ function showAdminTab(tabId) {
             "tab-email": ["admin-email"],
             "tab-communications": ["admin-communications"],
             "tab-banners": ["admin-banners"],
+            "tab-archive": ["admin-archive"],
             "tab-settings": ["admin-settings"]
         };
         const allSections = [
@@ -3720,6 +3809,7 @@ function showAdminTab(tabId) {
             "admin-roster",
             "admin-enroll",
             "admin-banners",
+            "admin-archive",
             "admin-settings",
             "admin-communications",
             "class-session-card"
@@ -3751,6 +3841,18 @@ function showAdminTab(tabId) {
             }
         } else {
             renderAdminBanners();
+        }
+    }
+
+    if (activeTab === "tab-archive") {
+        if (portalState.admin.isAuthorized) {
+            if (!portalState.admin.archivedGeneratedAt && !portalState.admin.isArchiveLoading) {
+                loadAdminArchive({ silent: true }).catch(() => {});
+            } else {
+                renderAdminArchive();
+            }
+        } else {
+            renderAdminArchive();
         }
     }
 
@@ -4160,6 +4262,78 @@ function renderAdminRoster() {
     }
 }
 
+function renderAdminArchive() {
+    if (!portalEls.adminArchiveBody) return;
+    const body = portalEls.adminArchiveBody;
+    body.innerHTML = "";
+
+    if (!portalState.admin.isAuthorized) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.textContent = "Sign in to load archived students.";
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+    }
+
+    if (portalState.admin.isArchiveLoading) {
+        for (let i = 0; i < 4; i += 1) {
+            const row = document.createElement("tr");
+            for (let c = 0; c < 5; c += 1) {
+                const cell = document.createElement("td");
+                cell.innerHTML = '<div class="skeleton skeleton--line"></div>';
+                row.appendChild(cell);
+            }
+            body.appendChild(row);
+        }
+        return;
+    }
+
+    const archived = portalState.admin.archived || [];
+    if (!archived.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.textContent = "No archived students yet.";
+        row.appendChild(cell);
+        body.appendChild(row);
+        return;
+    }
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    archived.forEach((student) => {
+        const row = document.createElement("tr");
+        const idCell = document.createElement("td");
+        idCell.textContent = student.id || "—";
+        const nameCell = document.createElement("td");
+        nameCell.textContent = student.name || "—";
+        const archivedCell = document.createElement("td");
+        archivedCell.textContent = student.archivedAt
+            ? formatDateTime(student.archivedAt)
+            : "—";
+        const expiresCell = document.createElement("td");
+        if (student.archivedAt) {
+            const archivedAtMs = new Date(student.archivedAt).getTime();
+            if (!Number.isNaN(archivedAtMs)) {
+                const daysLeft = Math.max(
+                    0,
+                    Math.ceil((archivedAtMs + ARCHIVE_RETENTION_DAYS * dayMs - Date.now()) / dayMs)
+                );
+                expiresCell.textContent = `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+            } else {
+                expiresCell.textContent = "—";
+            }
+        } else {
+            expiresCell.textContent = "—";
+        }
+        const reasonCell = document.createElement("td");
+        reasonCell.textContent = student.archivedReason || "—";
+        row.append(idCell, nameCell, archivedCell, expiresCell, reasonCell);
+        body.appendChild(row);
+    });
+}
+
 function getVisibleRoster() {
     const roster = portalState.admin.roster || [];
     const query = (portalState.admin.rosterSearch || "").toLowerCase();
@@ -4322,6 +4496,13 @@ function setAdminBannerStatus(message, variant = "error") {
     portalEls.adminBannerStatus.textContent = message || "";
     portalEls.adminBannerStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminBannerStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function setAdminArchiveStatus(message, variant = "error") {
+    if (!portalEls.adminArchiveStatus) return;
+    portalEls.adminArchiveStatus.textContent = message || "";
+    portalEls.adminArchiveStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminArchiveStatus.classList.toggle("is-progress", variant === "progress");
 }
 
 function getBrevoApiKey() {
@@ -4997,6 +5178,7 @@ function archiveStudent(studentId) {
             renderStudentModal();
             renderAdminDashboard();
             setAdminStatus(`${label} archived for 30 days.`, "success");
+            loadAdminArchive({ silent: true }).catch(() => {});
         })
         .catch((error) => {
             console.error("archiveStudent error:", error);

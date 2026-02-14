@@ -114,6 +114,10 @@
                                         <span class="admin-nav__icon" aria-hidden="true">🧾</span>
                                         <span>Communications</span>
                                     </button>
+                                    <button type="button" class="admin-nav__item" data-admin-tab="tab-archive">
+                                        <span class="admin-nav__icon" aria-hidden="true">🗄️</span>
+                                        <span>Archive</span>
+                                    </button>
                                     <button type="button" class="admin-nav__item" data-admin-tab="tab-banners">
                                         <span class="admin-nav__icon" aria-hidden="true">🖼️</span>
                                         <span>Website Banners</span>
@@ -547,6 +551,33 @@
                                     </div>
                                 </section>
 
+                                <section class="admin-card" id="admin-archive" data-admin-panel="tab-archive">
+                                    <div class="admin-card__header">
+                                        <h3 class="admin-card__title">Archived Students</h3>
+                                        <button type="button" class="btn-ghost" id="admin-archive-refresh">Refresh</button>
+                                    </div>
+                                    <p class="admin-card__meta">Archived students are removed from the active roster and permanently deleted after 30 days.</p>
+                                    <div class="admin-table-wrap">
+                                        <table class="admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>ARA ID</th>
+                                                    <th>Name</th>
+                                                    <th>Archived On</th>
+                                                    <th>Days Left</th>
+                                                    <th>Reason</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-archive-body">
+                                                <tr>
+                                                    <td colspan="5">Sign in to load archived students.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="form-status" id="admin-archive-status" aria-live="polite"></p>
+                                </section>
+
                                 <section class="admin-card" id="admin-banners" data-admin-panel="tab-dashboard tab-calendar tab-classes tab-events tab-students tab-membership tab-email tab-communications tab-settings tab-banners" style="display:block !important;">
                                     <div class="admin-card__header">
                                         <h3 class="admin-card__title">Homepage Banners</h3>
@@ -634,7 +665,7 @@
 
     <script type="module" src="js/admin-loader.js"></script>
     <script type="module" src="js/panel-controller.js"></script>
-    <script type="module" src="assets/js/student-portal.js?v=20260214-18" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20260214-19" defer></script>
     <script src="assets/js/main.js?v=20260214-12" defer></script>
     <script src="assets/js/translate.js"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>

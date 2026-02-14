@@ -1610,6 +1610,44 @@ app.get('/portal/admin/students', async (c) => {
   });
 });
 
+app.get('/portal/admin/students/archived', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+  await purgeArchivedStudents(c.env.PORTAL_DB);
+  const archiveSupported = await ensureArchiveColumn(c.env.PORTAL_DB);
+  if (!archiveSupported) {
+    return c.json({ error: 'Archive support not enabled. Run migrations.' }, 500);
+  }
+
+  let limit = 500;
+  const queryLimit = c.req.query('limit');
+  if (queryLimit) {
+    const parsed = parseInt(queryLimit, 10);
+    if (!Number.isNaN(parsed)) {
+      limit = Math.min(Math.max(parsed, 1), 1000);
+    }
+  }
+
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, is_archived, archived_at, archived_reason, archived_by, created_at, updated_at
+     FROM students
+     WHERE is_archived = 1
+     ORDER BY datetime(archived_at) DESC
+     LIMIT ?1`
+  )
+    .bind(limit)
+    .all();
+
+  const students = (results || []).map((row: any) => sanitizeStudentRecord(row));
+
+  return c.json({
+    students,
+    generatedAt: new Date().toISOString()
+  });
+});
+
 app.post('/portal/admin/students/membership', async (c) => {
   const authError = await authenticateAdminRequest(c);
   if (authError) return authError;
