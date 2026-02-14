@@ -3370,14 +3370,14 @@ function renderAdminDashboard() {
             reactivateBtn.dataset.studentId = entry.studentId;
             reactivateBtn.textContent = "Reactivate";
 
-            const removeBtn = document.createElement("button");
-            removeBtn.type = "button";
-            removeBtn.className = "text-link-btn is-danger";
-            removeBtn.dataset.action = "remove";
-            removeBtn.dataset.studentId = entry.studentId;
-            removeBtn.textContent = "Remove";
+            const archiveBtn = document.createElement("button");
+            archiveBtn.type = "button";
+            archiveBtn.className = "text-link-btn is-danger";
+            archiveBtn.dataset.action = "archive";
+            archiveBtn.dataset.studentId = entry.studentId;
+            archiveBtn.textContent = "Archive";
 
-            actionsWrap.append(reportBtn, deactivateBtn, reactivateBtn, removeBtn);
+            actionsWrap.append(reportBtn, deactivateBtn, reactivateBtn, archiveBtn);
             actionsCell.appendChild(actionsWrap);
 
             row.append(studentCell, totalCell, loginCell, latestCell, lastCell, statusCell, actionsCell);
@@ -4059,15 +4059,15 @@ function renderAdminRoster() {
         reportBtn.dataset.studentId = student.id;
         reportBtn.textContent = "Report Card";
 
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.className = "text-link-btn is-danger";
-        removeBtn.dataset.action = "remove";
-        removeBtn.dataset.studentId = student.id;
-        removeBtn.textContent = "Remove";
+        const archiveBtn = document.createElement("button");
+        archiveBtn.type = "button";
+        archiveBtn.className = "text-link-btn is-danger";
+        archiveBtn.dataset.action = "archive";
+        archiveBtn.dataset.studentId = student.id;
+        archiveBtn.textContent = "Archive";
 
         actionsWrap.append(openBtn, reportBtn, suspendBtn);
-        actionsWrap.append(removeBtn);
+        actionsWrap.append(archiveBtn);
         actionsCell.appendChild(actionsWrap);
 
         row.append(idCell, nameCell, beltCell, statusCell, updatedCell, actionsCell);
@@ -4858,7 +4858,7 @@ function handleAdminSummaryAction(event) {
         openReportCard(studentId);
         return;
     }
-    if (action === "remove") {
+    if (action === "archive" || action === "remove") {
         archiveStudent(studentId);
         return;
     }
@@ -7375,7 +7375,7 @@ function handleRosterDetailButtons(event) {
         portalEls.studentModalNoteMessage?.focus();
         return;
     }
-    if (action === 'remove') {
+    if (action === 'archive' || action === 'remove') {
         archiveStudent(studentId);
         return;
     }
