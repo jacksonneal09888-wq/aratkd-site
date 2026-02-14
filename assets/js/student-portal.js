@@ -3625,7 +3625,7 @@ function showAdminTab(tabId) {
     }
 
     if (activeTab === "tab-banners") {
-        const bannerPanel = document.getElementById("admin-banners");
+        const bannerPanel = ensureBannerPanel();
         if (bannerPanel) {
             bannerPanel.hidden = false;
         }
@@ -3640,6 +3640,71 @@ function showAdminTab(tabId) {
         }
     }
 
+}
+
+function ensureBannerPanel() {
+    const existing = document.getElementById("admin-banners");
+    if (existing) return existing;
+    const host =
+        document.getElementById("admin-main-content") ||
+        document.querySelector(".admin-main") ||
+        document.body;
+    if (!host) return null;
+
+    const wrapper = document.createElement("section");
+    wrapper.className = "admin-card";
+    wrapper.id = "admin-banners";
+    wrapper.dataset.adminPanel =
+        "tab-dashboard tab-calendar tab-classes tab-events tab-students tab-membership tab-email tab-communications tab-settings tab-banners";
+    wrapper.innerHTML = `
+        <div class="admin-card__header">
+            <h3 class="admin-card__title">Homepage Banners</h3>
+            <p class="admin-card__meta">Control the rotating flyers on the homepage hero.</p>
+        </div>
+        <form class="admin-banner-form" id="admin-banner-form" autocomplete="off">
+            <div class="admin-banner-form__grid">
+                <label>
+                    <span>Banner title</span>
+                    <input type="text" id="admin-banner-title" placeholder="Little Ninjas Promo">
+                </label>
+                <label>
+                    <span>Image URL</span>
+                    <input type="url" id="admin-banner-image" placeholder="https://.../banner.jpg" required>
+                </label>
+                <label>
+                    <span>Link URL (optional)</span>
+                    <input type="url" id="admin-banner-link" placeholder="https://aratkd.com/programs">
+                </label>
+                <label>
+                    <span>Alt text</span>
+                    <input type="text" id="admin-banner-alt" placeholder="Kids class flyer">
+                </label>
+            </div>
+            <label class="checkbox-row">
+                <input type="checkbox" id="admin-banner-active" checked>
+                <span>Active on homepage</span>
+            </label>
+            <div class="admin-banner-form__actions">
+                <button type="submit" class="cta-btn">Add Banner</button>
+                <p class="form-status" id="admin-banner-status" aria-live="polite"></p>
+            </div>
+        </form>
+        <div class="admin-banner-list" id="admin-banner-list">
+            <p class="admin-card__meta">Sign in to load banners.</p>
+        </div>
+    `;
+
+    const firstChild = host.firstElementChild;
+    if (firstChild) {
+        host.insertBefore(wrapper, firstChild);
+    } else {
+        host.appendChild(wrapper);
+    }
+
+    refreshAdminEls();
+    bindOnce(portalEls.adminBannerForm, "submit", handleAdminBannerSubmit);
+    bindOnce(portalEls.adminBannerList, "click", handleAdminBannerAction);
+    return wrapper;
 }
 
 function primeClassModalFromAttendance() {
