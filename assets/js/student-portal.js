@@ -3567,6 +3567,9 @@ function handleAdminTabClick(event) {
 function showAdminTab(tabId) {
     const activeTab = tabId || "tab-dashboard";
     portalState.admin.activeTab = activeTab;
+    if (document.body) {
+        document.body.dataset.adminActiveTab = activeTab;
+    }
     try {
         localStorage.setItem(ADMIN_TAB_STORAGE_KEY, activeTab);
     } catch (error) {

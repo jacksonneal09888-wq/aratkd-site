@@ -4818,17 +4818,26 @@ body.admin-modal-open {
 .admin-topbar__actions .btn-ghost,
 .admin-topbar__actions .btn-primary,
 .admin-topbar__actions .theme-toggle {
-    padding: 0.45rem 0.75rem;
-    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.82rem;
     line-height: 1;
     white-space: nowrap;
     box-shadow: none;
+    min-height: 32px;
 }
 
 .admin-topbar__actions .btn-ghost,
 .admin-topbar__actions .theme-toggle {
     background: transparent;
     border-color: transparent;
+}
+
+body[data-admin-active-tab="tab-banners"] #admin-banners {
+    display: block;
+}
+
+body[data-admin-active-tab="tab-banners"] #admin-banners[hidden] {
+    display: block;
 }
 
 @media (max-width: 900px) {
