@@ -3373,6 +3373,7 @@ function renderAdminDashboard() {
     renderAdminAttendance();
     renderAdminEvents();
     renderAdminRoster();
+    renderAdminBanners();
     renderMessagingAnalytics();
     showAdminTab(portalState.admin.activeTab || "tab-dashboard");
 }
@@ -3590,6 +3591,7 @@ function showAdminTab(tabId) {
             "tab-membership": ["admin-roster"],
             "tab-email": ["admin-email"],
             "tab-communications": ["admin-communications"],
+            "tab-banners": ["admin-banners"],
             "tab-settings": ["admin-settings"]
         };
         const allSections = [
@@ -3600,6 +3602,7 @@ function showAdminTab(tabId) {
             "admin-events",
             "admin-roster",
             "admin-enroll",
+            "admin-banners",
             "admin-settings",
             "admin-communications",
             "class-session-card"
@@ -3616,6 +3619,18 @@ function showAdminTab(tabId) {
         portalEls.adminTabs.querySelectorAll("[data-admin-tab]").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.adminTab === activeTab);
         });
+    }
+
+    if (activeTab === "tab-banners") {
+        if (portalState.admin.isAuthorized) {
+            if (!portalState.admin.bannersGeneratedAt && !portalState.admin.isBannersLoading) {
+                loadAdminBanners({ silent: true }).catch(() => {});
+            } else {
+                renderAdminBanners();
+            }
+        } else {
+            renderAdminBanners();
+        }
     }
 
 }

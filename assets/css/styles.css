@@ -3909,6 +3909,7 @@ body.admin-modal-open {
     background: var(--surface-1);
     border: 1px solid var(--border-soft);
     box-shadow: var(--shadow-1);
+    flex-wrap: wrap;
 }
 
 .admin-topbar__title {
@@ -3923,6 +3924,20 @@ body.admin-modal-open {
     flex-wrap: wrap;
     gap: 0.5rem;
     justify-content: flex-end;
+    align-items: center;
+}
+
+.admin-topbar__actions .btn-ghost,
+.admin-topbar__actions .btn-primary,
+.admin-topbar__actions .theme-toggle {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+    .admin-topbar__actions {
+        justify-content: flex-start;
+    }
 }
 
 .btn-ghost,
@@ -4783,6 +4798,20 @@ body.admin-modal-open {
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    justify-content: flex-end;
+}
+
+.admin-topbar__actions .btn-ghost,
+.admin-topbar__actions .btn-primary,
+.admin-topbar__actions .theme-toggle {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+    .admin-topbar__actions {
+        justify-content: flex-start;
+    }
 }
 
 .admin-views {
