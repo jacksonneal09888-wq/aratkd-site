@@ -755,7 +755,7 @@ function initDojoCalendar() {
     const createCalendarNote = () => {
         const note = document.createElement("p");
         note.className = "dojo-calendar__note";
-        note.textContent = "Green belts and up are welcome to reinforce forms in the White Belt class. Schedule is subject to change depending on attendance - call (919) 533-9313 or email aratkdsports@gmail.com.";
+        note.textContent = "Green belts and up are welcome to reinforce forms in the White Belt class. Schedule is subject to change depending on attendance - call (919) 799-7500 or email aratkdsports@gmail.com.";
         return note;
     };
 
