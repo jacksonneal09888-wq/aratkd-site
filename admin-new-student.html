@@ -6,7 +6,7 @@
     <title>Add New Student | Ara TKD</title>
     <link rel="stylesheet" href="assets/css/styles.css?v=20241125b">
 </head>
-<body data-portal-mode="admin" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-admin-trigger-pin="1453" data-admin-username="MasterAra" data-admin-password="AraTKD">
+<body data-portal-mode="admin" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <main class="section" style="padding-top:2rem;">
         <div class="container">
             <div class="section-heading">
@@ -100,7 +100,7 @@
             </form>
         </div>
     </main>
-    <script type="module" src="assets/js/student-portal.js?v=20260207" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20260303-security" defer></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("admin-new-student-form");
@@ -116,23 +116,30 @@
             const pinField = document.getElementById("ans-pin");
 
             const readAdminToken = () => {
-                try {
-                    const raw =
-                        sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
-                        localStorage.getItem(ADMIN_STORAGE_KEY);
-                    if (raw) {
-                        try {
-                            const parsed = JSON.parse(raw);
-                            if (parsed?.token) return parsed.token;
-                        } catch {
-                            /* fall through */
-                        }
+                const parseStoredToken = (value) => {
+                    if (!value || typeof value !== "string") return null;
+                    try {
+                        const parsed = JSON.parse(value);
+                        if (parsed?.token) return parsed.token;
+                    } catch {
+                        if (value && typeof value === "string") return value;
                     }
-                    const fallback =
-                        sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
-                        localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
-                        raw;
-                    if (fallback && typeof fallback === "string") return fallback;
+                    return null;
+                };
+                try {
+                    const inSession =
+                        parseStoredToken(sessionStorage.getItem(ADMIN_STORAGE_KEY)) ||
+                        parseStoredToken(sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
+                    if (inSession) {
+                        return inSession;
+                    }
+                    const legacyToken =
+                        parseStoredToken(localStorage.getItem(ADMIN_STORAGE_KEY)) ||
+                        parseStoredToken(localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
+                    if (legacyToken) {
+                        persistAdminToken(legacyToken);
+                        return legacyToken;
+                    }
                     return null;
                 } catch (error) {
                     console.warn("readAdminToken failed", error);
@@ -144,16 +151,16 @@
                 try {
                     if (!token) {
                         sessionStorage.removeItem(ADMIN_STORAGE_KEY);
-                        localStorage.removeItem(ADMIN_STORAGE_KEY);
                         sessionStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+                        localStorage.removeItem(ADMIN_STORAGE_KEY);
                         localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
                         return;
                     }
                     const payload = JSON.stringify({ token });
                     sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
-                    localStorage.setItem(ADMIN_STORAGE_KEY, payload);
                     sessionStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
-                    localStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
+                    localStorage.removeItem(ADMIN_STORAGE_KEY);
+                    localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
                 } catch (error) {
                     console.warn("persistAdminToken failed", error);
                 }
@@ -210,15 +217,8 @@
                     setAuthStatus("");
                 } else if (authCard) {
                     authCard.style.display = "block";
-                    if (userField) {
-                        userField.value = document.body.dataset.adminUsername || "MasterAra";
-                    }
-                    if (passField) {
-                        passField.value = document.body.dataset.adminPassword || "AraTKD";
-                    }
                     if (pinField) {
-                        const params = new URLSearchParams(window.location.search || "");
-                        pinField.value = params.get("pin") || document.body.dataset.adminTriggerPin || "";
+                        pinField.value = "";
                     }
                 }
             };

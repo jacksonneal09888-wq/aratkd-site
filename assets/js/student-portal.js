@@ -25,9 +25,6 @@ const API_BASE_URL = (() => {
 })();
 const HAS_REMOTE_API = Boolean(API_BASE_URL);
 const FORCE_REMOTE_DATA = true;
-const ADMIN_TRIGGER_PIN =
-    (typeof document !== "undefined" && document.body?.dataset?.adminTriggerPin?.trim()) ||
-    "";
 const ADMIN_STUDENT_QUERY =
     typeof window !== "undefined"
         ? new URLSearchParams(window.location.search || "").get("student")?.trim() || ""
@@ -1021,9 +1018,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (HAS_REMOTE_API) {
         attemptRestoreAdminSession();
-        if (IS_ADMIN_MODE) {
-            autoLoginFromPin();
-        }
     } else {
         if (portalEls.adminDashboard) {
             portalEls.adminDashboard.hidden = true;
@@ -1721,31 +1715,10 @@ function requestAdminAccess() {
         window.alert("Connect the portal API before using instructor tools.");
         return;
     }
-    if (!verifyAdminTriggerPin()) {
-        return;
-    }
-    const pin = (ADMIN_TRIGGER_PIN || "").trim();
     const versionTag = "20241126";
     const base = "portal-admin.html";
-    const url = pin
-        ? `${base}?v=${versionTag}&pin=${encodeURIComponent(pin)}`
-        : `${base}?v=${versionTag}`;
+    const url = `${base}?v=${versionTag}`;
     window.open(url, "_blank", "noopener");
-}
-
-function verifyAdminTriggerPin() {
-    if (!ADMIN_TRIGGER_PIN) {
-        return true;
-    }
-    const attempt = window.prompt("Enter instructor PIN");
-    if (attempt === null) {
-        return false;
-    }
-    if (attempt.trim() !== ADMIN_TRIGGER_PIN) {
-        window.alert("Incorrect PIN.");
-        return false;
-    }
-    return true;
 }
 
 function handleHiddenKeySequence(event) {
@@ -2549,51 +2522,21 @@ function attemptRestoreAdminSession() {
         });
 }
 
-function autoLoginFromPin() {
-    try {
-        const userField = document.getElementById("admin-username");
-        const passField = document.getElementById("admin-password");
-        const pinField = document.getElementById("admin-pin");
-        if (!userField || !passField) {
-            return; // auth inputs not in DOM yet
-        }
-        const params = new URLSearchParams(window.location.search);
-        const pin = params.get("pin") || "";
-        const triggerPin = (ADMIN_TRIGGER_PIN || "").trim();
-        if (!pin || !triggerPin || pin !== triggerPin) {
-            return;
-        }
-        const username =
-            (document.body.dataset.adminUsername || "MasterAra").trim() || "MasterAra";
-        const password =
-            (document.body.dataset.adminPassword || "AraTKD").trim() || "AraTKD";
-        if (!username || !password) return;
-        userField.value = username;
-        passField.value = password;
-        if (pinField) {
-            pinField.value = pin;
-        }
-        // Slight delay to ensure handlers are bound
-        setTimeout(() => handleAdminLogin(new Event("submit")), 0);
-    } catch (error) {
-        console.warn("autoLoginFromPin failed", error);
-    }
-}
-
 function persistAdminToken(token) {
     try {
         if (!token) {
             sessionStorage.removeItem(ADMIN_STORAGE_KEY);
-            localStorage.removeItem(ADMIN_STORAGE_KEY);
             sessionStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+            localStorage.removeItem(ADMIN_STORAGE_KEY);
             localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
             return;
         }
         const payload = JSON.stringify({ token });
         sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
-        localStorage.setItem(ADMIN_STORAGE_KEY, payload);
         sessionStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
-        localStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
+        // Clean up legacy persistent storage so admin sessions end on browser close.
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
     } catch (error) {
         console.warn("Unable to persist admin session:", error);
     }
@@ -2601,22 +2544,31 @@ function persistAdminToken(token) {
 
 function readStoredAdminToken() {
     try {
-        const stored =
-            sessionStorage.getItem(ADMIN_STORAGE_KEY) ||
-            localStorage.getItem(ADMIN_STORAGE_KEY);
-        if (stored) {
+        const parseStoredToken = (value) => {
+            if (!value || typeof value !== "string") return null;
             try {
-                const payload = JSON.parse(stored);
+                const payload = JSON.parse(value);
                 if (payload?.token) return payload.token;
             } catch {
-                /* fall through */
+                if (value && typeof value === "string") return value;
             }
+            return null;
+        };
+
+        const inSession =
+            parseStoredToken(sessionStorage.getItem(ADMIN_STORAGE_KEY)) ||
+            parseStoredToken(sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
+        if (inSession) {
+            return inSession;
         }
-        const raw =
-            sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
-            localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`) ||
-            stored;
-        if (raw && typeof raw === "string") return raw;
+
+        const legacyToken =
+            parseStoredToken(localStorage.getItem(ADMIN_STORAGE_KEY)) ||
+            parseStoredToken(localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
+        if (legacyToken) {
+            persistAdminToken(legacyToken);
+            return legacyToken;
+        }
         return null;
     } catch (error) {
         console.warn("Unable to read admin session:", error);

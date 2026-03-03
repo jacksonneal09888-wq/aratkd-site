@@ -54,13 +54,25 @@ const ACTIVE_STUDENT_FILTER = '(is_archived IS NULL OR is_archived = 0)';
 let archiveColumnChecked = false;
 let archiveColumnSupported = false;
 
-const getJwtSecret = (env: Env) => env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || 'change-me';
-const getKioskSecret = (env: Env) => env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || 'kiosk-dev-key';
-const getAdminCredentials = (env: Env) => ({
-  username: env.ADMIN_MASTER_USERNAME || 'MasterAra',
-  password: env.ADMIN_MASTER_PASSWORD || 'AraTKD',
-  pin: env.ADMIN_MASTER_PIN || ''
-});
+const getJwtSecret = (env: Env) => (env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || '').trim();
+const getKioskSecret = (env: Env) => (env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || '').trim();
+const getAdminCredentials = (env: Env) => {
+  const username = (env.ADMIN_MASTER_USERNAME || '').trim();
+  const password = (env.ADMIN_MASTER_PASSWORD || '').trim();
+  const pin = (env.ADMIN_MASTER_PIN || '').trim();
+  if (!username || !password) {
+    return null;
+  }
+  return { username, password, pin };
+};
+
+const requireJwtSecret = (env: Env) => {
+  const secret = getJwtSecret(env);
+  if (!secret) {
+    throw new Error('JWT secret is not configured');
+  }
+  return secret;
+};
 
 const ensureArchiveColumn = async (db: D1Database) => {
   if (archiveColumnChecked) return archiveColumnSupported;
@@ -624,7 +636,7 @@ const issuePortalToken = async (studentId: string, env: Env) => {
       iat: nowSeconds,
       exp: nowSeconds + TOKEN_TTL_SECONDS
     },
-    getJwtSecret(env)
+    requireJwtSecret(env)
   );
 };
 
@@ -637,7 +649,7 @@ const issueAdminToken = async (env: Env, subject = 'master-ara') => {
       iat: nowSeconds,
       exp: nowSeconds + TOKEN_TTL_SECONDS
     },
-    getJwtSecret(env)
+    requireJwtSecret(env)
   );
 };
 
@@ -655,7 +667,7 @@ const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthR
   }
   const token = authHeader.slice(7).trim();
   try {
-    const payload: any = await verify(token, getJwtSecret(c.env));
+    const payload: any = await verify(token, requireJwtSecret(c.env));
     const studentId = (payload.sub || '').toString();
     if (!studentId) {
       return { error: c.json({ error: 'Unauthorized' }, 401) };
@@ -663,6 +675,9 @@ const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthR
     return { studentId, claims: payload };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Invalid token';
+    if (/not configured/i.test(message)) {
+      return { error: c.json({ error: 'Server auth misconfiguration' }, 503) };
+    }
     if (/exp/i.test(message)) {
       return { error: c.json({ error: 'Session expired' }, 401) };
     }
@@ -677,13 +692,16 @@ const authenticateAdminRequest = async (c: Context<{ Bindings: Env }>) => {
   }
   const token = authHeader.slice(7).trim();
   try {
-    const payload: any = await verify(token, getJwtSecret(c.env));
+    const payload: any = await verify(token, requireJwtSecret(c.env));
     if (payload.scope !== 'admin') {
       throw new Error('Invalid scope');
     }
     return null;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unauthorized';
+    if (/not configured/i.test(message)) {
+      return c.json({ error: 'Server auth misconfiguration' }, 503);
+    }
     return c.json({ error: message }, 401);
   }
 };
@@ -786,6 +804,12 @@ app.post('/portal/admin/login', async (c) => {
   const pin = (body.pin || '').trim();
 
   const expected = getAdminCredentials(c.env);
+  if (!expected) {
+    return c.json({ error: 'Admin credentials are not configured on the server' }, 503);
+  }
+  if (!getJwtSecret(c.env)) {
+    return c.json({ error: 'JWT secret is not configured on the server' }, 503);
+  }
   if (!username || !password) {
     return c.json({ error: 'Username and password are required' }, 400);
   }

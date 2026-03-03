@@ -19,7 +19,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 DATABASE_PATH = Path(os.getenv("PORTAL_DB_PATH", Path(__file__).resolve().parent / "portal.db"))
 ADMIN_PORTAL_KEY = os.getenv("ADMIN_PORTAL_KEY")
-JWT_SECRET = os.getenv("PORTAL_JWT_SECRET") or ADMIN_PORTAL_KEY or "change-me"
+JWT_SECRET = os.getenv("PORTAL_JWT_SECRET") or ADMIN_PORTAL_KEY
 try:
     JWT_EXP_MINUTES = int(os.getenv("PORTAL_JWT_EXP_MINUTES", "1440"))
 except ValueError:
@@ -125,6 +125,8 @@ def sanitize_student_record(student):
 
 
 def issue_portal_token(student_id):
+    if not JWT_SECRET:
+        raise RuntimeError("JWT secret is not configured")
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=JWT_EXP_MINUTES)
     payload = {
@@ -161,6 +163,8 @@ def fetch_portal_progress(student_id):
 def require_portal_auth(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
+        if not JWT_SECRET:
+            return jsonify({"error": "Server auth misconfiguration"}), 503
         auth_header = (request.headers.get("Authorization") or "").strip()
         if not auth_header.startswith("Bearer "):
             return jsonify({"error": "Unauthorized"}), 401
@@ -215,7 +219,7 @@ def chat():
 
 def is_authorized_admin(inbound_request):
     if not ADMIN_PORTAL_KEY:
-        return True
+        return False
 
     provided = inbound_request.headers.get("X-Admin-Key") or inbound_request.args.get("adminKey")
     return bool(provided and provided == ADMIN_PORTAL_KEY)
@@ -239,6 +243,8 @@ def record_portal_event():
     student_profile = None
 
     if is_login_attempt:
+        if not JWT_SECRET:
+            return jsonify({"error": "Server auth misconfiguration"}), 503
         if not birth_date:
             return jsonify({"error": "birthDate is required for login"}), 400
 
