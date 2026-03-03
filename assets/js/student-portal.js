@@ -6268,8 +6268,11 @@ async function handleBeltTestApplication(event) {
                 "Content-Type": "application/x-www-form-urlencoded"
             }
         });
+        const responseBody = await response.text().catch(() => "");
+        const captchaRequired = /g-recaptcha/i.test(responseBody);
+        const submittedOk = /submitted successfully|<h1>thanks!/i.test(responseBody);
 
-        if (response.ok) {
+        if (response.ok && !captchaRequired && submittedOk) {
             portalEls.beltTestStatus.textContent = "Belt test application submitted successfully! Master Ara will review it shortly.";
             portalEls.beltTestStatus.classList.add("is-success");
             form.reset();
@@ -6278,7 +6281,8 @@ async function handleBeltTestApplication(event) {
                 beltSlug: portalState.currentReadiness?.targetBelt?.slug || desiredBelt
             });
         } else {
-            portalEls.beltTestStatus.textContent = "There was an error submitting your application. Please try again.";
+            portalEls.beltTestStatus.textContent =
+                "There was an error submitting your application. Please try again or email afetkd@gmail.com directly.";
             portalEls.beltTestStatus.classList.remove("is-success");
         }
     } catch (error) {
