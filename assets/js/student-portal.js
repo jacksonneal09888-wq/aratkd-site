@@ -5073,6 +5073,10 @@ function handleAdminSummaryAction(event) {
         archiveStudent(studentId);
         return;
     }
+    if (action !== "suspend" && action !== "resume") {
+        setAdminStatus("Unsupported roster action.", "error");
+        return;
+    }
     const suspend = action === "suspend";
     let reason = "";
     if (suspend) {
@@ -6734,6 +6738,14 @@ function handleAdminRosterAction(event) {
     }
     if (action === "report") {
         openReportCardInNewTab(studentId);
+        return;
+    }
+    if (action === "archive" || action === "remove") {
+        archiveStudent(studentId);
+        return;
+    }
+    if (action !== "suspend" && action !== "resume") {
+        setAdminStatus("Unsupported roster action.", "error");
         return;
     }
     const suspend = action === "suspend";

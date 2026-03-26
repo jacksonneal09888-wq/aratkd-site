@@ -100,13 +100,13 @@ const kioskClassCatalog = [
   },
   {
     id: 'basic',
-    name: 'Basic Class',
+    name: 'Beginners',
     focus: 'White–High Yellow • starts 5:00 PM',
     schedule: ['Mon 5:00 PM', 'Wed 5:00 PM', 'Fri 5:00 PM']
   },
   {
     id: 'advanced',
-    name: 'Advanced Class',
+    name: 'Intermediate',
     focus: 'High Yellow–Black • starts 6:00 PM',
     schedule: ['Mon 6:00 PM', 'Wed 6:00 PM', 'Fri 6:00 PM']
   }
@@ -118,8 +118,8 @@ const getEasternDate = () =>
 
 const resolveClassLevelLabel = (classType: string) => {
   const normalized = (classType || '').toLowerCase();
-  if (normalized.includes('advanced')) {
-    return 'Advanced Class';
+  if (normalized.includes('advanced') || normalized.includes('intermediate')) {
+    return 'Intermediate';
   }
   if (normalized.includes('event:')) {
     return 'Special Event';
@@ -127,7 +127,7 @@ const resolveClassLevelLabel = (classType: string) => {
   if (normalized.includes('ninja') || normalized.includes('little')) {
     return 'Little Ninjas';
   }
-  return 'Basic Class';
+  return 'Beginners';
 };
 
 const computeSeedAttendanceDates = (count: number) => {
