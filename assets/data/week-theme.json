@@ -1,10 +1,15 @@
 {
-  "label": "Sparring Week",
-  "message": "Sparring week: sharpen timing, control, and ring awareness. Bring sparring gear.",
+  "label": "Poomsae Week",
+  "message": "Poomsae week: sharpen forms, stances, and precision.",
   "rotation": {
-    "start": "2026-03-16",
+    "start": "2026-04-06",
     "weeks": 1,
     "themes": [
+      {
+        "key": "poomsae",
+        "label": "Poomsae Week",
+        "message": "Poomsae week: sharpen forms, stances, and precision."
+      },
       {
         "key": "sparring",
         "label": "Sparring Week",
