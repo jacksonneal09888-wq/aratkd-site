@@ -18,9 +18,9 @@
         }
         .kiosk-header__grid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
-            gap: 1.5rem;
-            align-items: start;
+            grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+            gap: 1.75rem;
+            align-items: center;
         }
         .kiosk-brand {
             display: flex;
@@ -56,13 +56,13 @@
             justify-content: flex-end;
         }
         .kiosk-promo-card {
-            width: min(100%, 240px);
+            width: min(100%, 320px);
             margin: 0;
             overflow: hidden;
             border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 1.5rem 2.5rem rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 1.75rem 3rem rgba(0,0,0,0.38);
         }
         .kiosk-promo-card img {
             display: block;
@@ -180,15 +180,16 @@
                 justify-content: flex-start;
             }
             .kiosk-promo-card {
-                width: min(100%, 220px);
+                width: min(100%, 280px);
             }
         }
         @media (max-height: 820px) {
             .kiosk-header__grid {
-                grid-template-columns: minmax(0, 1fr) minmax(150px, 180px);
+                grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+                align-items: start;
             }
             .kiosk-promo-card {
-                width: min(100%, 180px);
+                width: min(100%, 240px);
             }
         }
     </style>
