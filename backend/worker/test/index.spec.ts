@@ -1,41 +1,49 @@
 import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import worker from '../src';
 
-describe('Hello World user worker', () => {
-	describe('request for /message', () => {
-		it('/ responds with "Hello, World!" (unit style)', async () => {
-			const request = new Request<unknown, IncomingRequestCfProperties>('http://example.com/message');
-			// Create an empty context to pass to `worker.fetch()`.
-			const ctx = createExecutionContext();
-			const response = await worker.fetch(request, env, ctx);
-			// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-			await waitOnExecutionContext(ctx);
-			expect(await response.text()).toMatchInlineSnapshot(`"Hello, World!"`);
-		});
+describe('Portal Worker API', () => {
+	it('returns the API descriptor at the root route (unit style)', async () => {
+		const request = new Request('http://example.com/');
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
 
-		it('responds with "Hello, World!" (integration style)', async () => {
-			const request = new Request('http://example.com/message');
-			const response = await SELF.fetch(request);
-			expect(await response.text()).toMatchInlineSnapshot(`"Hello, World!"`);
-		});
+		await waitOnExecutionContext(ctx);
+
+		expect(response.status).toBe(200);
+		await expect(response.json()).resolves.toEqual({ message: 'Portal Worker API' });
 	});
 
-	describe('request for /random', () => {
-		it('/ responds with a random UUID (unit style)', async () => {
-			const request = new Request<unknown, IncomingRequestCfProperties>('http://example.com/random');
-			// Create an empty context to pass to `worker.fetch()`.
-			const ctx = createExecutionContext();
-			const response = await worker.fetch(request, env, ctx);
-			// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-			await waitOnExecutionContext(ctx);
-			expect(await response.text()).toMatch(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/);
+	it('returns the API descriptor at the root route (integration style)', async () => {
+		const response = await SELF.fetch('http://example.com/');
+
+		expect(response.status).toBe(200);
+		await expect(response.json()).resolves.toEqual({ message: 'Portal Worker API' });
+	});
+
+	it('rejects kiosk check-ins without kiosk auth (unit style)', async () => {
+		const request = new Request('http://example.com/kiosk/check-in', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ studentId: 'ARA001', classType: 'basic' })
+		});
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
+
+		await waitOnExecutionContext(ctx);
+
+		expect(response.status).toBe(401);
+		await expect(response.json()).resolves.toEqual({ error: 'Unauthorized kiosk' });
+	});
+
+	it('rejects kiosk check-ins without kiosk auth (integration style)', async () => {
+		const response = await SELF.fetch('http://example.com/kiosk/check-in', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ studentId: 'ARA001', classType: 'basic' })
 		});
 
-		it('responds with a random UUID (integration style)', async () => {
-			const request = new Request('http://example.com/random');
-			const response = await SELF.fetch(request);
-			expect(await response.text()).toMatch(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/);
-		});
+		expect(response.status).toBe(401);
+		await expect(response.json()).resolves.toEqual({ error: 'Unauthorized kiosk' });
 	});
 });

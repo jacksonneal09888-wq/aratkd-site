@@ -1,6 +1,9 @@
 {
   "scripts": {
     "build": "bash scripts/build.sh",
+    "check:assets": "bash scripts/check-asset-sizes.sh",
+    "test:worker": "npm --prefix backend/worker test",
+    "ci": "npm run check:assets && npm run build && npm run test:worker",
     "deploy:worker": "wrangler deploy --config backend/worker/wrangler.jsonc"
   },
   "devDependencies": {

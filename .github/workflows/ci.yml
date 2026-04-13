@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+  pull_request:
+
+jobs:
+  site-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/worker/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Validate asset sizes
+        run: npm run check:assets
+
+      - name: Build static site
+        run: npm run build
+
+  worker-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/worker/package-lock.json
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: backend/worker
+
+      - name: Run Worker tests
+        run: npm test
+        working-directory: backend/worker
