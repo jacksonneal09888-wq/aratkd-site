@@ -16,6 +16,12 @@
         .kiosk-header {
             padding: 1.5rem 2rem;
         }
+        .kiosk-header__grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+            gap: 1.5rem;
+            align-items: start;
+        }
         .kiosk-brand {
             display: flex;
             align-items: center;
@@ -44,6 +50,24 @@
             display: block;
             font-size: 0.95rem;
             color: rgba(255,255,255,0.75);
+        }
+        .kiosk-promo {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .kiosk-promo-card {
+            width: min(100%, 240px);
+            margin: 0;
+            overflow: hidden;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 1.5rem 2.5rem rgba(0,0,0,0.35);
+        }
+        .kiosk-promo-card img {
+            display: block;
+            width: 100%;
+            height: auto;
         }
         body.kiosk-body {
             background: linear-gradient(160deg, rgba(5, 7, 9, 0.9), rgba(5, 7, 9, 0.95)),
@@ -148,21 +172,43 @@
             color: #f87171;
         }
         @media (max-width: 960px) {
+            .kiosk-header__grid,
             .kiosk-wrap {
                 grid-template-columns: 1fr;
+            }
+            .kiosk-promo {
+                justify-content: flex-start;
+            }
+            .kiosk-promo-card {
+                width: min(100%, 220px);
+            }
+        }
+        @media (max-height: 820px) {
+            .kiosk-header__grid {
+                grid-template-columns: minmax(0, 1fr) minmax(150px, 180px);
+            }
+            .kiosk-promo-card {
+                width: min(100%, 180px);
             }
         }
     </style>
 </head>
 <body class="kiosk-body" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-key="ara-kiosk-2024-11" data-kiosk-id="front-desk">
     <header class="kiosk-header">
-        <div class="kiosk-brand">
-            <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo">
-            <div>
-                <h1>ARA TKD Attendance Kiosk</h1>
-                <p id="kiosk-week-label" class="kiosk-week-label">Sparring Week</p>
-                <span id="kiosk-week-message" class="kiosk-week-message">Sparring week: sharpen timing, control, and ring awareness.</span>
+        <div class="kiosk-header__grid">
+            <div class="kiosk-brand">
+                <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo">
+                <div>
+                    <h1>ARA TKD Attendance Kiosk</h1>
+                    <p id="kiosk-week-label" class="kiosk-week-label">Sparring Week</p>
+                    <span id="kiosk-week-message" class="kiosk-week-message">Sparring week: sharpen timing, control, and ring awareness.</span>
+                </div>
             </div>
+            <aside class="kiosk-promo" aria-label="Featured announcement">
+                <figure class="kiosk-promo-card">
+                    <img src="assets/Images/kiosk-sparring-week-banner.jpg" alt="Sparring Week banner for Ara's Taekwondo Silver City." loading="eager">
+                </figure>
+            </aside>
         </div>
     </header>
     <main class="kiosk-wrap">
