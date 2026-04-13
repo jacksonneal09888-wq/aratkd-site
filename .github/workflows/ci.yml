@@ -27,6 +27,9 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Scan for public secrets
+        run: npm run check:public-secrets
+
       - name: Validate asset sizes
         run: npm run check:assets
 

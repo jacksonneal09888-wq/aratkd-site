@@ -1,5 +1,4 @@
 import { Hono, type Context } from 'hono';
-import { cors } from 'hono/cors';
 import { sign, verify, type JWTPayload } from 'hono/jwt';
 
 interface Env {
@@ -19,40 +18,87 @@ const app = new Hono<{ Bindings: Env }>();
 
 const ALLOWED_METHODS = 'GET,POST,PATCH,DELETE,OPTIONS';
 const ALLOWED_HEADERS = 'Content-Type,Authorization,X-Admin-Key,X-Kiosk-Key';
-
-app.use(
-  '*',
-  cors({
-    origin: (origin) => origin ?? '*',
-    allowMethods: ALLOWED_METHODS.split(','),
-    allowHeaders: ALLOWED_HEADERS.split(','),
-    maxAge: 86400
-  })
-);
-
-app.use('*', async (c, next) => {
-  await next();
-  c.header('Cache-Control', 'no-store');
-  c.header('Pragma', 'no-cache');
-});
-
-app.options('*', (c) =>
-  c.newResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': c.req.header('Origin') || '*',
-      'Access-Control-Allow-Methods': ALLOWED_METHODS,
-      'Access-Control-Allow-Headers': ALLOWED_HEADERS,
-      'Access-Control-Max-Age': '86400'
-    }
-  })
-);
-
-const TOKEN_TTL_SECONDS = 60 * 60 * 24;
+const TRUSTED_WEB_ORIGINS = new Set(['https://aratkd.com', 'https://www.aratkd.com']);
+const STUDENT_TOKEN_TTL_SECONDS = 60 * 60 * 8;
+const ADMIN_TOKEN_TTL_SECONDS = 60 * 60 * 2;
 const ARCHIVE_RETENTION_DAYS = 30;
 const ACTIVE_STUDENT_FILTER = '(is_archived IS NULL OR is_archived = 0)';
 let archiveColumnChecked = false;
 let archiveColumnSupported = false;
+
+const appendVaryHeader = (headers: Headers, value: string) => {
+  const existing = headers.get('Vary');
+  if (!existing) {
+    headers.set('Vary', value);
+    return;
+  }
+  const values = existing
+    .split(',')
+    .map((token) => token.trim())
+    .filter(Boolean);
+  if (!values.includes(value)) {
+    values.push(value);
+    headers.set('Vary', values.join(', '));
+  }
+};
+
+const isLoopbackOrigin = (origin: URL) =>
+  ['localhost', '127.0.0.1'].includes(origin.hostname) &&
+  ['http:', 'https:'].includes(origin.protocol);
+
+const resolveAllowedOrigin = (origin: string) => {
+  if (!origin) return '';
+  try {
+    const parsed = new URL(origin);
+    const normalized = `${parsed.protocol}//${parsed.host}`;
+    if (TRUSTED_WEB_ORIGINS.has(normalized) || isLoopbackOrigin(parsed)) {
+      return normalized;
+    }
+  } catch {
+    return '';
+  }
+  return '';
+};
+
+const applySecurityHeaders = (headers: Headers, allowedOrigin: string) => {
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Cache-Control', 'no-store');
+  headers.set('Pragma', 'no-cache');
+  appendVaryHeader(headers, 'Origin');
+  if (allowedOrigin) {
+    headers.set('Access-Control-Allow-Origin', allowedOrigin);
+    headers.set('Access-Control-Allow-Methods', ALLOWED_METHODS);
+    headers.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
+    headers.set('Access-Control-Max-Age', '86400');
+  } else {
+    headers.delete('Access-Control-Allow-Origin');
+    headers.delete('Access-Control-Allow-Methods');
+    headers.delete('Access-Control-Allow-Headers');
+    headers.delete('Access-Control-Max-Age');
+  }
+};
+
+app.use('*', async (c, next) => {
+  const requestOrigin = c.req.header('Origin') || '';
+  const allowedOrigin = resolveAllowedOrigin(requestOrigin);
+
+  if (c.req.method === 'OPTIONS') {
+    if (requestOrigin && !allowedOrigin) {
+      const denied = c.json({ error: 'Origin not allowed' }, 403);
+      applySecurityHeaders(denied.headers, '');
+      return denied;
+    }
+    const response = c.newResponse(null, { status: 204 });
+    applySecurityHeaders(response.headers, allowedOrigin);
+    return response;
+  }
+
+  await next();
+  applySecurityHeaders(c.res.headers, allowedOrigin);
+});
 
 const getJwtSecret = (env: Env) => (env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || '').trim();
 const getKioskSecret = (env: Env) => (env.KIOSK_PORTAL_KEY || env.ADMIN_PORTAL_KEY || '').trim();
@@ -634,7 +680,7 @@ const issuePortalToken = async (studentId: string, env: Env) => {
       sub: studentId,
       scope: 'portal',
       iat: nowSeconds,
-      exp: nowSeconds + TOKEN_TTL_SECONDS
+      exp: nowSeconds + STUDENT_TOKEN_TTL_SECONDS
     },
     requireJwtSecret(env)
   );
@@ -647,7 +693,7 @@ const issueAdminToken = async (env: Env, subject = 'master-ara') => {
       sub: subject,
       scope: 'admin',
       iat: nowSeconds,
-      exp: nowSeconds + TOKEN_TTL_SECONDS
+      exp: nowSeconds + ADMIN_TOKEN_TTL_SECONDS
     },
     requireJwtSecret(env)
   );
@@ -668,6 +714,9 @@ const authenticateRequest = async (c: Context<{ Bindings: Env }>): Promise<AuthR
   const token = authHeader.slice(7).trim();
   try {
     const payload: any = await verify(token, requireJwtSecret(c.env));
+    if (payload.scope !== 'portal') {
+      throw new Error('Invalid scope');
+    }
     const studentId = (payload.sub || '').toString();
     if (!studentId) {
       return { error: c.json({ error: 'Unauthorized' }, 401) };
@@ -702,7 +751,10 @@ const authenticateAdminRequest = async (c: Context<{ Bindings: Env }>) => {
     if (/not configured/i.test(message)) {
       return c.json({ error: 'Server auth misconfiguration' }, 503);
     }
-    return c.json({ error: message }, 401);
+    if (/exp/i.test(message)) {
+      return c.json({ error: 'Session expired' }, 401);
+    }
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 };
 
@@ -822,7 +874,7 @@ app.post('/portal/admin/login', async (c) => {
   }
 
   const token = await issueAdminToken(c.env, username);
-  const expiresAt = new Date(Date.now() + TOKEN_TTL_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + ADMIN_TOKEN_TTL_SECONDS * 1000).toISOString();
 
   return c.json({ token, expiresAt });
 });

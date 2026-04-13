@@ -10,12 +10,14 @@ This repository now includes a safe automation baseline focused on protecting th
 - Static site build via `npm run build`
 - Worker tests via `cd backend/worker && npm test`
 - Asset size validation via `npm run check:assets`
+- Public secret scanning via `npm run check:public-secrets`
 
 ## Why These Checks Exist
 
 - The static build confirms the site still assembles into `dist/`.
 - Worker tests confirm the Cloudflare Worker still responds on key routes.
 - Asset checks help prevent large files from slowing the site down or breaking GitHub pushes.
+- Public secret scanning blocks obvious cases where secrets are accidentally committed into public files.
 - PR preview artifacts let you inspect the generated `dist/` output before merging.
 - The Worker deployment workflow keeps production deploys behind GitHub secrets and environment controls.
 

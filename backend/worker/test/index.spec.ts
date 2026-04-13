@@ -21,6 +21,37 @@ describe('Portal Worker API', () => {
 		await expect(response.json()).resolves.toEqual({ message: 'Portal Worker API' });
 	});
 
+	it('allows trusted site origins in CORS responses', async () => {
+		const request = new Request('http://example.com/', {
+			headers: { Origin: 'https://aratkd.com' }
+		});
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
+
+		await waitOnExecutionContext(ctx);
+
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://aratkd.com');
+		expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+	});
+
+	it('rejects untrusted CORS preflight origins', async () => {
+		const request = new Request('http://example.com/portal/profile', {
+			method: 'OPTIONS',
+			headers: {
+				Origin: 'https://evil.example',
+				'Access-Control-Request-Method': 'GET',
+				'Access-Control-Request-Headers': 'Authorization'
+			}
+		});
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
+
+		await waitOnExecutionContext(ctx);
+
+		expect(response.status).toBe(403);
+		await expect(response.json()).resolves.toEqual({ error: 'Origin not allowed' });
+	});
+
 	it('rejects kiosk check-ins without kiosk auth (unit style)', async () => {
 		const request = new Request('http://example.com/kiosk/check-in', {
 			method: 'POST',

@@ -194,11 +194,11 @@
         }
     </style>
 </head>
-<body class="kiosk-body" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-key="ara-kiosk-2024-11" data-kiosk-id="front-desk">
+<body class="kiosk-body" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-id="front-desk">
     <header class="kiosk-header">
         <div class="kiosk-header__grid">
             <div class="kiosk-brand">
-                <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo">
+                <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo" id="kiosk-logo">
                 <div>
                     <h1>ARA TKD Attendance Kiosk</h1>
                     <p id="kiosk-week-label" class="kiosk-week-label">Sparring Week</p>
@@ -212,6 +212,19 @@
             </aside>
         </div>
     </header>
+    <section class="kiosk-panel" id="kiosk-setup-panel" hidden style="margin:0 2rem 2rem;">
+        <h2>Staff Kiosk Setup</h2>
+        <p style="margin-top:0;color:rgba(255,255,255,0.7);">This setup stores the access key on this device only. It is no longer embedded in the public website.</p>
+        <label for="kiosk-setup-id" style="display:block;margin-bottom:0.5rem;">Kiosk ID</label>
+        <input type="text" id="kiosk-setup-id" class="kiosk-input" value="front-desk" readonly style="margin-bottom:1rem;font-size:1.1rem;letter-spacing:0.06em;">
+        <label for="kiosk-setup-key" style="display:block;margin-bottom:0.5rem;">Kiosk Access Key</label>
+        <input type="password" id="kiosk-setup-key" class="kiosk-input" placeholder="Enter access key" autocomplete="new-password" style="margin-bottom:1rem;font-size:1.1rem;letter-spacing:0.08em;">
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <button type="button" class="secondary-btn" id="kiosk-setup-save">Save on This Device</button>
+            <button type="button" class="text-link-btn" id="kiosk-setup-close">Close</button>
+        </div>
+        <div class="kiosk-status" id="kiosk-setup-status">Tap the logo 5 times to reopen this setup later.</div>
+    </section>
     <main class="kiosk-wrap">
         <section class="kiosk-panel">
             <h2>Select Class</h2>

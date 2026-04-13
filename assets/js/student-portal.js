@@ -39,6 +39,24 @@ const ARCHIVE_RETENTION_DAYS = 30;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function clearLegacyAdminTokenStorage() {
+    try {
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+    } catch (error) {
+        console.warn("Unable to clear legacy admin storage:", error);
+    }
+}
+
 function normalizeAdminPanel(value) {
     if (!value) return null;
     const normalized = value.toString().trim().toLowerCase();
@@ -2527,16 +2545,14 @@ function persistAdminToken(token) {
         if (!token) {
             sessionStorage.removeItem(ADMIN_STORAGE_KEY);
             sessionStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
-            localStorage.removeItem(ADMIN_STORAGE_KEY);
-            localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+            clearLegacyAdminTokenStorage();
             return;
         }
         const payload = JSON.stringify({ token });
         sessionStorage.setItem(ADMIN_STORAGE_KEY, payload);
         sessionStorage.setItem(`${ADMIN_STORAGE_KEY}:raw`, token);
         // Clean up legacy persistent storage so admin sessions end on browser close.
-        localStorage.removeItem(ADMIN_STORAGE_KEY);
-        localStorage.removeItem(`${ADMIN_STORAGE_KEY}:raw`);
+        clearLegacyAdminTokenStorage();
     } catch (error) {
         console.warn("Unable to persist admin session:", error);
     }
@@ -2544,6 +2560,7 @@ function persistAdminToken(token) {
 
 function readStoredAdminToken() {
     try {
+        clearLegacyAdminTokenStorage();
         const parseStoredToken = (value) => {
             if (!value || typeof value !== "string") return null;
             try {
@@ -2560,14 +2577,6 @@ function readStoredAdminToken() {
             parseStoredToken(sessionStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
         if (inSession) {
             return inSession;
-        }
-
-        const legacyToken =
-            parseStoredToken(localStorage.getItem(ADMIN_STORAGE_KEY)) ||
-            parseStoredToken(localStorage.getItem(`${ADMIN_STORAGE_KEY}:raw`));
-        if (legacyToken) {
-            persistAdminToken(legacyToken);
-            return legacyToken;
         }
         return null;
     } catch (error) {
@@ -2723,7 +2732,9 @@ function loadAdminAttendance(event) {
         .catch((error) => {
             console.warn("loadAdminAttendance error:", error);
             if (portalEls.adminAttendanceBody) {
-                portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="5">${error.message || "Unable to load attendance."}</td></tr>`;
+                portalEls.adminAttendanceBody.innerHTML = `<tr><td colspan="5">${escapeHtml(
+                    error.message || "Unable to load attendance."
+                )}</td></tr>`;
             }
         })
         .finally(() => {
@@ -2765,7 +2776,9 @@ function loadAdminEvents(event) {
         .catch((error) => {
             console.warn("load events", error);
             if (portalEls.adminEventsBody) {
-                portalEls.adminEventsBody.innerHTML = `<tr><td colspan="6">${error.message || "Unable to load events. Check API base or CORS."}</td></tr>`;
+                portalEls.adminEventsBody.innerHTML = `<tr><td colspan="6">${escapeHtml(
+                    error.message || "Unable to load events. Check API base or CORS."
+                )}</td></tr>`;
             }
         });
 }
@@ -3419,7 +3432,7 @@ function renderAdminDashboard() {
         portalState.admin.summary.forEach((entry) => {
             const row = document.createElement("tr");
             const studentCell = document.createElement("td");
-            studentCell.innerHTML = `<strong>${entry.studentId}</strong>`;
+            studentCell.innerHTML = `<strong>${escapeHtml(entry.studentId)}</strong>`;
             if (entry.name) {
                 const meta = document.createElement("div");
                 meta.className = "certificate-meta";
@@ -3437,7 +3450,7 @@ function renderAdminDashboard() {
             if (entry.latestBelt) {
                 const beltData = resolveBeltDataBySlug(entry.latestBelt);
                 const beltName = beltData ? beltData.name : entry.latestBelt;
-                latestCell.innerHTML = `<strong>${beltName}</strong>`;
+                latestCell.innerHTML = `<strong>${escapeHtml(beltName)}</strong>`;
                 if (entry.latestBeltUploadedAt) {
                     const note = document.createElement("div");
                     note.className = "certificate-meta";
@@ -3517,7 +3530,9 @@ function renderAdminDashboard() {
             meta.textContent = formatDateTime(event.recordedAt);
 
             const details = document.createElement("span");
-            details.innerHTML = `<strong>${event.studentId}</strong> · ${formatActionLabel(event.action)}`;
+            details.innerHTML = `<strong>${escapeHtml(event.studentId)}</strong> · ${escapeHtml(
+                formatActionLabel(event.action)
+            )}`;
 
             item.append(meta, details);
             eventsList.appendChild(item);
@@ -3573,7 +3588,9 @@ function renderAdminAttendance() {
         const studentCell = document.createElement("td");
         studentCell.textContent = session.studentId;
         const classCell = document.createElement("td");
-        classCell.innerHTML = `<strong>${session.classLevel || session.classType}</strong>`;
+        classCell.innerHTML = `<strong>${escapeHtml(
+            session.classLevel || session.classType
+        )}</strong>`;
         const kioskCell = document.createElement("td");
         kioskCell.textContent = session.kioskId || "—";
         const percentCell = document.createElement("td");
@@ -3607,7 +3624,9 @@ function renderAdminEvents() {
     events.forEach((event) => {
         const row = document.createElement("tr");
         const nameCell = document.createElement("td");
-        nameCell.innerHTML = `<strong>${event.name}</strong><div class="certificate-meta">${event.description || ""}</div>`;
+        nameCell.innerHTML = `<strong>${escapeHtml(event.name)}</strong><div class="certificate-meta">${escapeHtml(
+            event.description || ""
+        )}</div>`;
         const typeCell = document.createElement("td");
         const typeBadge = document.createElement("span");
         typeBadge.className = "badge badge--gold";
@@ -3908,7 +3927,9 @@ function renderClassModalLists() {
         }
         column.items.forEach((item) => {
             const li = document.createElement("li");
-            li.innerHTML = `<strong>${item.name}</strong><div class="certificate-meta">${item.detail || ""}</div>`;
+            li.innerHTML = `<strong>${escapeHtml(item.name)}</strong><div class="certificate-meta">${escapeHtml(
+                item.detail || ""
+            )}</div>`;
             column.el.appendChild(li);
         });
     });
@@ -5255,9 +5276,11 @@ function renderReportCard() {
     const summaryHtml = `
         <div class="report-card-section">
             <h4>Student</h4>
-            <p><strong>${student.name || student.id}</strong><br>ID: ${
+            <p><strong>${escapeHtml(student.name || student.id)}</strong><br>ID: ${escapeHtml(
         student.id
-    }<br>Current Belt: ${student.currentBelt || "—"}<br>Membership: ${membership}</p>
+    )}<br>Current Belt: ${escapeHtml(student.currentBelt || "—")}<br>Membership: ${escapeHtml(
+        membership
+    )}</p>
         </div>
         <div class="report-card-section">
             <h4>Attendance (Last 60 days)</h4>
@@ -5268,7 +5291,9 @@ function renderReportCard() {
                 ${(attendance.recent || [])
                     .map(
                         (session) =>
-                            `<li>${formatDateTime(session.checkInAt)} — ${session.classType} (${session.classLevel || "All Levels"})</li>`
+                            `<li>${escapeHtml(formatDateTime(session.checkInAt))} — ${escapeHtml(
+                                session.classType
+                            )} (${escapeHtml(session.classLevel || "All Levels")})</li>`
                     )
                     .join("") || "<li>No recent check-ins.</li>"}
             </ul>
@@ -5281,7 +5306,9 @@ function renderReportCard() {
                         ? progress
                               .map(
                                   (record) =>
-                                      `<li>${record.beltSlug} • ${record.fileName || "Certificate"} • ${formatDateTime(record.uploadedAt)}</li>`
+                                      `<li>${escapeHtml(record.beltSlug)} • ${escapeHtml(
+                                          record.fileName || "Certificate"
+                                      )} • ${escapeHtml(formatDateTime(record.uploadedAt))}</li>`
                               )
                               .join("")
                         : "<li>No certificates uploaded yet.</li>"
@@ -5535,9 +5562,11 @@ function renderCertificateLog(student) {
         .forEach((certificate) => {
             const item = document.createElement("li");
             const meta = document.createElement("div");
-            meta.innerHTML = `<strong>${certificate.belt}</strong><br><span class="certificate-meta">${formatDate(
+            meta.innerHTML = `<strong>${escapeHtml(
+                certificate.belt
+            )}</strong><br><span class="certificate-meta">${escapeHtml(formatDate(
                 certificate.uploadedAt
-            )} • ${certificate.fileName}</span>`;
+            ))} • ${escapeHtml(certificate.fileName)}</span>`;
 
             item.append(meta);
 
@@ -7293,7 +7322,9 @@ function renderRosterNotes() {
             const label = (note.noteType || "note").toUpperCase();
             const author = note.author || "Staff";
             const stamp = note.createdAt ? formatDateTime(note.createdAt) : "";
-            meta.innerHTML = `<strong>${label}</strong> · ${author} · ${stamp}`;
+            meta.innerHTML = `<strong>${escapeHtml(label)}</strong> · ${escapeHtml(
+                author
+            )} · ${escapeHtml(stamp)}`;
             const body = document.createElement("div");
             body.textContent = note.message;
             li.append(meta, body);

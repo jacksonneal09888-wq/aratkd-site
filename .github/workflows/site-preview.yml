@@ -12,6 +12,7 @@ on:
       - 'style.css'
       - 'scripts/build.sh'
       - 'scripts/check-asset-sizes.sh'
+      - 'scripts/check-public-secrets.sh'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/site-preview.yml'
@@ -32,6 +33,9 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
+
+      - name: Scan for public secrets
+        run: npm run check:public-secrets
 
       - name: Validate asset sizes
         run: npm run check:assets

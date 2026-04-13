@@ -1,5 +1,4 @@
 const apiBase = document.body.dataset.apiBase || "";
-const kioskKey = document.body.dataset.kioskKey || "";
 const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
@@ -16,8 +15,20 @@ const els = {
   keypad: document.getElementById("kiosk-keypad"),
   status: document.getElementById("kiosk-status"),
   weekLabel: document.getElementById("kiosk-week-label"),
-  weekMessage: document.getElementById("kiosk-week-message")
+  weekMessage: document.getElementById("kiosk-week-message"),
+  logo: document.getElementById("kiosk-logo"),
+  setupPanel: document.getElementById("kiosk-setup-panel"),
+  setupKey: document.getElementById("kiosk-setup-key"),
+  setupId: document.getElementById("kiosk-setup-id"),
+  setupStatus: document.getElementById("kiosk-setup-status"),
+  setupSave: document.getElementById("kiosk-setup-save"),
+  setupClose: document.getElementById("kiosk-setup-close")
 };
+const KIOSK_STORAGE_KEY = "araKioskRuntimeKey";
+const KIOSK_TRIGGER_WINDOW_MS = 3000;
+const KIOSK_TRIGGER_COUNT = 5;
+let kioskTriggerCount = 0;
+let kioskTriggerStartedAt = 0;
 
 const keypadLayout = ["ARA", "1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "✓"];
 const FOCUS_TEMPLATE = [
@@ -64,6 +75,97 @@ const FALLBACK_SCHEDULES = {
   colorBelts: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"],
   blackBelt: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
 };
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function readStoredKioskKey() {
+  try {
+    return localStorage.getItem(KIOSK_STORAGE_KEY) || sessionStorage.getItem(KIOSK_STORAGE_KEY) || "";
+  } catch (error) {
+    console.warn("Unable to read kiosk key storage:", error);
+    return "";
+  }
+}
+
+function persistKioskKey(value) {
+  try {
+    if (!value) {
+      localStorage.removeItem(KIOSK_STORAGE_KEY);
+      sessionStorage.removeItem(KIOSK_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(KIOSK_STORAGE_KEY, value);
+    sessionStorage.setItem(KIOSK_STORAGE_KEY, value);
+  } catch (error) {
+    console.warn("Unable to persist kiosk key:", error);
+  }
+}
+
+function getKioskRuntimeKey() {
+  return readStoredKioskKey() || document.body.dataset.kioskKey || "";
+}
+
+function setSetupStatus(message, type = "") {
+  if (!els.setupStatus) return;
+  els.setupStatus.textContent = message;
+  els.setupStatus.className = "kiosk-status";
+  if (type) {
+    els.setupStatus.classList.add(type);
+  }
+}
+
+function openSetupPanel() {
+  if (!els.setupPanel) return;
+  els.setupPanel.hidden = false;
+  if (els.setupId) {
+    els.setupId.value = kioskId;
+  }
+  if (els.setupKey) {
+    els.setupKey.value = readStoredKioskKey();
+    els.setupKey.focus();
+  }
+  setSetupStatus("Enter the kiosk access key on this device only.");
+}
+
+function closeSetupPanel() {
+  if (!els.setupPanel) return;
+  els.setupPanel.hidden = true;
+  kioskTriggerCount = 0;
+  kioskTriggerStartedAt = 0;
+}
+
+function handleLogoTap() {
+  const now = Date.now();
+  if (!kioskTriggerStartedAt || now - kioskTriggerStartedAt > KIOSK_TRIGGER_WINDOW_MS) {
+    kioskTriggerStartedAt = now;
+    kioskTriggerCount = 0;
+  }
+  kioskTriggerCount += 1;
+  if (kioskTriggerCount >= KIOSK_TRIGGER_COUNT) {
+    openSetupPanel();
+  }
+}
+
+function handleSetupSave() {
+  const key = (els.setupKey?.value || "").trim();
+  if (!key) {
+    setSetupStatus("Enter a kiosk access key before saving.", "error");
+    return;
+  }
+  persistKioskKey(key);
+  setSetupStatus("Kiosk key saved on this device.", "success");
+  window.setTimeout(() => {
+    closeSetupPanel();
+    setStatus("Kiosk configured on this device. You can check in now.", "success");
+  }, 800);
+}
 
 function formatEventWindow(event) {
   if (!event) return "";
@@ -166,8 +268,12 @@ function renderClasses(classes) {
     card.type = "button";
     card.className = "class-card";
     const scheduleText = Array.isArray(klass.schedule) ? klass.schedule.join(" · ") : "";
-    const typeBadge = klass.type ? `<div class="class-card__meta"><span class="class-card__pill">${klass.type}</span></div>` : "";
-    card.innerHTML = `${typeBadge}<h3>${klass.name}</h3><p>${klass.focus}</p><p>${scheduleText}</p>`;
+    const typeBadge = klass.type
+      ? `<div class="class-card__meta"><span class="class-card__pill">${escapeHtml(klass.type)}</span></div>`
+      : "";
+    card.innerHTML = `${typeBadge}<h3>${escapeHtml(klass.name)}</h3><p>${escapeHtml(
+      klass.focus
+    )}</p><p>${escapeHtml(scheduleText)}</p>`;
     card.addEventListener("click", () => {
       state.selectedClass = klass;
       document.querySelectorAll(".class-card").forEach((el) => el.classList.remove("active"));
@@ -228,12 +334,9 @@ async function submitAttendance() {
     setStatus("Enter the student ID.", "error");
     return;
   }
-  if (!apiBase || !kioskKey) {
+  const runtimeKioskKey = getKioskRuntimeKey();
+  if (!apiBase || !runtimeKioskKey) {
     setStatus("Kiosk is not configured. Contact the front desk.", "error");
-    return;
-  }
-  if (isLocalFile) {
-    setStatus("This kiosk must run from https://aratkd.com/kiosk.html to sync attendance.", "error");
     return;
   }
   const isEvent = Boolean(state.selectedClass.isEvent);
@@ -252,7 +355,7 @@ async function submitAttendance() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Kiosk-Key": kioskKey
+        "X-Kiosk-Key": runtimeKioskKey
       },
       body: JSON.stringify({
         studentId: cleanedId,
@@ -344,6 +447,12 @@ function updateWeekTheme() {
   }
 }
 
+function bindSetupControls() {
+  els.logo?.addEventListener("click", handleLogoTap);
+  els.setupSave?.addEventListener("click", handleSetupSave);
+  els.setupClose?.addEventListener("click", closeSetupPanel);
+}
+
 async function fetchWeekTheme() {
   try {
     const res = await fetch(`assets/data/week-theme.json?v=${Date.now()}`);
@@ -385,11 +494,14 @@ function getFocusForDate(date) {
 
 async function initKiosk() {
   renderKeypad();
+  bindSetupControls();
   await fetchWeekTheme();
   updateWeekTheme();
   await loadClasses();
-  if (isLocalFile) {
-    setStatus("Offline preview: open https://aratkd.com/kiosk.html to check in for real.", "error");
+  if (!getKioskRuntimeKey()) {
+    setStatus("Kiosk not configured on this device. Tap the logo 5 times for staff setup.", "error");
+  } else if (isLocalFile) {
+    setStatus("Local kiosk mode active. Attendance will sync when the API is reachable.", "success");
   }
 }
 

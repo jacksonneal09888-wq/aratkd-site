@@ -42,9 +42,9 @@ CREATE INDEX IF NOT EXISTS idx_attendance_student_at
 | File | Attribute | Description |
 | --- | --- | --- |
 | `student-portal.html` `<body>` | `data-admin-key`, `data-admin-pin` | Instructor dashboard pin/secret. |
-| `kiosk.html` `<body>` | `data-api-base`, `data-kiosk-key`, `data-kiosk-id` | API origin + kiosk key + label (e.g., `front-desk`). |
+| `kiosk.html` `<body>` | `data-api-base`, `data-kiosk-id` | API origin + kiosk label (e.g., `front-desk`). |
 
-> ⚠️ Treat the kiosk key like a password. Only load `kiosk.html` on the locked-down front-door device.
+> ⚠️ Treat the kiosk key like a password. It should be configured on the kiosk device itself, not embedded in the public page source.
 
 4. **Run `npx wrangler deploy`** (or use the Cloudflare dashboard Deploy button) to publish the updated Worker.
 
@@ -71,7 +71,7 @@ CREATE INDEX IF NOT EXISTS idx_attendance_student_at
 
 - Lock the kiosk computer in full-screen browser mode (ChromeOS, Windows assigned access, etc.).
 - Disable OS-level keyboard shortcuts / exit gestures so DevTools / other sites cannot load.
-- Rotate `KIOSK_PORTAL_KEY` periodically. Update both Cloudflare secret and `data-kiosk-key` simultaneously.
+- Rotate `KIOSK_PORTAL_KEY` periodically. Update the Cloudflare secret and then re-enter the new key on the kiosk device via staff setup.
 - Attendance data lives in D1. Payment links should continue to flow through Stripe/Square—never store raw card data.
 
 ## Next Steps
