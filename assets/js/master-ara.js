@@ -15,8 +15,8 @@ const CURRICULUM = [
         "resources": [
             {
                 "title": "Study Video",
-                "resource": "assets/Images/Kicho%201.mp4",
-                "type": "video",
+                "resource": "https://www.youtube.com/watch?v=Ot-rBhiIUKs",
+                "type": "link",
                 "tags": [
                     "study",
                     "video",

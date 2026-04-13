@@ -348,7 +348,7 @@ const BELT_SEQUENCE = [
         name: "White Belt",
         slug: "white",
         focus: "Foundations: attention stance, courtesy, basic blocks, and home respect goals.",
-        studyGuide: "assets/Images/Kicho%201.mp4",
+        studyGuide: "https://www.youtube.com/watch?v=Ot-rBhiIUKs",
         testingChecklist: "assets/materials/tkd-curriculum-white-belt.png",
         image: "assets/Images/belts/white-belt.svg"
     },
