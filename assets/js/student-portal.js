@@ -5406,7 +5406,7 @@ function updateAttendanceSummaryDisplay(studentId) {
         typeof summary.lessonsRemaining === "number"
             ? summary.lessonsRemaining
             : Math.max(0, required - completed);
-    portalEls.readinessAutoSummary.textContent = `${currentRank}: ${completed} completed • ${required} required • ${remaining} remaining`;
+    portalEls.readinessAutoSummary.textContent = `Current Rank: ${currentRank} • Lessons Completed: ${completed} • Lessons Required: ${required} • Lessons Remaining: ${remaining}`;
     if (portalEls.readinessAttendance) {
         portalEls.readinessAttendance.innerHTML = "";
     }
@@ -5628,7 +5628,7 @@ function renderReadinessCard(student, targetBelt) {
     const lessonsRemaining = Math.max(0, readinessState.goals.lessons - entry.classesAttended);
 
     if (portalEls.readinessTargetLabel) {
-        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: lesson tracker`;
+        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: ${readinessState.goals.lessons} lessons required`;
     }
 
     if (portalEls.readinessReadyPill) {
@@ -5647,7 +5647,19 @@ function renderReadinessCard(student, targetBelt) {
     }
 
     if (portalEls.readinessChecklist) {
-        portalEls.readinessChecklist.style.display = "none";
+        portalEls.readinessChecklist.style.display = "";
+        const pills = portalEls.readinessChecklist.querySelectorAll(".readiness-pill");
+        if (pills[0]) {
+            pills[0].textContent = readinessState.lessonsMet ? "Ready" : `${lessonsRemaining} left`;
+        }
+        if (pills[1]) {
+            pills[1].textContent = `${entry.classesAttended} / ${readinessState.goals.lessons}`;
+        }
+        if (pills[2]) {
+            pills[2].textContent = readinessState.stripesMet
+                ? "Ready"
+                : `${readinessState.earnedStripes} / ${Object.keys(STRIPE_LABELS).length}`;
+        }
     }
 
     if (portalEls.readinessStatus) {
@@ -5657,7 +5669,7 @@ function renderReadinessCard(student, targetBelt) {
         } else {
             const remaining = readinessState.missing.length
                 ? readinessState.missing.join(" · ")
-                : "Log your class count to unlock testing.";
+                : "Log your classes and stripe sign-offs to unlock testing.";
             portalEls.readinessStatus.textContent = `Still needed: ${remaining}`;
             portalEls.readinessStatus.classList.remove("is-success");
         }
