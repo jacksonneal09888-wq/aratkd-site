@@ -5116,7 +5116,7 @@ function handleAdminSummaryAction(event) {
     const action = button.dataset.action;
     if (!studentId || !action) return;
     if (action === "report") {
-        openReportCardInNewTab(studentId);
+        openReportCard(studentId);
         return;
     }
     if (action === "archive" || action === "remove") {
@@ -6812,7 +6812,7 @@ function handleAdminRosterAction(event) {
         return;
     }
     if (action === "report") {
-        openReportCardInNewTab(studentId);
+        openReportCard(studentId);
         return;
     }
     if (action === "archive" || action === "remove") {
@@ -7748,7 +7748,7 @@ function handleStudentModalAction(event) {
         return;
     }
     if (action === "report") {
-        openReportCardInNewTab(studentId);
+        openReportCard(studentId);
         return;
     }
     if (action === "deactivate" || action === "activate") {
@@ -7814,7 +7814,7 @@ function handleRosterDetailButtons(event) {
     const action = button.dataset.rosterAction;
     const studentId = portalState.admin.rosterSelected.id;
     if (action === 'report') {
-        openReportCardInNewTab(studentId);
+        openReportCard(studentId);
         return;
     }
     if (action === 'note') {

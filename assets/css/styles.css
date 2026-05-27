@@ -3249,7 +3249,7 @@ body.admin-modal-open {
 .admin-report-card__dialog {
     background: #fff;
     border-radius: 1.5rem;
-    max-width: 720px;
+    max-width: 960px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
@@ -4525,8 +4525,8 @@ body[data-admin-panel-view="report"] .admin-report-card__dialog {
 
 .admin-drawer__panel {
     position: relative;
-    width: min(520px, 92vw);
-    min-width: min(440px, 92vw);
+    width: min(860px, 96vw);
+    min-width: min(620px, 96vw);
     height: 100%;
     overflow-y: auto;
     background: var(--surface-1);
@@ -5857,9 +5857,9 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
 
 .student-modal__header {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 1rem;
-    align-items: center;
+    align-items: start;
     padding: 0.5rem 0.25rem 0.55rem;
     border-bottom: 1px solid var(--border-soft);
 }
@@ -5929,11 +5929,24 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     gap: 0.75rem;
 }
 
-.student-modal__nav {
-    display: inline-grid;
-    grid-auto-flow: column;
+.student-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.5rem;
     align-items: center;
+}
+
+.student-modal__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.5rem 0;
+    background: var(--surface-1);
 }
 
 .student-modal__nav button {
@@ -5956,6 +5969,7 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.75rem;
+    padding-bottom: 1rem;
 }
 
 .student-modal__card {
@@ -6090,6 +6104,16 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
 .student-modal__last {
     font-weight: 700;
     color: var(--color-primary);
+}
+
+@media (max-width: 900px) {
+    .student-modal__header {
+        grid-template-columns: 1fr;
+    }
+
+    .student-modal__actions {
+        justify-content: flex-start;
+    }
 }
 
 @keyframes modal-fade {
