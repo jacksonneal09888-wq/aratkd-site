@@ -75,6 +75,20 @@ const FALLBACK_SCHEDULES = {
   colorBelts: ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"],
   blackBelt: ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
 };
+const BELT_LESSON_TARGETS = {
+  default: 25,
+  white: 25,
+  "high-white": 25,
+  yellow: 25,
+  "high-yellow": 25,
+  green: 25,
+  "high-green": 30,
+  blue: 30,
+  "high-blue": 32,
+  red: 42,
+  "high-red": 48,
+  black: 50
+};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -83,6 +97,35 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function normalizeBeltSlug(name) {
+  const slug = String(name ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/belt/g, "")
+    .replace(/dan/g, "")
+    .replace(/degree/g, "")
+    .replace(/[^a-z- ]/g, "")
+    .replace(/\s+/g, "-");
+  if (!slug) return "default";
+  if (slug.includes("high-yellow")) return "high-yellow";
+  if (slug.includes("high-white")) return "high-white";
+  if (slug.includes("high-green")) return "high-green";
+  if (slug.includes("high-blue")) return "high-blue";
+  if (slug.includes("high-red")) return "high-red";
+  if (slug.includes("white")) return "white";
+  if (slug.includes("yellow")) return "yellow";
+  if (slug.includes("green")) return "green";
+  if (slug.includes("blue")) return "blue";
+  if (slug.includes("red")) return "red";
+  if (slug.includes("black")) return "black";
+  return slug;
+}
+
+function resolveLessonsRequired(currentRank) {
+  const slug = normalizeBeltSlug(currentRank);
+  return BELT_LESSON_TARGETS[slug] || BELT_LESSON_TARGETS.default;
 }
 
 function readStoredKioskKey() {
@@ -375,10 +418,9 @@ async function submitAttendance() {
     const currentRank = data.currentRank || data.student?.currentBelt || "White Belt";
     const lessonsCompleted =
       typeof data.lessonsCompleted === "number" ? data.lessonsCompleted : null;
-    const lessonsRequired =
-      typeof data.lessonsRequired === "number" ? data.lessonsRequired : null;
+    const lessonsRequired = resolveLessonsRequired(currentRank);
     const lessonsRemaining =
-      typeof data.lessonsRemaining === "number" ? data.lessonsRemaining : null;
+      lessonsCompleted === null ? null : Math.max(0, lessonsRequired - lessonsCompleted);
     setStatus(
       `Check-in recorded for ${studentName}
 Current Rank: ${currentRank}

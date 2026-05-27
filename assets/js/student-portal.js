@@ -3586,6 +3586,10 @@ function renderAdminAttendance() {
         portalEls.adminAttendance.hidden = false;
     }
     sessions.forEach((session) => {
+        const rosterStudent = (portalState.admin.roster || []).find(
+            (student) => student.id === session.studentId
+        );
+        const requiredLessons = resolveLessonRequirementForRank(rosterStudent?.currentBelt || "");
         const row = document.createElement("tr");
         const studentCell = document.createElement("td");
         studentCell.textContent = session.studentId;
@@ -3597,9 +3601,8 @@ function renderAdminAttendance() {
         kioskCell.textContent = session.kioskId || "—";
         const lessonsCell = document.createElement("td");
         lessonsCell.textContent =
-            typeof session.lessonsCompleted === "number" &&
-            typeof session.lessonsRequired === "number"
-                ? `${session.lessonsCompleted} / ${session.lessonsRequired}`
+            typeof session.lessonsCompleted === "number"
+                ? `${session.lessonsCompleted} / ${requiredLessons}`
                 : "—";
         const timeCell = document.createElement("td");
         timeCell.textContent = session.checkInAt ? formatDateTime(session.checkInAt) : "—";
@@ -4083,20 +4086,13 @@ function computeRosterAttendanceStats(studentId) {
             typeof summary.lessonsCompleted === "number"
                 ? Number(summary.lessonsCompleted)
                 : totalWindow;
-        const required =
-            typeof summary.lessonsRequired === "number" ? Number(summary.lessonsRequired) : null;
-        const remaining =
-            typeof summary.lessonsRemaining === "number"
-                ? Number(summary.lessonsRemaining)
-                : required !== null
-                  ? Math.max(0, required - completed)
-                  : null;
+        const rosterStudent = (portalState.admin.roster || []).find((student) => student.id === studentId);
+        const currentRank = summary.currentRank || rosterStudent?.currentBelt || "";
+        const required = Number(resolveLessonRequirementForRank(currentRank));
+        const remaining = Math.max(0, required - completed);
         return {
             last30: count30 ? `${count30} in 30d` : totalWindow ? "0 in last 30d" : "No logs",
-            last60:
-                required !== null
-                    ? `${completed} / ${required} lessons (${remaining ?? 0} left)`
-                    : `${totalWindow} in 60d`
+            last60: `${completed} / ${required} lessons (${remaining} left)`
         };
     }
 
@@ -5288,6 +5284,10 @@ function renderReportCard() {
     const attendance = report.attendance || {};
     const progress = report.progress?.records || [];
     const membership = report.membershipType || student.membershipType || "Not set";
+    const reportCurrentRank = attendance.currentRank || student.currentBelt || "";
+    const reportLessonsCompleted = attendance.lessonsCompleted ?? attendance.totals?.sessions ?? 0;
+    const reportLessonsRequired = resolveLessonRequirementForRank(reportCurrentRank);
+    const reportLessonsRemaining = Math.max(0, reportLessonsRequired - reportLessonsCompleted);
     const summaryHtml = `
         <div class="report-card-section">
             <h4>Student</h4>
@@ -5299,9 +5299,7 @@ function renderReportCard() {
         </div>
         <div class="report-card-section">
             <h4>Attendance (Last 60 days)</h4>
-            <p>Lessons: ${attendance.lessonsCompleted ?? attendance.totals?.sessions ?? 0} / ${
-        attendance.lessonsRequired ?? 0
-    } • Remaining: ${attendance.lessonsRemaining ?? 0}</p>
+            <p>Lessons: ${reportLessonsCompleted} / ${reportLessonsRequired} • Remaining: ${reportLessonsRemaining}</p>
             <ul>
                 ${(attendance.recent || [])
                     .map(
@@ -5403,12 +5401,8 @@ function updateAttendanceSummaryDisplay(studentId) {
         typeof summary.lessonsCompleted === "number"
             ? summary.lessonsCompleted
             : summary.totals?.sessions ?? 0;
-    const required =
-        typeof summary.lessonsRequired === "number" ? summary.lessonsRequired : summary.targetLessons ?? 0;
-    const remaining =
-        typeof summary.lessonsRemaining === "number"
-            ? summary.lessonsRemaining
-            : Math.max(0, required - completed);
+    const required = resolveLessonRequirementForRank(currentRank);
+    const remaining = Math.max(0, required - completed);
     portalEls.readinessAutoSummary.textContent = `Current Rank: ${currentRank} • Lessons Completed: ${completed} • Lessons Required: ${required} • Lessons Remaining: ${remaining}`;
     if (portalEls.readinessAttendance) {
         portalEls.readinessAttendance.innerHTML = "";
@@ -5427,12 +5421,9 @@ function updatePortalClassSummary(studentId) {
         typeof summary.lessonsCompleted === "number"
             ? summary.lessonsCompleted
             : summary.totals?.sessions ?? 0;
-    const required =
-        typeof summary.lessonsRequired === "number" ? summary.lessonsRequired : summary.targetLessons ?? 0;
-    const remaining =
-        typeof summary.lessonsRemaining === "number"
-            ? summary.lessonsRemaining
-            : Math.max(0, required - completed);
+    const currentRank = summary.currentRank || portalState.activeStudent?.currentBelt || "";
+    const required = resolveLessonRequirementForRank(currentRank);
+    const remaining = Math.max(0, required - completed);
     portalEls.classSummary.textContent =
         `Lessons Completed: ${completed} · Lessons Required: ${required} · Lessons Remaining: ${remaining}`;
 }
@@ -5864,6 +5855,12 @@ function computeReadinessState(student, targetBelt) {
 
 function resolveAttendanceTargets(slug) {
     return BELT_ATTENDANCE_TARGETS[slug] || BELT_ATTENDANCE_TARGETS.default;
+}
+
+function resolveLessonRequirementForRank(rankName) {
+    const belt = resolveBeltDataByName(rankName);
+    const slug = belt?.slug || slugifyBeltName(rankName) || "default";
+    return resolveAttendanceTargets(slug).lessons;
 }
 
 async function validateCertificateFile(file) {
