@@ -419,6 +419,20 @@ const BELT_ORDER = [
   'black'
 ];
 
+const BELT_NAME_BY_SLUG: Record<string, string> = {
+  white: 'White Belt',
+  'high-white': 'High White Belt',
+  yellow: 'Yellow Belt',
+  'high-yellow': 'High Yellow Belt',
+  green: 'Green Belt',
+  'high-green': 'High Green Belt',
+  blue: 'Blue Belt',
+  'high-blue': 'High Blue Belt',
+  red: 'Red Belt',
+  'high-red': 'High Red Belt',
+  black: 'Black Belt'
+};
+
 const sanitizeStudentRecord = (row: any) => {
   if (!row) return null;
   const isArchived = Boolean(row.is_archived);
@@ -648,6 +662,15 @@ const normalizeBeltSlug = (name: string) => {
 const resolveLessonsRequired = (currentBelt: string) => {
   const slug = normalizeBeltSlug(currentBelt);
   return BELT_ATTENDANCE_TARGETS[slug] || 25;
+};
+
+const resolveBeltName = (belt: string) => {
+  const slug = normalizeBeltSlug(belt);
+  return BELT_NAME_BY_SLUG[slug] || 'White Belt';
+};
+
+const resetStudentAttendance = async (db: D1Database, studentId: string) => {
+  await db.prepare(`DELETE FROM attendance_sessions WHERE student_id = ?1`).bind(studentId).run();
 };
 
 const fetchPortalProgress = async (db: D1Database, studentId: string) => {
@@ -1123,6 +1146,11 @@ app.post('/portal/progress', async (c) => {
     return c.json({ error: 'Forbidden' }, 403);
   }
 
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
   let uploadedAt = new Date();
   if (uploadedAtInput) {
     const parsed = new Date(uploadedAtInput);
@@ -1133,12 +1161,6 @@ app.post('/portal/progress', async (c) => {
 
   const uploadedIso = uploadedAt.toISOString();
   const createdIso = new Date().toISOString();
-
-  const existingProgress = await c.env.PORTAL_DB.prepare(
-    `SELECT id FROM belt_progress WHERE student_id = ?1 AND belt_slug = ?2`
-  )
-    .bind(studentId, beltSlug)
-    .first<{ id?: string }>();
 
   await c.env.PORTAL_DB.prepare(
     `INSERT INTO belt_progress (student_id, belt_slug, file_name, uploaded_at, created_at)
@@ -1151,22 +1173,38 @@ app.post('/portal/progress', async (c) => {
     .bind(studentId, beltSlug, fileName, uploadedIso, createdIso)
     .run();
 
+  const nextBeltName = resolveBeltName(beltSlug);
+  const beltChanged = normalizeBeltSlug(student.current_belt || '') !== normalizeBeltSlug(beltSlug);
   let attendanceReset = false;
-  let attendance = null;
-  if (!existingProgress?.id) {
-    await c.env.PORTAL_DB.prepare(`DELETE FROM attendance_sessions WHERE student_id = ?1`)
-      .bind(studentId)
+
+  if (beltChanged) {
+    await resetStudentAttendance(c.env.PORTAL_DB, student.id);
+    await c.env.PORTAL_DB.prepare(
+      `UPDATE students
+         SET current_belt = ?1,
+             updated_at = ?2
+       WHERE id = ?3`
+    )
+      .bind(nextBeltName, createdIso, student.id)
       .run();
     attendanceReset = true;
-    const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
-    attendance = await buildAttendanceSummary(
-      c.env.PORTAL_DB,
-      studentId,
-      student?.current_belt || ''
-    );
   }
 
-  return c.json({ ok: true, beltSlug, uploadedAt: uploadedIso, attendanceReset, attendance });
+  const refreshed = await fetchStudentById(c.env.PORTAL_DB, student.id);
+  const attendance = await buildAttendanceSummary(
+    c.env.PORTAL_DB,
+    student.id,
+    refreshed?.current_belt || nextBeltName
+  );
+
+  return c.json({
+    ok: true,
+    beltSlug,
+    uploadedAt: uploadedIso,
+    attendanceReset,
+    student: sanitizeStudentRecord(refreshed),
+    attendance
+  });
 });
 
 app.get('/portal/progress/:studentId', async (c) => {
@@ -1851,6 +1889,9 @@ app.patch('/portal/admin/students/:studentId', async (c) => {
 
   const updates: string[] = [];
   const values: any[] = [];
+  const beltChanged =
+    currentBelt &&
+    normalizeBeltSlug(currentBelt) !== normalizeBeltSlug(student.current_belt || '');
 
   if (name) {
     updates.push(`name = ?${updates.length + 1}`);
@@ -1906,7 +1947,23 @@ app.patch('/portal/admin/students/:studentId', async (c) => {
   await c.env.PORTAL_DB.prepare(query).bind(...values).run();
 
   const updated = await fetchStudentById(c.env.PORTAL_DB, student.id);
-  return c.json({ ok: true, student: sanitizeStudentRecord(updated) });
+  let attendanceReset = false;
+  let attendance = null;
+  if (beltChanged) {
+    await resetStudentAttendance(c.env.PORTAL_DB, student.id);
+    attendanceReset = true;
+    attendance = await buildAttendanceSummary(
+      c.env.PORTAL_DB,
+      student.id,
+      updated?.current_belt || currentBelt
+    );
+  }
+  return c.json({
+    ok: true,
+    student: sanitizeStudentRecord(updated),
+    attendanceReset,
+    attendance
+  });
 });
 
 app.post('/portal/admin/students/full', async (c) => {
