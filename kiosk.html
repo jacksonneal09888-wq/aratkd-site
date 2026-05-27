@@ -17,9 +17,7 @@
             padding: 1.5rem 2rem;
         }
         .kiosk-header__grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
-            gap: 2rem;
+            display: block;
             align-items: center;
         }
         .kiosk-brand {
@@ -50,24 +48,6 @@
             display: block;
             font-size: 0.95rem;
             color: rgba(255,255,255,0.75);
-        }
-        .kiosk-promo {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .kiosk-promo-card {
-            width: min(100%, 380px);
-            margin: 0;
-            overflow: hidden;
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.18);
-            background: rgba(255,255,255,0.08);
-            box-shadow: 0 2rem 4rem rgba(0,0,0,0.42), 0 0 2rem rgba(249,115,22,0.18);
-        }
-        .kiosk-promo-card img {
-            display: block;
-            width: 100%;
-            height: auto;
         }
         body.kiosk-body {
             background: linear-gradient(160deg, rgba(5, 7, 9, 0.9), rgba(5, 7, 9, 0.95)),
@@ -174,24 +154,13 @@
             color: #f87171;
         }
         @media (max-width: 960px) {
-            .kiosk-header__grid,
             .kiosk-wrap {
                 grid-template-columns: 1fr;
-            }
-            .kiosk-promo {
-                justify-content: flex-start;
-            }
-            .kiosk-promo-card {
-                width: min(100%, 320px);
             }
         }
         @media (max-height: 820px) {
             .kiosk-header__grid {
-                grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
                 align-items: start;
-            }
-            .kiosk-promo-card {
-                width: min(100%, 280px);
             }
         }
     </style>
@@ -207,11 +176,6 @@
                     <span id="kiosk-week-message" class="kiosk-week-message">Sparring week: sharpen timing, control, and ring awareness.</span>
                 </div>
             </div>
-            <aside class="kiosk-promo" aria-label="Featured announcement">
-                <figure class="kiosk-promo-card">
-                    <img src="assets/Images/kiosk-sparring-week-banner.jpg" alt="Sparring Week banner for Ara's Taekwondo Silver City." loading="eager">
-                </figure>
-            </aside>
         </div>
     </header>
     <section class="kiosk-panel" id="kiosk-setup-panel" hidden style="margin:0 2rem 2rem;">

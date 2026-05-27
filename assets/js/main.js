@@ -18,7 +18,7 @@ const SITE_API_BASE = (() => {
 })();
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_GID = "1307375074";
+const GOOGLE_CALENDAR_GID = "1924086127";
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
 const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;
@@ -817,7 +817,8 @@ function initSheetCalendar() {
 }
 
 function parseSheetCalendar(csvText) {
-    const lines = csvText.split(/\r?\n/).map((line) => line.trim());
+    const rows = parseCsvRows(csvText);
+    const lines = rows.map((row) => row.map((cell) => String(cell || "").trim()).join(","));
     let index = 0;
 
     const calendar = {
@@ -843,14 +844,17 @@ function parseSheetCalendar(csvText) {
     advance();
 
     if (index < lines.length) {
-        const headerCells = splitCsvLine(lines[index]);
-        calendar.monthLabel = (headerCells[0] || "").replace(/^"+|"+$/g, "").trim();
+        const headerCells = rows[index] || splitCsvLine(lines[index]);
+        calendar.monthLabel = normalizeCalendarMonthLabel((headerCells[0] || "").replace(/^"+|"+$/g, "").trim());
         if (calendar.monthLabel) {
             calendar.monthLabel = calendar.monthLabel.replace(/^([A-Za-z]+)(\d{4})$/, "$1 $2");
         }
-        const noteCell = headerCells.find((cell, cellIndex) => cellIndex > 0 && cell);
-        if (noteCell) {
-            const rawNote = noteCell.replace(/^"+|"+$/g, "").replace(/^\*+\s*/, "").trim();
+        const headerNotes = headerCells
+            .slice(1)
+            .map((cell) => String(cell || "").replace(/^"+|"+$/g, "").trim())
+            .filter(Boolean);
+        if (headerNotes.length) {
+            const rawNote = headerNotes.sort((a, b) => b.length - a.length)[0];
             calendar.note = rewriteCalendarNote(rawNote);
         }
         index += 1;
@@ -908,11 +912,12 @@ function parseSheetCalendar(csvText) {
             break;
         }
 
-        const weekCells = splitCsvLine(line);
+        const weekCells = rows[index] || splitCsvLine(line);
         const firstCell = weekCells[0] || "";
-        const match = firstCell.match(/week\s*(\d+)?\s*(.*)/i);
+        const cleanedFirstCell = firstCell.replace(/^★\s*/, "").trim();
+        const match = cleanedFirstCell.match(/week(?:\s*focus)?[:\s-]*(\d+)?\s*(.*)/i);
         let weekNumber = fallbackWeekNumber;
-        let focus = firstCell.replace(/^"+|"+$/g, "").trim();
+        let focus = cleanedFirstCell.replace(/^"+|"+$/g, "").trim();
 
         if (match) {
             if (match[1]) {
@@ -933,8 +938,8 @@ function parseSheetCalendar(csvText) {
             break;
         }
 
-        const dayNumbers = splitCsvLine(lines[index + 1] || "");
-        const eventLabels = splitCsvLine(lines[index + 2] || "");
+        const dayNumbers = rows[index + 1] || splitCsvLine(lines[index + 1] || "");
+        const eventLabels = rows[index + 2] || splitCsvLine(lines[index + 2] || "");
         const sanitizedNumbers = dayNumbers.slice(0, 7);
         const hasDateNumbers = sanitizedNumbers.some((value) => /^\d{1,2}$/.test(value));
         if (!hasDateNumbers) {
@@ -971,7 +976,7 @@ function parseSheetCalendar(csvText) {
             continue;
         }
 
-        const pieces = splitCsvLine(line);
+        const pieces = rows[index] || splitCsvLine(line);
         let noteText = pieces.filter(Boolean).join(" • ");
         if (!noteText) {
             continue;
@@ -1165,7 +1170,12 @@ function deriveFocusTheme(focusText) {
 }
 
 function rewriteCalendarNote(noteText) {
-    const normalized = noteText.toLowerCase();
+    const flattened = (noteText || "")
+        .replace(/\r?\n+/g, " • ")
+        .replace(/\s*•\s*/g, " • ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const normalized = flattened.toLowerCase();
     if (
         normalized.includes("sparring weeks") &&
         normalized.includes("chest gear") &&
@@ -1173,19 +1183,31 @@ function rewriteCalendarNote(noteText) {
     ) {
         return "Friendly reminder: During sparring weeks please arrive with chest gear so we can jump right into training together.";
     }
-    return noteText;
+    return flattened;
 }
 
 function formatCalendarLabel(rawLabel) {
-    const label = (rawLabel || "").trim();
+    const label = (rawLabel || "").replace(/\s+/g, " ").trim();
     if (!label) {
         return { text: "—", className: "day-event--empty" };
     }
 
     const normalized = label.toLowerCase();
 
-    if (normalized === "x" || normalized === "closed" || normalized.includes("no class")) {
+    if (normalized.includes("memorial day")) {
+        return { text: "Closed - Memorial Day", className: "day-event--closed" };
+    }
+    if (normalized.includes("mother's day")) {
+        return { text: "No Class - Mother's Day", className: "day-event--closed" };
+    }
+    if (normalized === "x" || normalized === "closed" || normalized === "no class") {
         return { text: "No Class", className: "day-event--closed" };
+    }
+    if (normalized.startsWith("closed")) {
+        return { text: label, className: "day-event--closed" };
+    }
+    if (normalized.includes("no class")) {
+        return { text: label, className: "day-event--closed" };
     }
     if (normalized.includes("thank")) {
         return { text: "Thanksgiving - Closed", className: "day-event--closed" };
@@ -1260,6 +1282,89 @@ function splitCsvLine(line) {
 
     cells.push(current.trim());
     return cells.map((cell) => cell.replace(/^"+|"+$/g, "").trim());
+}
+
+function parseCsvRows(csvText) {
+    if (!csvText) {
+        return [];
+    }
+    const rows = [];
+    let row = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let index = 0; index < csvText.length; index += 1) {
+        const char = csvText[index];
+        const next = csvText[index + 1];
+
+        if (char === "\"") {
+            if (insideQuotes && next === "\"") {
+                current += "\"";
+                index += 1;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+            continue;
+        }
+
+        if (char === "," && !insideQuotes) {
+            row.push(current.trim());
+            current = "";
+            continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !insideQuotes) {
+            if (char === "\r" && next === "\n") {
+                index += 1;
+            }
+            row.push(current.trim());
+            rows.push(row.map((cell) => String(cell || "").replace(/^"+|"+$/g, "").trim()));
+            row = [];
+            current = "";
+            continue;
+        }
+
+        current += char;
+    }
+
+    if (current.length || row.length) {
+        row.push(current.trim());
+        rows.push(row.map((cell) => String(cell || "").replace(/^"+|"+$/g, "").trim()));
+    }
+
+    return rows;
+}
+
+function normalizeCalendarMonthLabel(label) {
+    const normalized = (label || "").trim();
+    if (!normalized) {
+        return normalized;
+    }
+    const monthMap = {
+        enero: "January",
+        febrero: "February",
+        marzo: "March",
+        abril: "April",
+        mayo: "May",
+        junio: "June",
+        julio: "July",
+        agosto: "August",
+        septiembre: "September",
+        setiembre: "September",
+        octubre: "October",
+        noviembre: "November",
+        diciembre: "December"
+    };
+    const parts = normalized.split(/\s+/);
+    if (!parts.length) {
+        return normalized;
+    }
+    const monthKey = parts[0].toLowerCase();
+    if (monthMap[monthKey]) {
+        parts[0] = monthMap[monthKey];
+        return parts.join(" ");
+    }
+    return normalized;
 }
 
 function generateFocusRanges(startDate, endDate, template) {
