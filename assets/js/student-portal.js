@@ -153,17 +153,18 @@ const STRIPE_LABELS = {
 };
 
 const BELT_ATTENDANCE_TARGETS = {
-    default: { lessons: 25, percent: 0.7 },
-    white: { lessons: 25, percent: 0.7 },
-    "high-white": { lessons: 27, percent: 0.717 },
-    yellow: { lessons: 29, percent: 0.735 },
-    "high-yellow": { lessons: 31, percent: 0.752 },
-    green: { lessons: 33, percent: 0.77 },
-    "high-green": { lessons: 35, percent: 0.787 },
-    blue: { lessons: 37, percent: 0.804 },
-    "high-blue": { lessons: 39, percent: 0.822 },
-    red: { lessons: 42, percent: 0.848 },
-    "high-red": { lessons: 48, percent: 0.9 }
+    default: { lessons: 25 },
+    white: { lessons: 25 },
+    "high-white": { lessons: 25 },
+    yellow: { lessons: 25 },
+    "high-yellow": { lessons: 25 },
+    green: { lessons: 25 },
+    "high-green": { lessons: 30 },
+    blue: { lessons: 30 },
+    "high-blue": { lessons: 32 },
+    red: { lessons: 42 },
+    "high-red": { lessons: 48 },
+    black: { lessons: 50 }
 };
 
 const READINESS_STORAGE_KEY = "araReadinessTracker";
@@ -525,11 +526,10 @@ const portalEls = {
     readinessTargetLabel: document.getElementById("readiness-target-label"),
     readinessReadyPill: document.getElementById("readiness-ready-pill"),
     readinessForm: document.getElementById("readiness-form"),
-    readinessClassesOffered: document.getElementById("readiness-classes-offered"),
     readinessClassesAttended: document.getElementById("readiness-classes-attended"),
     readinessStatus: document.getElementById("readiness-status"),
     readinessChecklist: document.getElementById("readiness-checklist"),
-    readinessPercentDisplay: document.getElementById("readiness-percent-display"),
+    readinessLessonsRequiredDisplay: document.getElementById("readiness-lessons-required-display"),
     readinessLessonDisplay: document.getElementById("readiness-lesson-display"),
     readinessAutoSummary: document.getElementById("readiness-auto-summary"),
     readinessAttendance: document.getElementById("readiness-attendance"),
@@ -3593,12 +3593,15 @@ function renderAdminAttendance() {
         )}</strong>`;
         const kioskCell = document.createElement("td");
         kioskCell.textContent = session.kioskId || "—";
-        const percentCell = document.createElement("td");
-        percentCell.textContent =
-            typeof session.percentOfGoal === "number" ? `${session.percentOfGoal}%` : "—";
+        const lessonsCell = document.createElement("td");
+        lessonsCell.textContent =
+            typeof session.lessonsCompleted === "number" &&
+            typeof session.lessonsRequired === "number"
+                ? `${session.lessonsCompleted} / ${session.lessonsRequired}`
+                : "—";
         const timeCell = document.createElement("td");
         timeCell.textContent = session.checkInAt ? formatDateTime(session.checkInAt) : "—";
-        row.append(studentCell, classCell, kioskCell, percentCell, timeCell);
+        row.append(studentCell, classCell, kioskCell, lessonsCell, timeCell);
         portalEls.adminAttendanceBody.appendChild(row);
     });
 
@@ -4074,13 +4077,23 @@ function computeRosterAttendanceStats(studentId) {
             return Number.isFinite(ts) && now - ts <= 30 * dayMs;
         }).length;
         const totalWindow = summary.totals?.sessions ?? 0;
-        const percent =
-            typeof summary.attendancePercent === "number" ? Number(summary.attendancePercent) : null;
+        const completed =
+            typeof summary.lessonsCompleted === "number"
+                ? Number(summary.lessonsCompleted)
+                : totalWindow;
+        const required =
+            typeof summary.lessonsRequired === "number" ? Number(summary.lessonsRequired) : null;
+        const remaining =
+            typeof summary.lessonsRemaining === "number"
+                ? Number(summary.lessonsRemaining)
+                : required !== null
+                  ? Math.max(0, required - completed)
+                  : null;
         return {
             last30: count30 ? `${count30} in 30d` : totalWindow ? "0 in last 30d" : "No logs",
             last60:
-                percent !== null
-                    ? `${percent}% of goal (${totalWindow} sessions)`
+                required !== null
+                    ? `${completed} / ${required} lessons (${remaining ?? 0} left)`
                     : `${totalWindow} in 60d`
         };
     }
@@ -5284,9 +5297,9 @@ function renderReportCard() {
         </div>
         <div class="report-card-section">
             <h4>Attendance (Last 60 days)</h4>
-            <p>Sessions: ${attendance.totals?.sessions ?? 0} • Percent of Goal: ${
-        attendance.attendancePercent ?? 0
-    }%</p>
+            <p>Lessons: ${attendance.lessonsCompleted ?? attendance.totals?.sessions ?? 0} / ${
+        attendance.lessonsRequired ?? 0
+    } • Remaining: ${attendance.lessonsRemaining ?? 0}</p>
             <ul>
                 ${(attendance.recent || [])
                     .map(
@@ -5382,15 +5395,18 @@ function updateAttendanceSummaryDisplay(studentId) {
         }
         return;
     }
-    const percent = typeof summary.attendancePercent === "number" ? summary.attendancePercent : 0;
-    portalEls.readinessPercentDisplay.textContent = `${percent}%`;
-    portalEls.readinessAutoSummary.textContent = `Attendance goal progress: ${percent}%`;
-    if (portalEls.readinessLessonDisplay) {
-        portalEls.readinessLessonDisplay.style.display = "none";
-    }
-    if (portalEls.readinessChecklist) {
-        portalEls.readinessChecklist.style.display = "none";
-    }
+    const currentRank = summary.currentRank || portalState.activeStudent?.currentBelt || "Current Belt";
+    const completed =
+        typeof summary.lessonsCompleted === "number"
+            ? summary.lessonsCompleted
+            : summary.totals?.sessions ?? 0;
+    const required =
+        typeof summary.lessonsRequired === "number" ? summary.lessonsRequired : summary.targetLessons ?? 0;
+    const remaining =
+        typeof summary.lessonsRemaining === "number"
+            ? summary.lessonsRemaining
+            : Math.max(0, required - completed);
+    portalEls.readinessAutoSummary.textContent = `${currentRank}: ${completed} completed • ${required} required • ${remaining} remaining`;
     if (portalEls.readinessAttendance) {
         portalEls.readinessAttendance.innerHTML = "";
     }
@@ -5609,8 +5625,10 @@ function renderReadinessCard(student, targetBelt) {
     portalState.currentReadiness = readinessState;
     const entry = readinessState.entry;
 
+    const lessonsRemaining = Math.max(0, readinessState.goals.lessons - entry.classesAttended);
+
     if (portalEls.readinessTargetLabel) {
-        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: attendance goal`;
+        portalEls.readinessTargetLabel.textContent = `${targetBelt.name}: lesson tracker`;
     }
 
     if (portalEls.readinessReadyPill) {
@@ -5619,12 +5637,13 @@ function renderReadinessCard(student, targetBelt) {
         portalEls.readinessReadyPill.classList.toggle("is-missing", !readinessState.isReady);
     }
 
-    if (portalEls.readinessPercentDisplay) {
-        portalEls.readinessPercentDisplay.textContent = formatPercent(readinessState.attendancePercent);
+    if (portalEls.readinessLessonsRequiredDisplay) {
+        portalEls.readinessLessonsRequiredDisplay.textContent = `${readinessState.goals.lessons}`;
     }
 
     if (portalEls.readinessLessonDisplay) {
-        portalEls.readinessLessonDisplay.style.display = "none";
+        portalEls.readinessLessonDisplay.textContent = `${entry.classesAttended} / ${readinessState.goals.lessons} (${lessonsRemaining} remaining)`;
+        portalEls.readinessLessonDisplay.style.display = "";
     }
 
     if (portalEls.readinessChecklist) {
@@ -5638,7 +5657,7 @@ function renderReadinessCard(student, targetBelt) {
         } else {
             const remaining = readinessState.missing.length
                 ? readinessState.missing.join(" · ")
-                : "Log your attendance details to unlock testing.";
+                : "Log your class count to unlock testing.";
             portalEls.readinessStatus.textContent = `Still needed: ${remaining}`;
             portalEls.readinessStatus.classList.remove("is-success");
         }
@@ -5669,7 +5688,7 @@ function updateBeltTestAvailability(targetBelt, readinessState) {
     if (!readinessState) {
         portalEls.beltTestApplicationBtn.disabled = true;
         portalEls.beltTestHint.textContent =
-            "Log your attendance above to unlock belt test requests.";
+            "Log your classes above to unlock belt test requests.";
         toggleBeltTestForm(false);
         return;
     }
@@ -5707,10 +5726,6 @@ function handleReadinessSubmit(event) {
         return;
     }
 
-    const offered = Math.max(
-        0,
-        Number(portalEls.readinessClassesOffered?.value || 0)
-    );
     const attended = Math.max(
         0,
         Number(portalEls.readinessClassesAttended?.value || 0)
@@ -5726,7 +5741,6 @@ function handleReadinessSubmit(event) {
     }
 
     saveReadinessEntry(student.id, targetBelt.slug, {
-        classesOffered: offered,
         classesAttended: attended,
         stripes
     });
@@ -5752,7 +5766,7 @@ function handleBeltTestButton() {
     if (!portalState.currentReadiness || !portalState.currentReadiness.isReady) {
         if (portalEls.beltTestHint) {
             portalEls.beltTestHint.textContent =
-                "Finish the readiness tracker (classes, attendance, stripes) to unlock this form.";
+                "Finish the readiness tracker (classes and stripes) to unlock this form.";
         }
         return;
     }
@@ -5780,10 +5794,7 @@ function computeReadinessState(student, targetBelt) {
 
     const entry = getReadinessEntry(student.id, targetBelt.slug);
     const goals = resolveAttendanceTargets(targetBelt.slug);
-    const attendancePercent =
-        entry.classesOffered > 0 ? entry.classesAttended / entry.classesOffered : 0;
     const lessonsMet = entry.classesAttended >= goals.lessons;
-    const percentMet = entry.classesOffered > 0 && attendancePercent >= goals.percent;
     const stripes = entry.stripes || getStripeTemplate();
     const earnedStripes = Object.values(stripes).filter(Boolean).length;
     const stripesMet = earnedStripes === Object.keys(STRIPE_LABELS).length;
@@ -5792,13 +5803,6 @@ function computeReadinessState(student, targetBelt) {
     if (!lessonsMet) {
         const diff = Math.max(0, goals.lessons - entry.classesAttended);
         missing.push(diff ? `${diff} more classes` : "Log class attendance");
-    }
-    if (!percentMet) {
-        missing.push(
-            entry.classesOffered
-                ? `Attendance ${formatPercent(attendancePercent)} / ${formatPercent(goals.percent)}`
-                : "Add classes offered to calculate attendance %"
-        );
     }
     if (!stripesMet) {
         const needed = Object.entries(stripes)
@@ -5813,13 +5817,11 @@ function computeReadinessState(student, targetBelt) {
         targetBelt,
         entry,
         goals,
-        attendancePercent,
         lessonsMet,
-        percentMet,
         stripesMet,
         earnedStripes,
         missing,
-        isReady: lessonsMet && percentMet && stripesMet
+        isReady: lessonsMet && stripesMet
     };
 }
 
@@ -6194,14 +6196,6 @@ function formatDate(isoString) {
         month: "short",
         day: "numeric"
     });
-}
-
-function formatPercent(value, decimals = 1) {
-    if (!Number.isFinite(value)) {
-        return "0%";
-    }
-    const percentage = value * 100;
-    return `${percentage.toFixed(decimals)}%`;
 }
 
 function formatDateTime(isoString) {

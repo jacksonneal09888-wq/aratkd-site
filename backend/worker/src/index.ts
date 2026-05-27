@@ -393,13 +393,13 @@ const removeAttendanceSessions = async (db: D1Database, studentId: string, count
 
 const BELT_ATTENDANCE_TARGETS: Record<string, number> = {
   white: 25,
-  'high-white': 27,
-  yellow: 29,
-  'high-yellow': 31,
-  green: 33,
-  'high-green': 35,
-  blue: 37,
-  'high-blue': 39,
+  'high-white': 25,
+  yellow: 25,
+  'high-yellow': 25,
+  green: 25,
+  'high-green': 30,
+  blue: 30,
+  'high-blue': 32,
   red: 42,
   'high-red': 48,
   black: 50
@@ -647,10 +647,7 @@ const normalizeBeltSlug = (name: string) => {
 
 const resolveLessonsRequired = (currentBelt: string) => {
   const slug = normalizeBeltSlug(currentBelt);
-  const index = BELT_ORDER.indexOf(slug);
-  const nextSlug =
-    index >= 0 && index < BELT_ORDER.length - 1 ? BELT_ORDER[index + 1] : slug;
-  return BELT_ATTENDANCE_TARGETS[nextSlug] || 25;
+  return BELT_ATTENDANCE_TARGETS[slug] || 25;
 };
 
 const fetchPortalProgress = async (db: D1Database, studentId: string) => {
@@ -814,12 +811,11 @@ const buildAttendanceSummary = async (
 
   const lessonsRequired = resolveLessonsRequired(currentBelt || '');
   const sessionCount = totals?.total_sessions || 0;
-  const attendancePercent = lessonsRequired
-    ? Number(Math.min(1, sessionCount / lessonsRequired) * 100).toFixed(1)
-    : '0.0';
+  const lessonsRemaining = Math.max(0, lessonsRequired - sessionCount);
 
   return {
     since: sinceIso,
+    currentRank: currentBelt || 'White Belt',
     totals: {
       sessions: sessionCount,
       firstSession: totals?.first_session || null,
@@ -835,7 +831,9 @@ const buildAttendanceSummary = async (
       checkInAt: row.created_at
     })),
     targetLessons: lessonsRequired,
-    attendancePercent: Number(attendancePercent)
+    lessonsCompleted: sessionCount,
+    lessonsRequired,
+    lessonsRemaining
   };
 };
 
@@ -1326,7 +1324,10 @@ app.post('/kiosk/check-in', async (c) => {
     student: sanitizeStudentRecord(student),
     classType: resolvedClassType,
     classLevel: resolvedClassLevel,
-    attendancePercent: summary.attendancePercent
+    currentRank: summary.currentRank,
+    lessonsCompleted: summary.lessonsCompleted,
+    lessonsRequired: summary.lessonsRequired,
+    lessonsRemaining: summary.lessonsRemaining
   });
 });
 
@@ -1473,11 +1474,14 @@ app.get('/portal/admin/attendance', async (c) => {
     .bind(limit)
     .all();
 
-  const percentCache = new Map<string, number>();
+  const lessonSummaryCache = new Map<
+    string,
+    { lessonsCompleted: number; lessonsRequired: number; lessonsRemaining: number }
+  >();
   const sessions = [];
   for (const row of results || []) {
-    let percent = percentCache.get(row.student_id);
-    if (percent === undefined) {
+    let lessonSummary = lessonSummaryCache.get(row.student_id);
+    if (!lessonSummary) {
       const student = await fetchStudentById(c.env.PORTAL_DB, row.student_id);
       if (!student) {
         continue;
@@ -1487,8 +1491,12 @@ app.get('/portal/admin/attendance', async (c) => {
         row.student_id,
         student?.current_belt || ''
       );
-      percent = summary.attendancePercent;
-      percentCache.set(row.student_id, percent);
+      lessonSummary = {
+        lessonsCompleted: summary.lessonsCompleted,
+        lessonsRequired: summary.lessonsRequired,
+        lessonsRemaining: summary.lessonsRemaining
+      };
+      lessonSummaryCache.set(row.student_id, lessonSummary);
     }
     sessions.push({
       studentId: row.student_id,
@@ -1496,7 +1504,9 @@ app.get('/portal/admin/attendance', async (c) => {
       classLevel: row.class_level,
       kioskId: row.kiosk_id,
       checkInAt: row.created_at,
-      percentOfGoal: percent
+      lessonsCompleted: lessonSummary.lessonsCompleted,
+      lessonsRequired: lessonSummary.lessonsRequired,
+      lessonsRemaining: lessonSummary.lessonsRemaining
     });
   }
 

@@ -371,10 +371,20 @@ async function submitAttendance() {
     }
     state.studentId = "";
     updateStudentInput();
-    const percent = typeof data.attendancePercent === "number" ? data.attendancePercent : null;
-    const percentMessage = percent !== null ? `Attendance ${percent}% toward goal.` : "";
+    const studentName = data.student?.name || "student";
+    const currentRank = data.currentRank || data.student?.currentBelt || "White Belt";
+    const lessonsCompleted =
+      typeof data.lessonsCompleted === "number" ? data.lessonsCompleted : null;
+    const lessonsRequired =
+      typeof data.lessonsRequired === "number" ? data.lessonsRequired : null;
+    const lessonsRemaining =
+      typeof data.lessonsRemaining === "number" ? data.lessonsRemaining : null;
     setStatus(
-      `Check-in recorded for ${data.student?.name || "student"} · ${percentMessage}`,
+      `Check-in recorded for ${studentName}
+Current Rank: ${currentRank}
+Lessons Completed: ${lessonsCompleted ?? "—"}
+Lessons Required: ${lessonsRequired ?? "—"}
+Lessons Remaining: ${lessonsRemaining ?? "—"}`,
       "success"
     );
   } catch (error) {

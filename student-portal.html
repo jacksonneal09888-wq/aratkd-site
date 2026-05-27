@@ -149,9 +149,6 @@
                                 <span class="readiness-pill" id="readiness-ready-pill">Locked</span>
                             </div>
                             <form id="readiness-form" class="readiness-form" novalidate>
-                                <label for="readiness-classes-offered">Classes Offered Since Last Test</label>
-                                <input type="number" min="0" inputmode="numeric" id="readiness-classes-offered" name="classesOffered" placeholder="e.g. 36">
-
                                 <label for="readiness-classes-attended">Classes Attended</label>
                                 <input type="number" min="0" inputmode="numeric" id="readiness-classes-attended" name="classesAttended" placeholder="e.g. 31">
 
@@ -180,7 +177,7 @@
 
                             <div class="readiness-summary">
                                 <div class="readiness-metrics">
-                                    <p><strong>Attendance:</strong> <span id="readiness-percent-display">0%</span></p>
+                                    <p><strong>Lessons Required:</strong> <span id="readiness-lessons-required-display">0</span></p>
                                     <p><strong>Classes Logged:</strong> <span id="readiness-lesson-display">0 / 0</span></p>
                                 </div>
                                 <ul class="readiness-checklist" id="readiness-checklist">
@@ -189,7 +186,7 @@
                                         <span class="readiness-pill">—</span>
                                     </li>
                                     <li>
-                                        <span>Attendance %</span>
+                                        <span>Lessons Logged</span>
                                         <span class="readiness-pill">—</span>
                                     </li>
                                     <li>
@@ -199,8 +196,8 @@
                                 </ul>
                                 <p class="readiness-note">
                                     <strong>Need the full policy?</strong>
-                                    <a class="readiness-download" href="assets/materials/belt-attendance-guide.pdf" target="_blank" rel="noopener">
-                                        Download the Attendance Guide (PDF)
+                                    <a class="readiness-download" href="assets/materials/belt-attendance-guide.html" target="_blank" rel="noopener">
+                                        Open the Attendance Guide
                                     </a>
                                 </p>
                                 <p class="readiness-note" id="readiness-auto-summary"></p>
@@ -531,7 +528,7 @@
                                                         <th scope="col">Student ID</th>
                                                         <th scope="col">Class</th>
                                                         <th scope="col">Kiosk</th>
-                                                        <th scope="col">Attendance %</th>
+                                                        <th scope="col">Lessons</th>
                                                         <th scope="col">Time</th>
                                                     </tr>
                                                 </thead>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ara TKD Belt Lesson Guide</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f1e8;
+            --panel: #fffaf2;
+            --text: #201a15;
+            --muted: #6f6257;
+            --line: #d8c8b6;
+            --accent: #b45309;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            background: linear-gradient(180deg, #efe4d2 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+        main {
+            width: min(900px, calc(100% - 2rem));
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 1.25rem;
+            box-shadow: 0 1.5rem 3rem rgba(32, 26, 21, 0.08);
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+        }
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: var(--accent);
+        }
+        p, li {
+            line-height: 1.65;
+        }
+        .lead {
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.5rem;
+        }
+        th, td {
+            padding: 0.8rem 0.9rem;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+        }
+        th:last-child,
+        td:last-child {
+            text-align: right;
+        }
+        .note {
+            padding: 1rem 1.1rem;
+            border-left: 4px solid var(--accent);
+            background: rgba(180, 83, 9, 0.08);
+            border-radius: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Belt Lesson Guide</h1>
+        <p class="lead">Before requesting a belt test, make sure the student has the required lessons for that belt and all four stripes.</p>
+
+        <h2>Step 1: Track Completed Lessons</h2>
+        <p>Count every completed class since the last belt promotion and compare it to the lesson minimum for the next belt goal.</p>
+
+        <table aria-label="Belt lesson requirements">
+            <thead>
+                <tr>
+                    <th scope="col">Belt</th>
+                    <th scope="col">Lessons Required</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>White Belt</td><td>25</td></tr>
+                <tr><td>High White Belt</td><td>25</td></tr>
+                <tr><td>Yellow Belt</td><td>25</td></tr>
+                <tr><td>High Yellow Belt</td><td>25</td></tr>
+                <tr><td>Green Belt</td><td>25</td></tr>
+                <tr><td>High Green Belt</td><td>30</td></tr>
+                <tr><td>Blue Belt</td><td>30</td></tr>
+                <tr><td>High Blue Belt</td><td>32</td></tr>
+                <tr><td>Red Belt</td><td>42</td></tr>
+                <tr><td>High Red Belt</td><td>48</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Step 2: Earn All Four Stripes</h2>
+        <ol>
+            <li>Forms / Poomsae</li>
+            <li>Self-defense</li>
+            <li>Board breaking</li>
+            <li>Sparring</li>
+        </ol>
+
+        <p class="note">When the student has the required lessons and all four stripes are signed off, they are ready to request a belt test in the portal.</p>
+
+        <h2>Quick Example</h2>
+        <ul>
+            <li>Completed: 18 lessons</li>
+            <li>Current rank: Blue Belt</li>
+            <li>Required for Blue Belt: 30 lessons</li>
+            <li>Remaining: 12 lessons</li>
+        </ul>
+    </main>
+</body>
+</html>
