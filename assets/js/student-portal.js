@@ -487,6 +487,7 @@ const portalEls = {
     studentIdDisplay: document.getElementById("portal-student-id"),
     currentBelt: document.getElementById("portal-current-belt"),
     nextBelt: document.getElementById("portal-next-belt"),
+    classSummary: document.getElementById("portal-class-summary"),
     beltGrid: document.getElementById("belt-grid"),
     certificateLog: document.getElementById("certificate-log"),
     logout: document.getElementById("portal-logout"),
@@ -1873,6 +1874,7 @@ function renderPortal() {
         unlockedIndex > awardedIndex && unlockedIndex < BELT_SEQUENCE.length;
     const nextBelt = hasNext ? BELT_SEQUENCE[unlockedIndex] : null;
     portalEls.nextBelt.textContent = nextBelt?.name ?? "You're at the final belt!";
+    updatePortalClassSummary(student.id);
 
     renderBeltGrid(student, unlockedIndex, awardedIndex);
     renderCertificateLog(student);
@@ -5386,8 +5388,9 @@ async function loadAttendanceSummary(studentId) {
 }
 
 function updateAttendanceSummaryDisplay(studentId) {
-    if (!portalEls.readinessAutoSummary) return;
     const summary = portalState.attendanceSummary?.[studentId];
+    updatePortalClassSummary(studentId);
+    if (!portalEls.readinessAutoSummary) return;
     if (!summary) {
         portalEls.readinessAutoSummary.textContent = "";
         if (portalEls.readinessAttendance) {
@@ -5410,6 +5413,28 @@ function updateAttendanceSummaryDisplay(studentId) {
     if (portalEls.readinessAttendance) {
         portalEls.readinessAttendance.innerHTML = "";
     }
+}
+
+function updatePortalClassSummary(studentId) {
+    if (!portalEls.classSummary) return;
+    const summary = portalState.attendanceSummary?.[studentId];
+    if (!summary) {
+        portalEls.classSummary.textContent =
+            "Lessons Completed: — · Lessons Required: — · Lessons Remaining: —";
+        return;
+    }
+    const completed =
+        typeof summary.lessonsCompleted === "number"
+            ? summary.lessonsCompleted
+            : summary.totals?.sessions ?? 0;
+    const required =
+        typeof summary.lessonsRequired === "number" ? summary.lessonsRequired : summary.targetLessons ?? 0;
+    const remaining =
+        typeof summary.lessonsRemaining === "number"
+            ? summary.lessonsRemaining
+            : Math.max(0, required - completed);
+    portalEls.classSummary.textContent =
+        `Lessons Completed: ${completed} · Lessons Required: ${required} · Lessons Remaining: ${remaining}`;
 }
 
 function renderBeltGrid(student, unlockedIndex, awardedIndex) {
