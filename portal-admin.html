@@ -423,12 +423,12 @@
                                                 </form>
                                             </div>
                                             <div>
-                                                <p class="admin-accordion__hint">Add or remove sessions when a kiosk check-in is missed.</p>
+                                                <p class="admin-accordion__hint">Add/remove small fixes or set an exact lesson total when counts need to be corrected.</p>
                                                 <form class="admin-attendance-adjust__form" id="admin-attendance-adjust-form" autocomplete="off">
                                                     <div class="admin-attendance-adjust__grid">
                                                         <label>
-                                                            <span>Sessions</span>
-                                                            <input type="number" id="admin-attendance-adjust-value" min="1" max="20" value="1" inputmode="numeric">
+                                                            <span>Lesson Count</span>
+                                                            <input type="number" id="admin-attendance-adjust-value" min="0" max="200" value="1" inputmode="numeric">
                                                         </label>
                                                         <label>
                                                             <span>Class</span>
@@ -454,9 +454,59 @@
                                                         </label>
                                                     </div>
                                                     <div class="admin-attendance-adjust__actions">
-                                                        <button type="submit" class="secondary-btn" data-adjust="add">Add Sessions</button>
-                                                        <button type="submit" class="text-link-btn" data-adjust="remove">Remove Sessions</button>
+                                                        <button type="submit" class="secondary-btn" data-adjust="add">Add Lessons</button>
+                                                        <button type="submit" class="text-link-btn" data-adjust="remove">Remove Lessons</button>
+                                                        <button type="submit" class="secondary-btn" data-adjust="set">Set Exact Lessons</button>
                                                         <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
+                                                    </div>
+                                                </form>
+                                                <div class="admin-accordion__hint" style="margin-top:1rem;">Bulk belt fix. Use the preset to set every Yellow Belt, Green Belt, and High Green Belt to 12 lessons.</div>
+                                                <form class="admin-attendance-adjust__form" id="admin-bulk-attendance-form" autocomplete="off">
+                                                    <div class="admin-attendance-adjust__grid">
+                                                        <label style="grid-column: span 2;">
+                                                            <span>Belts</span>
+                                                            <select id="admin-bulk-attendance-belts" multiple size="6">
+                                                                <option value="Yellow Belt">Yellow Belt</option>
+                                                                <option value="High Yellow Belt">High Yellow Belt</option>
+                                                                <option value="Green Belt">Green Belt</option>
+                                                                <option value="High Green Belt">High Green Belt</option>
+                                                                <option value="Blue Belt">Blue Belt</option>
+                                                                <option value="High Blue Belt">High Blue Belt</option>
+                                                                <option value="Red Belt">Red Belt</option>
+                                                                <option value="High Red Belt">High Red Belt</option>
+                                                            </select>
+                                                        </label>
+                                                        <label>
+                                                            <span>Set Lessons To</span>
+                                                            <input type="number" id="admin-bulk-attendance-value" min="0" max="200" value="12" inputmode="numeric">
+                                                        </label>
+                                                        <label>
+                                                            <span>Class</span>
+                                                            <select id="admin-bulk-attendance-class">
+                                                                <option value="basic">Basic Class</option>
+                                                                <option value="advanced">Advanced Class</option>
+                                                                <option value="little-ninjas">Little Ninjas</option>
+                                                            </select>
+                                                        </label>
+                                                        <label>
+                                                            <span>Level Label</span>
+                                                            <select id="admin-bulk-attendance-level">
+                                                                <option value="">Auto-detect</option>
+                                                                <option value="Basic Class">Basic Class</option>
+                                                                <option value="Advanced Class">Advanced Class</option>
+                                                                <option value="Little Ninjas">Little Ninjas</option>
+                                                                <option value="All Levels">All Levels</option>
+                                                            </select>
+                                                        </label>
+                                                        <label>
+                                                            <span>Note</span>
+                                                            <input type="text" id="admin-bulk-attendance-note" placeholder="e.g. lesson reset correction">
+                                                        </label>
+                                                    </div>
+                                                    <div class="admin-attendance-adjust__actions">
+                                                        <button type="button" class="text-link-btn" id="admin-bulk-attendance-preset">Preset Yellow/Green/High Green = 12</button>
+                                                        <button type="submit" class="secondary-btn">Apply Bulk Lesson Fix</button>
+                                                        <p class="form-status" id="admin-bulk-attendance-status" aria-live="polite"></p>
                                                     </div>
                                                 </form>
                                             </div>
@@ -665,7 +715,7 @@
 
     <script type="module" src="js/admin-loader.js"></script>
     <script type="module" src="js/panel-controller.js"></script>
-    <script type="module" src="assets/js/student-portal.js?v=20260303-beltfix" defer></script>
+    <script type="module" src="assets/js/student-portal.js?v=20260303-attendance-tools" defer></script>
     <script src="assets/js/main.js?v=20260214-12" defer></script>
     <script src="assets/js/translate.js"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>

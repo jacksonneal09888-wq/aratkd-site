@@ -860,6 +860,63 @@ const buildAttendanceSummary = async (
   };
 };
 
+const reconcileAttendanceCount = async (
+  db: D1Database,
+  studentId: string,
+  currentBelt: string,
+  targetLessons: number,
+  options?: {
+    classType?: string;
+    classLevel?: string;
+    kioskId?: string;
+    source?: string;
+  }
+) => {
+  const safeTarget = Math.max(0, Math.trunc(targetLessons));
+  const currentSummary = await buildAttendanceSummary(db, studentId, currentBelt);
+  const currentLessons = Number(currentSummary.lessonsCompleted || 0);
+  const delta = safeTarget - currentLessons;
+  let added = 0;
+  let removed = 0;
+
+  if (delta > 0) {
+    added = await seedAttendanceSessions(db, studentId, {
+      count: delta,
+      classType: options?.classType,
+      classLevel: options?.classLevel,
+      kioskId: options?.kioskId || 'admin-set',
+      source: options?.source || 'admin-set'
+    });
+  } else if (delta < 0) {
+    removed = await removeAttendanceSessions(db, studentId, Math.abs(delta));
+  }
+
+  const now = new Date().toISOString();
+  await db
+    .prepare(
+      `UPDATE students
+         SET updated_at = ?1
+       WHERE id = ?2`
+    )
+    .bind(now, studentId)
+    .run();
+
+  const refreshed = await fetchStudentById(db, studentId);
+  const attendance = await buildAttendanceSummary(
+    db,
+    studentId,
+    refreshed?.current_belt || currentBelt || ''
+  );
+
+  return {
+    added,
+    removed,
+    previousLessonsCompleted: currentLessons,
+    student: refreshed,
+    attendance
+  };
+};
+
 app.get('/', (c) => c.json({ message: 'Portal Worker API' }));
 
 app.get('/site/banners', async (c) => {
@@ -1696,6 +1753,143 @@ app.post('/portal/admin/attendance/adjust', async (c) => {
     added,
     removed,
     attendance: summary
+  });
+});
+
+app.post('/portal/admin/attendance/set', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const studentId = (body.studentId || '').trim();
+  const rawLessonsCompleted = Number(body.lessonsCompleted);
+  const note = (body.note || '').toString().trim();
+  const classType = (body.classType || 'basic').toString().trim() || 'basic';
+  const classLevel =
+    (body.classLevel || '').toString().trim() || resolveClassLevelLabel(classType);
+
+  if (!studentId) {
+    return c.json({ error: 'studentId is required' }, 400);
+  }
+
+  if (!Number.isFinite(rawLessonsCompleted) || rawLessonsCompleted < 0) {
+    return c.json({ error: 'lessonsCompleted must be zero or more' }, 400);
+  }
+
+  const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!student) {
+    return c.json({ error: 'Student not found' }, 404);
+  }
+
+  const result = await reconcileAttendanceCount(
+    c.env.PORTAL_DB,
+    student.id,
+    student.current_belt || '',
+    rawLessonsCompleted,
+    {
+      classType,
+      classLevel,
+      kioskId: 'admin-set',
+      source: note ? `admin-set:${note.slice(0, 48)}` : 'admin-set'
+    }
+  );
+
+  return c.json({
+    ok: true,
+    targetLessonsCompleted: Math.max(0, Math.trunc(rawLessonsCompleted)),
+    previousLessonsCompleted: result.previousLessonsCompleted,
+    added: result.added,
+    removed: result.removed,
+    student: sanitizeStudentRecord(result.student),
+    attendance: result.attendance
+  });
+});
+
+app.post('/portal/admin/attendance/bulk-set', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) {
+    return authError;
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const requestedBelts = Array.isArray(body.belts) ? body.belts : [];
+  const rawLessonsCompleted = Number(body.lessonsCompleted);
+  const note = (body.note || '').toString().trim();
+  const classType = (body.classType || 'basic').toString().trim() || 'basic';
+  const classLevel =
+    (body.classLevel || '').toString().trim() || resolveClassLevelLabel(classType);
+
+  if (!requestedBelts.length) {
+    return c.json({ error: 'Select at least one belt' }, 400);
+  }
+
+  if (!Number.isFinite(rawLessonsCompleted) || rawLessonsCompleted < 0) {
+    return c.json({ error: 'lessonsCompleted must be zero or more' }, 400);
+  }
+
+  const beltSlugs = Array.from(
+    new Set(
+      requestedBelts
+        .map((belt: unknown) => normalizeBeltSlug(String(belt || '')))
+        .filter((slug) => Boolean(BELT_NAME_BY_SLUG[slug]))
+    )
+  );
+
+  if (!beltSlugs.length) {
+    return c.json({ error: 'No valid belts selected' }, 400);
+  }
+
+  const activeFilter = await resolveArchiveFilter(c.env.PORTAL_DB);
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT id, name, birth_date, phone, email, current_belt, membership_type, status, parent_name, emergency_contact, address, is_suspended, suspended_reason, suspended_at, is_archived, archived_at, archived_reason, archived_by, created_at, updated_at
+     FROM students
+     WHERE ${activeFilter}
+     ORDER BY name ASC`
+  ).all();
+
+  const matchedStudents = (results || []).filter((row: any) =>
+    beltSlugs.includes(normalizeBeltSlug(row.current_belt || ''))
+  );
+
+  let totalAdded = 0;
+  let totalRemoved = 0;
+  const updatedStudents = [];
+
+  for (const row of matchedStudents) {
+    const result = await reconcileAttendanceCount(
+      c.env.PORTAL_DB,
+      row.id,
+      row.current_belt || '',
+      rawLessonsCompleted,
+      {
+        classType,
+        classLevel,
+        kioskId: 'admin-bulk-set',
+        source: note ? `admin-bulk-set:${note.slice(0, 48)}` : 'admin-bulk-set'
+      }
+    );
+    totalAdded += result.added;
+    totalRemoved += result.removed;
+    updatedStudents.push({
+      id: row.id,
+      name: row.name,
+      currentBelt: row.current_belt || 'White Belt',
+      lessonsCompleted: result.attendance.lessonsCompleted,
+      lessonsRequired: result.attendance.lessonsRequired,
+      lessonsRemaining: result.attendance.lessonsRemaining
+    });
+  }
+
+  return c.json({
+    ok: true,
+    belts: beltSlugs.map((slug) => BELT_NAME_BY_SLUG[slug] || resolveBeltName(slug)),
+    targetLessonsCompleted: Math.max(0, Math.trunc(rawLessonsCompleted)),
+    totalStudents: updatedStudents.length,
+    added: totalAdded,
+    removed: totalRemoved,
+    students: updatedStudents
   });
 });
 

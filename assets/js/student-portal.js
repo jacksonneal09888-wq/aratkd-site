@@ -609,6 +609,14 @@ const portalEls = {
     adminAttendanceAdjustNote: document.getElementById("admin-attendance-adjust-note"),
     adminAttendanceAdjustStatus: document.getElementById("admin-attendance-adjust-status"),
     adminAttendanceAdjustOpen: document.getElementById("admin-attendance-adjust-open"),
+    adminBulkAttendanceForm: document.getElementById("admin-bulk-attendance-form"),
+    adminBulkAttendanceBelts: document.getElementById("admin-bulk-attendance-belts"),
+    adminBulkAttendanceValue: document.getElementById("admin-bulk-attendance-value"),
+    adminBulkAttendanceClass: document.getElementById("admin-bulk-attendance-class"),
+    adminBulkAttendanceLevel: document.getElementById("admin-bulk-attendance-level"),
+    adminBulkAttendanceNote: document.getElementById("admin-bulk-attendance-note"),
+    adminBulkAttendanceStatus: document.getElementById("admin-bulk-attendance-status"),
+    adminBulkAttendancePreset: document.getElementById("admin-bulk-attendance-preset"),
     adminTrigger: document.getElementById("admin-trigger"),
     studentModal: document.getElementById("student-drawer"),
     studentModalBackdrop: document.getElementById("student-drawer-backdrop"),
@@ -776,6 +784,14 @@ function refreshAdminEls() {
         adminAttendanceAdjustNote: "admin-attendance-adjust-note",
         adminAttendanceAdjustStatus: "admin-attendance-adjust-status",
         adminAttendanceAdjustOpen: "admin-attendance-adjust-open",
+        adminBulkAttendanceForm: "admin-bulk-attendance-form",
+        adminBulkAttendanceBelts: "admin-bulk-attendance-belts",
+        adminBulkAttendanceValue: "admin-bulk-attendance-value",
+        adminBulkAttendanceClass: "admin-bulk-attendance-class",
+        adminBulkAttendanceLevel: "admin-bulk-attendance-level",
+        adminBulkAttendanceNote: "admin-bulk-attendance-note",
+        adminBulkAttendanceStatus: "admin-bulk-attendance-status",
+        adminBulkAttendancePreset: "admin-bulk-attendance-preset",
         adminTrigger: "admin-trigger",
         commDateFrom: "comm-date-from",
         commDateTo: "comm-date-to",
@@ -1557,6 +1573,8 @@ function attachHandlers() {
     bindOnce(portalEls.studentModalNotesFilter, "click", handleStudentNotesFilterClick);
     bindOnce(portalEls.adminAttendanceAdjustForm, "submit", handleAttendanceAdjust);
     bindOnce(portalEls.adminAttendanceAdjustOpen, "click", toggleAttendanceAdjustForm);
+    bindOnce(portalEls.adminBulkAttendanceForm, "submit", handleBulkAttendanceAdjust);
+    bindOnce(portalEls.adminBulkAttendancePreset, "click", applyBulkAttendancePreset);
     bindOnce(portalEls.adminRosterDetail, "click", handleRosterDetailButtons);
     bindOnce(portalEls.adminRosterNewtab, "click", handleRosterNewTab);
     bindOnce(portalEls.adminStudentDrawerOpen, "click", handleStudentDrawerOpen);
@@ -7045,6 +7063,13 @@ function setAttendanceAdjustStatus(message, variant = "error") {
     portalEls.adminAttendanceAdjustStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function setBulkAttendanceStatus(message, variant = "error") {
+    if (!portalEls.adminBulkAttendanceStatus) return;
+    portalEls.adminBulkAttendanceStatus.textContent = message || "";
+    portalEls.adminBulkAttendanceStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminBulkAttendanceStatus.classList.toggle("is-progress", variant === "progress");
+}
+
 function handleAttendanceAdjust(event) {
     event?.preventDefault();
     if (!portalState.admin.rosterSelected) {
@@ -7055,19 +7080,20 @@ function handleAttendanceAdjust(event) {
     if (!HAS_REMOTE_API) return;
     const studentId = portalState.admin.rosterSelected.id;
     const submitter = event?.submitter;
-    const isRemoval = submitter?.dataset?.adjust === "remove";
+    const mode = submitter?.dataset?.adjust || "add";
     const rawValue = Number.parseInt(portalEls.adminAttendanceAdjustValue?.value || "0", 10);
-    if (!Number.isFinite(rawValue) || rawValue === 0) {
-        setAttendanceAdjustStatus("Enter a positive or negative session count (e.g. 3 or -2).", "error");
+    if (!Number.isFinite(rawValue) || rawValue < 0 || (mode !== "set" && rawValue === 0)) {
+        setAttendanceAdjustStatus("Enter a lesson count of 0 or more.", "error");
         return;
-    }
-    let delta = rawValue;
-    if (isRemoval && rawValue > 0) {
-        delta = rawValue * -1;
     }
     const classType = portalEls.adminAttendanceAdjustClass?.value || "basic";
     const classLevel = portalEls.adminAttendanceAdjustLevel?.value || "";
     const note = portalEls.adminAttendanceAdjustNote?.value || "";
+    if (mode === "set") {
+        setStudentAttendanceTotal(studentId, rawValue, { classType, classLevel, note });
+        return;
+    }
+    const delta = mode === "remove" ? rawValue * -1 : rawValue;
     adjustStudentAttendance(studentId, delta, { classType, classLevel, note });
 }
 
@@ -7075,6 +7101,9 @@ function toggleAttendanceAdjustForm() {
     if (!portalEls.adminAttendanceAdjustForm) return;
     const isHidden = portalEls.adminAttendanceAdjustForm.hidden;
     portalEls.adminAttendanceAdjustForm.hidden = !isHidden;
+    if (portalEls.adminBulkAttendanceForm) {
+        portalEls.adminBulkAttendanceForm.hidden = !isHidden;
+    }
     if (portalEls.adminAttendanceAdjustOpen) {
         portalEls.adminAttendanceAdjustOpen.textContent = isHidden
             ? "Hide Attendance Adjust"
@@ -7129,6 +7158,146 @@ function adjustStudentAttendance(studentId, delta, options = {}) {
         .catch((error) => {
             console.error("adjust attendance", error);
             setAttendanceAdjustStatus(error.message || "Unable to adjust attendance.", "error");
+        });
+}
+
+function setStudentAttendanceTotal(studentId, lessonsCompleted, options = {}) {
+    const url = buildApiUrl("/portal/admin/attendance/set");
+    if (!url) return;
+    setAttendanceAdjustStatus("Setting exact lesson total...", "progress");
+    fetchFresh(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            studentId,
+            lessonsCompleted,
+            classType: options.classType,
+            classLevel: options.classLevel,
+            note: options.note
+        })
+    })
+        .then(async (res) => {
+            if (!res.ok) {
+                let reason = "Unable to set lesson total.";
+                try {
+                    const data = await res.json();
+                    reason = data?.error || reason;
+                } catch {
+                    reason = `${res.status} ${res.statusText}` || reason;
+                }
+                throw new Error(reason);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            if (data.student) {
+                const idx = portalState.admin.roster.findIndex(
+                    (s) => s.id?.toLowerCase() === data.student.id?.toLowerCase()
+                );
+                if (idx >= 0) {
+                    portalState.admin.roster[idx] = { ...portalState.admin.roster[idx], ...data.student };
+                }
+                portalState.admin.rosterSelected = { ...portalState.admin.rosterSelected, ...data.student };
+            }
+            if (data.attendance) {
+                updateRosterAttendanceSummary(studentId, data.attendance);
+            }
+            renderAdminRoster();
+            renderRosterDetail();
+            renderStudentModal();
+            loadAdminAttendance();
+            setAttendanceAdjustStatus(
+                `Lesson total set to ${data.targetLessonsCompleted} (${data.added || 0} added, ${data.removed || 0} removed).`,
+                "success"
+            );
+            setAdminStatus("Lesson total updated.", "success");
+        })
+        .catch((error) => {
+            console.error("set attendance total", error);
+            setAttendanceAdjustStatus(error.message || "Unable to set lesson total.", "error");
+        });
+}
+
+function applyBulkAttendancePreset() {
+    const presetBelts = new Set(["Yellow Belt", "Green Belt", "High Green Belt"]);
+    const select = portalEls.adminBulkAttendanceBelts;
+    if (select) {
+        Array.from(select.options || []).forEach((option) => {
+            option.selected = presetBelts.has(option.value);
+        });
+    }
+    if (portalEls.adminBulkAttendanceValue) {
+        portalEls.adminBulkAttendanceValue.value = "12";
+    }
+    if (portalEls.adminBulkAttendanceNote && !portalEls.adminBulkAttendanceNote.value.trim()) {
+        portalEls.adminBulkAttendanceNote.value = "Yellow/Green/High Green lesson correction";
+    }
+    setBulkAttendanceStatus("Preset loaded. Review and apply when ready.", "success");
+}
+
+function handleBulkAttendanceAdjust(event) {
+    event?.preventDefault();
+    if (!HAS_REMOTE_API) return;
+    const belts = Array.from(portalEls.adminBulkAttendanceBelts?.selectedOptions || [])
+        .map((option) => option.value)
+        .filter(Boolean);
+    const lessonsCompleted = Number.parseInt(portalEls.adminBulkAttendanceValue?.value || "0", 10);
+    if (!belts.length) {
+        setBulkAttendanceStatus("Select at least one belt.", "error");
+        return;
+    }
+    if (!Number.isFinite(lessonsCompleted) || lessonsCompleted < 0) {
+        setBulkAttendanceStatus("Enter a lesson count of 0 or more.", "error");
+        return;
+    }
+    const classType = portalEls.adminBulkAttendanceClass?.value || "basic";
+    const classLevel = portalEls.adminBulkAttendanceLevel?.value || "";
+    const note = portalEls.adminBulkAttendanceNote?.value || "";
+    const url = buildApiUrl("/portal/admin/attendance/bulk-set");
+    if (!url) return;
+    setBulkAttendanceStatus("Applying bulk lesson fix...", "progress");
+    fetchFresh(url, {
+        method: "POST",
+        headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+            belts,
+            lessonsCompleted,
+            classType,
+            classLevel,
+            note
+        })
+    })
+        .then(async (res) => {
+            if (!res.ok) {
+                let reason = "Unable to apply bulk lesson fix.";
+                try {
+                    const data = await res.json();
+                    reason = data?.error || reason;
+                } catch {
+                    reason = `${res.status} ${res.statusText}` || reason;
+                }
+                throw new Error(reason);
+            }
+            return res.json();
+        })
+        .then((data) => {
+            loadAdminRoster();
+            loadAdminAttendance();
+            if (portalState.admin.rosterSelected?.id) {
+                loadRosterProfile(portalState.admin.rosterSelected.id);
+            }
+            setBulkAttendanceStatus(
+                `Updated ${data.totalStudents || 0} student(s) to ${data.targetLessonsCompleted} lessons.`,
+                "success"
+            );
+            setAdminStatus("Bulk lesson fix applied.", "success");
+        })
+        .catch((error) => {
+            console.error("bulk attendance adjust", error);
+            setBulkAttendanceStatus(
+                error.message || "Unable to apply bulk lesson fix.",
+                "error"
+            );
         });
 }
 

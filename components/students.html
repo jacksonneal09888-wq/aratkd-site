@@ -203,10 +203,10 @@
       <p class="form-status" id="admin-roster-edit-status" aria-live="polite"></p>
     </form>
     <form id="admin-attendance-adjust-form" class="admin-enroll__grid" hidden>
-      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0;">Use a negative number to subtract sessions (e.g. -2).</p>
+      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0;">Use Add/Remove for small fixes, or Set Exact Lessons to force the total to the right number.</p>
       <label>
-        <span>Adjust Sessions (+/-)</span>
-        <input type="number" id="admin-attendance-adjust-value" placeholder="e.g. 3 or -2">
+        <span>Lesson Count</span>
+        <input type="number" id="admin-attendance-adjust-value" min="0" placeholder="e.g. 3">
       </label>
       <label>
         <span>Class Type</span>
@@ -220,8 +220,49 @@
         <span>Note</span>
         <input type="text" id="admin-attendance-adjust-note" placeholder="Adjustment reason">
       </label>
-      <button type="submit" class="btn-ghost">Apply Attendance Change</button>
+      <div class="admin-roster-actions" style="grid-column:1 / -1;">
+        <button type="submit" class="btn-ghost" data-adjust="add">Add Lessons</button>
+        <button type="submit" class="btn-ghost" data-adjust="remove">Remove Lessons</button>
+        <button type="submit" class="btn-primary" data-adjust="set">Set Exact Lessons</button>
+      </div>
       <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
+    </form>
+    <form id="admin-bulk-attendance-form" class="admin-enroll__grid" hidden>
+      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0;">Bulk lesson fix by belt. Preset button fills Yellow, Green, and High Green with 12 lessons.</p>
+      <label style="grid-column:1 / -1;">
+        <span>Belts</span>
+        <select id="admin-bulk-attendance-belts" multiple size="6">
+          <option value="Yellow Belt">Yellow Belt</option>
+          <option value="High Yellow Belt">High Yellow Belt</option>
+          <option value="Green Belt">Green Belt</option>
+          <option value="High Green Belt">High Green Belt</option>
+          <option value="Blue Belt">Blue Belt</option>
+          <option value="High Blue Belt">High Blue Belt</option>
+          <option value="Red Belt">Red Belt</option>
+          <option value="High Red Belt">High Red Belt</option>
+        </select>
+      </label>
+      <label>
+        <span>Set Lessons To</span>
+        <input type="number" id="admin-bulk-attendance-value" min="0" value="12">
+      </label>
+      <label>
+        <span>Class Type</span>
+        <input type="text" id="admin-bulk-attendance-class" placeholder="basic">
+      </label>
+      <label>
+        <span>Level</span>
+        <input type="text" id="admin-bulk-attendance-level" placeholder="Advanced">
+      </label>
+      <label>
+        <span>Note</span>
+        <input type="text" id="admin-bulk-attendance-note" placeholder="Bulk attendance correction">
+      </label>
+      <div class="admin-roster-actions" style="grid-column:1 / -1;">
+        <button type="button" class="btn-ghost" id="admin-bulk-attendance-preset">Preset Yellow/Green/High Green = 12</button>
+        <button type="submit" class="btn-primary">Apply Bulk Lesson Fix</button>
+      </div>
+      <p class="form-status" id="admin-bulk-attendance-status" aria-live="polite"></p>
     </form>
   </div>
 </section>
