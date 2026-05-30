@@ -7063,6 +7063,19 @@ function setAttendanceAdjustStatus(message, variant = "error") {
     portalEls.adminAttendanceAdjustStatus.classList.toggle("is-progress", variant === "progress");
 }
 
+function focusAttendanceAdjustForm() {
+    const field = portalEls.adminAttendanceAdjustValue;
+    if (!field) {
+        setAdminStatus("Attendance adjustment controls are unavailable on this page.", "error");
+        return;
+    }
+    const container = field.closest("form") || field;
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
+    field.focus();
+    field.select?.();
+    setAttendanceAdjustStatus("Use Add, Remove, or Set Exact Lessons for this student.", "progress");
+}
+
 function setBulkAttendanceStatus(message, variant = "error") {
     if (!portalEls.adminBulkAttendanceStatus) return;
     portalEls.adminBulkAttendanceStatus.textContent = message || "";
@@ -7813,6 +7826,10 @@ function handleRosterDetailButtons(event) {
     }
     const action = button.dataset.rosterAction;
     const studentId = portalState.admin.rosterSelected.id;
+    if (action === 'adjust-attendance') {
+        focusAttendanceAdjustForm();
+        return;
+    }
     if (action === 'report') {
         openReportCard(studentId);
         return;
