@@ -2999,6 +2999,86 @@ body.admin-modal-open {
     gap: 0.5rem;
 }
 
+.admin-attendance-adjust {
+    border: 1px solid rgba(8, 9, 10, 0.08);
+    border-radius: 0.9rem;
+    background: #fff;
+    padding: 1rem;
+}
+
+.admin-attendance-adjust__intro {
+    margin-bottom: 0.85rem;
+}
+
+.admin-attendance-adjust__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.admin-attendance-adjust__copy {
+    margin: 0.25rem 0 0;
+    color: rgba(8, 9, 10, 0.65);
+    font-size: 0.9rem;
+}
+
+.admin-attendance-adjust__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+}
+
+.admin-attendance-adjust__grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.admin-attendance-adjust__grid label small {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: rgba(8, 9, 10, 0.55);
+}
+
+.admin-attendance-adjust__grid input,
+.admin-attendance-adjust__grid select {
+    width: 100%;
+    padding: 0.75rem 0.85rem;
+    border-radius: 0.7rem;
+    border: 1px solid rgba(8, 9, 10, 0.14);
+    font-family: inherit;
+    font-size: 0.98rem;
+    background: #fff;
+}
+
+.admin-attendance-adjust__grid input:focus,
+.admin-attendance-adjust__grid select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(216, 31, 38, 0.14);
+}
+
+.admin-attendance-adjust__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 0.95rem;
+}
+
+.admin-attendance-adjust__actions .secondary-btn,
+.admin-attendance-adjust__actions .text-link-btn {
+    min-width: 140px;
+}
+
+.admin-attendance-adjust__actions .form-status {
+    margin: 0;
+    flex: 1 1 220px;
+}
+
 .admin-roster-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

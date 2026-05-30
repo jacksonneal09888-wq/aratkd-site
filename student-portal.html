@@ -778,40 +778,44 @@
                                                         </div>
                                                     </form>
                                                 </div>
-                                                <div>
-                                                    <p class="admin-accordion__hint">Add or remove sessions when a kiosk check-in is missed.</p>
+                                                <div class="admin-attendance-adjust">
+                                                    <div class="admin-attendance-adjust__intro">
+                                                        <p class="admin-attendance-adjust__title">Attendance Adjustment</p>
+                                                        <p class="admin-attendance-adjust__copy">Quickly add, remove, or overwrite a student's lesson total.</p>
+                                                    </div>
                                                     <form class="admin-attendance-adjust__form" id="admin-attendance-adjust-form" autocomplete="off">
                                                         <div class="admin-attendance-adjust__grid">
                                                             <label>
-                                                                <span>Sessions</span>
-                                                                <input type="number" id="admin-attendance-adjust-value" min="1" max="20" value="1" inputmode="numeric">
+                                                                <span>Lessons</span>
+                                                                <input type="number" id="admin-attendance-adjust-value" min="0" max="200" value="1" inputmode="numeric" placeholder="1">
                                                             </label>
                                                             <label>
                                                                 <span>Class</span>
                                                                 <select id="admin-attendance-adjust-class">
-                                                                    <option value="basic">Basic Class</option>
-                                                                    <option value="advanced">Advanced Class</option>
+                                                                    <option value="basic">Beginners</option>
+                                                                    <option value="advanced">Intermediate</option>
                                                                     <option value="little-ninjas">Little Ninjas</option>
                                                                 </select>
                                                             </label>
                                                             <label>
-                                                                <span>Level Label</span>
+                                                                <span>Label</span>
                                                                 <select id="admin-attendance-adjust-level">
                                                                     <option value="">Auto-detect</option>
-                                                                    <option value="Basic Class">Basic Class</option>
-                                                                    <option value="Advanced Class">Advanced Class</option>
+                                                                    <option value="Beginners">Beginners</option>
+                                                                    <option value="Intermediate">Intermediate</option>
                                                                     <option value="Little Ninjas">Little Ninjas</option>
                                                                     <option value="All Levels">All Levels</option>
                                                                 </select>
                                                             </label>
                                                             <label>
-                                                                <span>Note</span>
-                                                                <input type="text" id="admin-attendance-adjust-note" placeholder="e.g. manual make-up session">
+                                                                <span>Reason <small>(optional)</small></span>
+                                                                <input type="text" id="admin-attendance-adjust-note" placeholder="Make-up class, missed kiosk, etc.">
                                                             </label>
                                                         </div>
                                                         <div class="admin-attendance-adjust__actions">
-                                                            <button type="submit" class="secondary-btn" data-adjust="add">Add Sessions</button>
-                                                            <button type="submit" class="text-link-btn" data-adjust="remove">Remove Sessions</button>
+                                                            <button type="submit" class="secondary-btn" data-adjust="add">Add</button>
+                                                            <button type="submit" class="secondary-btn" data-adjust="remove">Remove</button>
+                                                            <button type="submit" class="secondary-btn" data-adjust="set">Set Exact Total</button>
                                                             <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
                                                         </div>
                                                     </form>

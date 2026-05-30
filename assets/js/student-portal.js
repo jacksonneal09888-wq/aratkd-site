@@ -7073,7 +7073,7 @@ function focusAttendanceAdjustForm() {
     container.scrollIntoView({ behavior: "smooth", block: "center" });
     field.focus();
     field.select?.();
-    setAttendanceAdjustStatus("Use Add, Remove, or Set Exact Lessons for this student.", "progress");
+    setAttendanceAdjustStatus("Use Add, Remove, or Set Exact Total for this student.", "progress");
 }
 
 function setBulkAttendanceStatus(message, variant = "error") {
