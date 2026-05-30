@@ -18,7 +18,7 @@ const SITE_API_BASE = (() => {
 })();
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_GID = "1924086127";
+const GOOGLE_CALENDAR_GID = "1157707621";
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
 const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;
