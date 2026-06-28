@@ -61,6 +61,16 @@
 
   /* ---------- Build the widget DOM ---------- */
   function buildWidget() {
+    /* Inject label CSS so the button accommodates the "MASTER ARA" text */
+    var style = document.createElement('style');
+    style.textContent =
+      '#ara-chat-btn{width:auto;min-width:64px;height:auto;padding:7px 10px 6px;border-radius:32px;flex-direction:column;gap:2px;}' +
+      '#ara-chat-btn .ara-chat-btn__icon svg{width:26px;height:26px;}' +
+      '#ara-chat-btn .ara-chat-btn__label{font-size:7px;font-weight:800;letter-spacing:1px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;}' +
+      '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
+      '#ara-chat-btn.is-open{padding:10px;min-width:unset;border-radius:50%;}';
+    document.head.appendChild(style);
+
     var wrapper = document.createElement('div');
     wrapper.id = 'ara-chat-widget';
     wrapper.setAttribute('aria-label', 'Master Ara Chat Bot');
@@ -69,29 +79,30 @@
       /* Floating trigger button */
       '<button id="ara-chat-btn" aria-expanded="false" aria-controls="ara-chat-panel" title="Chat with Master Ara Bot">' +
         '<span class="ara-chat-btn__icon" aria-hidden="true">' +
-          /* Chibi TKD kicker — big head, thick lines, kick impact burst */
+          /* Master Ara — chibi sensei with black belt */
           '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">' +
-            /* Impact burst at kick contact point */
-            '<line x1="2.5" y1="7"  x2="0.5" y2="5"   stroke-width="1.4" fill="none"/>' +
-            '<line x1="2"   y1="9"  x2="0"   y2="9"   stroke-width="1.4" fill="none"/>' +
-            '<line x1="2.5" y1="11" x2="0.5" y2="13"  stroke-width="1.4" fill="none"/>' +
-            /* Faint speed trail behind kick leg */
-            '<line x1="6" y1="9.5" x2="9" y2="10.5" stroke-width="0.8" fill="none" opacity="0.4"/>' +
-            /* Head — huge chibi circle (≈1/3 of total height) */
-            '<circle cx="17" cy="4.5" r="3.8" stroke="none"/>' +
-            /* Body (short compact torso) */
-            '<line x1="17" y1="8.3"  x2="15"  y2="12"   stroke-width="2.5" fill="none"/>' +
-            /* Kicking leg fully extended upper-left */
-            '<line x1="15" y1="12"   x2="3.5" y2="9"    stroke-width="2.5" fill="none"/>' +
-            /* Standing leg — two segments, slightly bent */
-            '<line x1="15" y1="12"   x2="14.5" y2="17.5" stroke-width="2.5" fill="none"/>' +
-            '<line x1="14.5" y1="17.5" x2="12.5" y2="21.5" stroke-width="2"   fill="none"/>' +
-            /* Back arm sweeping right (counter-balance) */
-            '<line x1="16" y1="10"   x2="21"  y2="13"   stroke-width="2"   fill="none"/>' +
-            /* Front arm punching toward kick */
-            '<line x1="16" y1="10"   x2="12.5" y2="11.5" stroke-width="2"   fill="none"/>' +
+            /* Large chibi head */
+            '<circle cx="14" cy="5" r="4" stroke="none"/>' +
+            /* Upright body */
+            '<line x1="14" y1="9" x2="13.5" y2="15" stroke-width="2.5" fill="none"/>' +
+            /* Dobok V-collar */
+            '<path d="M12.5 9.5 L14 11.5 L15.5 9.5" stroke-width="1" fill="none"/>' +
+            /* BLACK BELT — two parallel lines forming belt width */
+            '<line x1="10.5" y1="13.5" x2="16.5" y2="13.5" stroke-width="1.8" fill="none"/>' +
+            '<line x1="10.5" y1="15.5" x2="16.5" y2="15.5" stroke-width="1.8" fill="none"/>' +
+            /* Belt knot in center */
+            '<rect x="12.8" y="12.8" width="2.4" height="3.4" rx="0.4" stroke="none"/>' +
+            /* Commanding arm extended forward */
+            '<line x1="14" y1="11.5" x2="3" y2="10.5" stroke-width="2" fill="none"/>' +
+            /* Other arm chambered */
+            '<line x1="14" y1="11.5" x2="19.5" y2="13" stroke-width="2" fill="none"/>' +
+            /* Wide stance left leg */
+            '<line x1="13.5" y1="15.5" x2="10" y2="23" stroke-width="2.5" fill="none"/>' +
+            /* Wide stance right leg */
+            '<line x1="13.5" y1="15.5" x2="17.5" y2="23" stroke-width="2.5" fill="none"/>' +
           '</svg>' +
         '</span>' +
+        '<span class="ara-chat-btn__label" aria-hidden="true">MASTER ARA</span>' +
         '<span class="ara-chat-btn__close" aria-hidden="true">✕</span>' +
       '</button>' +
 
