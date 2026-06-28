@@ -4968,20 +4968,38 @@ body[data-admin-panel-view="report"] .admin-report-card__dialog {
 }
 
 .portal-admin .admin-nav__item {
-    min-height: 36px;
-    padding: 0.4rem 0.55rem;
-    font-size: 0.8rem;
-    line-height: 1.1;
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.84rem;
+    line-height: 1;
+    grid-template-columns: 32px 1fr auto;
+    gap: 0.65rem;
+    white-space: nowrap;
+}
+
+.portal-admin .admin-nav__item > span:not(.admin-nav__icon):not(.admin-nav__badge) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .portal-admin .admin-nav__icon {
-    width: 20px;
-    height: 20px;
-    font-size: 0.72rem;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    border-radius: 0.6rem;
 }
 
 .portal-admin .admin-nav__badge {
-    font-size: 0.65rem;
+    font-size: 0.68rem;
+    min-width: 20px;
+    height: 20px;
+}
+
+.portal-admin .admin-nav__section-label {
+    margin-top: 1.1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.13em;
 }
 
 .portal-admin .btn-ghost,
