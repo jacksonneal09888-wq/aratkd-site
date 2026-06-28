@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /portal-admin
+Disallow: /admin-new-student
+Disallow: /kiosk
+Disallow: /student-portal
+Disallow: /dist/
+Disallow: /backend/
+
+Sitemap: https://www.aratkd.com/sitemap.xml
