@@ -69,28 +69,27 @@
       /* Floating trigger button */
       '<button id="ara-chat-btn" aria-expanded="false" aria-controls="ara-chat-panel" title="Chat with Master Ara Bot">' +
         '<span class="ara-chat-btn__icon" aria-hidden="true">' +
-          /* Animation-style chibi TKD kicker with speed lines */
-          '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
-            /* Speed lines — three horizontal streaks showing kick momentum */
-            '<line x1="0.5" y1="7.5" x2="6" y2="8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.9"/>' +
-            '<line x1="0" y1="10.5" x2="5.5" y2="10.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none" opacity="0.65"/>' +
-            '<line x1="0.5" y1="13.5" x2="5.5" y2="12.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.4"/>' +
-            /* Head — large chibi proportions */
-            '<circle cx="17" cy="4.5" r="3.5" fill="currentColor"/>' +
-            /* Compact torso angled into kick */
-            '<path d="M15 8 L19.5 8.5 L19 13 L14.5 12.5 Z" fill="currentColor"/>' +
-            /* Kicking leg upper thigh going upper-left */
-            '<path d="M14.5 12.5 L10.5 9.5 L9 11 L13 14 Z" fill="currentColor"/>' +
-            /* Kicking lower leg + foot extending further */
-            '<path d="M9 9.5 L6 7.5 L4.5 9 L7.5 11 L9.5 11.5 Z" fill="currentColor"/>' +
-            /* Foot tip (anime boot detail) */
-            '<ellipse cx="5" cy="8.5" rx="1.8" ry="1" transform="rotate(-20 5 8.5)" fill="currentColor"/>' +
-            /* Standing leg going down */
-            '<path d="M19 13 L18.5 19.5 L16.5 23 L18.5 23 L20.5 19.5 L21 13 Z" fill="currentColor"/>' +
-            /* Front arm following kick direction */
-            '<path d="M15.5 10.5 L11.5 12 L11 13.5 L15 12 Z" fill="currentColor"/>' +
-            /* Back arm counter-balance */
-            '<path d="M18.5 10 L22.5 12.5 L23 14 L19 12 Z" fill="currentColor"/>' +
+          /* Chibi TKD kicker — big head, thick lines, kick impact burst */
+          '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">' +
+            /* Impact burst at kick contact point */
+            '<line x1="2.5" y1="7"  x2="0.5" y2="5"   stroke-width="1.4" fill="none"/>' +
+            '<line x1="2"   y1="9"  x2="0"   y2="9"   stroke-width="1.4" fill="none"/>' +
+            '<line x1="2.5" y1="11" x2="0.5" y2="13"  stroke-width="1.4" fill="none"/>' +
+            /* Faint speed trail behind kick leg */
+            '<line x1="6" y1="9.5" x2="9" y2="10.5" stroke-width="0.8" fill="none" opacity="0.4"/>' +
+            /* Head — huge chibi circle (≈1/3 of total height) */
+            '<circle cx="17" cy="4.5" r="3.8" stroke="none"/>' +
+            /* Body (short compact torso) */
+            '<line x1="17" y1="8.3"  x2="15"  y2="12"   stroke-width="2.5" fill="none"/>' +
+            /* Kicking leg fully extended upper-left */
+            '<line x1="15" y1="12"   x2="3.5" y2="9"    stroke-width="2.5" fill="none"/>' +
+            /* Standing leg — two segments, slightly bent */
+            '<line x1="15" y1="12"   x2="14.5" y2="17.5" stroke-width="2.5" fill="none"/>' +
+            '<line x1="14.5" y1="17.5" x2="12.5" y2="21.5" stroke-width="2"   fill="none"/>' +
+            /* Back arm sweeping right (counter-balance) */
+            '<line x1="16" y1="10"   x2="21"  y2="13"   stroke-width="2"   fill="none"/>' +
+            /* Front arm punching toward kick */
+            '<line x1="16" y1="10"   x2="12.5" y2="11.5" stroke-width="2"   fill="none"/>' +
           '</svg>' +
         '</span>' +
         '<span class="ara-chat-btn__close" aria-hidden="true">✕</span>' +
