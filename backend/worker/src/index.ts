@@ -137,6 +137,10 @@ const resolveArchiveFilter = async (db: D1Database, alias?: string) => {
   return ACTIVE_STUDENT_FILTER;
 };
 
+const CALENDAR_SPREADSHEET_ID = '14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4';
+const CALENDAR_GID = '1157707621';
+const CALENDAR_CSV_URL = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${CALENDAR_GID}`;
+
 const kioskClassCatalog = [
   {
     id: 'little-ninjas',
@@ -1314,6 +1318,7 @@ app.get('/kiosk/classes', async (c) => {
   return c.json({
     classes: kioskClassCatalog,
     events,
+    calendarCsvUrl: CALENDAR_CSV_URL,
     generatedAt: new Date().toISOString()
   });
 });

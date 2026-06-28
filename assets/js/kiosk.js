@@ -3,6 +3,7 @@ const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
 const themeState = { override: null, rotation: null };
+let kioskCalendarCsvUrl = null;
 
 const state = {
   selectedClass: null,
@@ -456,6 +457,11 @@ async function loadClasses() {
       throw new Error("Unable to load classes");
     }
     const data = await res.json();
+    if (data.calendarCsvUrl && !kioskCalendarCsvUrl) {
+      kioskCalendarCsvUrl = data.calendarCsvUrl;
+      await fetchWeekTheme();
+      updateWeekTheme();
+    }
     const classes = Array.isArray(data.classes) ? data.classes : fallbackClasses;
     const events = Array.isArray(data.events)
       ? data.events.map((event) => ({
@@ -505,7 +511,92 @@ function bindSetupControls() {
   els.setupClose?.addEventListener("click", closeSetupPanel);
 }
 
+function splitCsvLine(line) {
+  const cells = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if (ch === "," && !inQuotes) {
+      cells.push(current); current = "";
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+function parseWeekFocusFromCsv(csvText) {
+  const today = new Date();
+  const rows = csvText.split(/\r?\n/).map(line => splitCsvLine(line));
+
+  // First non-empty row is the month header (e.g. "June 2026")
+  let monthLabel = "";
+  for (const row of rows) {
+    const cell = (row[0] || "").replace(/"/g, "").trim();
+    if (cell) { monthLabel = cell; break; }
+  }
+  const monthMatch = monthLabel.match(/(\w+)\s+(\d{4})/);
+  if (!monthMatch) return null;
+  const sheetDate = new Date(`${monthMatch[1]} 1, ${monthMatch[2]}`);
+  if (isNaN(sheetDate.getTime())) return null;
+  if (sheetDate.getFullYear() !== today.getFullYear() || sheetDate.getMonth() !== today.getMonth()) {
+    return null;
+  }
+
+  const todayNum = today.getDate();
+  for (let i = 1; i < rows.length - 1; i++) {
+    const focusCell = (rows[i][0] || "").replace(/"/g, "").replace(/^★\s*/, "").trim();
+    if (!focusCell) continue;
+    const nextRow = rows[i + 1] || [];
+    const dayNums = nextRow.slice(0, 7).map(v => parseInt((v || "").replace(/"/g, "").trim(), 10));
+    const hasNums = dayNums.some(n => !isNaN(n) && n >= 1 && n <= 31);
+    if (!hasNums) continue;
+    if (dayNums.includes(todayNum)) return focusCell;
+    i += 2;
+  }
+  return null;
+}
+
+function themeFromCalendarFocus(focus) {
+  const lower = (focus || "").toLowerCase();
+  const label = focus.replace(/^week\s*\d+\s*/i, "").trim() || focus;
+  if (lower.includes("sparring") || lower.includes("gear")) {
+    return { label, message: `${label}: sharpen timing, control, and ring awareness. Bring sparring gear.` };
+  }
+  if (lower.includes("poomsae") || lower.includes("form")) {
+    return { label, message: `${label}: sharpen forms, stances, and precision.` };
+  }
+  if (lower.includes("break")) {
+    return { label, message: `${label}: power, focus, and technique. Bring your boards!` };
+  }
+  return { label, message: `${label}: train hard and stay focused this week.` };
+}
+
 async function fetchWeekTheme() {
+  // Primary: pull live theme from the Google Sheets calendar
+  if (kioskCalendarCsvUrl) {
+    try {
+      const res = await fetch(`${kioskCalendarCsvUrl}&t=${Date.now()}`, { cache: "no-store" });
+      if (res.ok) {
+        const csv = await res.text();
+        const focus = parseWeekFocusFromCsv(csv);
+        if (focus) {
+          themeState.override = themeFromCalendarFocus(focus);
+          themeState.rotation = null;
+          return;
+        }
+      }
+    } catch (error) {
+      console.warn("Unable to load calendar week theme:", error);
+    }
+  }
+
+  // Fallback: static rotation file
   try {
     const res = await fetch(`assets/data/week-theme.json?v=${Date.now()}`);
     if (!res.ok) return;
