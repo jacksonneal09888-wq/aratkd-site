@@ -64,11 +64,11 @@
     /* Inject label CSS so the button accommodates the "MASTER ARA" text */
     var style = document.createElement('style');
     style.textContent =
-      '#ara-chat-btn{width:auto;min-width:64px;height:auto;padding:7px 10px 6px;border-radius:32px;flex-direction:column;gap:2px;}' +
-      '#ara-chat-btn .ara-chat-btn__icon svg{width:26px;height:26px;}' +
-      '#ara-chat-btn .ara-chat-btn__label{font-size:7px;font-weight:800;letter-spacing:1px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;}' +
+      '#ara-chat-btn{width:auto;min-width:78px;height:auto;padding:10px 14px 9px;border-radius:40px;flex-direction:column;gap:4px;}' +
+      '#ara-chat-btn .ara-chat-btn__icon svg{width:40px;height:40px;}' +
+      '#ara-chat-btn .ara-chat-btn__label{font-size:8.5px;font-weight:800;letter-spacing:1.2px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
-      '#ara-chat-btn.is-open{padding:10px;min-width:unset;border-radius:50%;}';
+      '#ara-chat-btn.is-open{padding:14px;min-width:unset;border-radius:50%;}';
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
