@@ -90,6 +90,12 @@ async function loadPanels() {
       console.warn("Panel load failed", url, err);
     }
   }
+  // Panels are appended after the initial component may have already loaded.
+  // Re-bind so panel elements (student drawer, report card, event form, email
+  // panel) are found by refreshAdminEls and get their handlers attached.
+  if (typeof window.bindAdminEvents === "function") {
+    window.bindAdminEvents();
+  }
 }
 
 function initTabs() {
