@@ -1,0 +1,32 @@
+<section class="admin-card" id="admin-archive" data-admin-panel="tab-archive">
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">30-day hold before permanent deletion</p>
+      <h3>Archived Students</h3>
+    </div>
+    <div class="admin-topbar__actions">
+      <button type="button" class="text-link-btn" id="admin-archive-refresh">Refresh</button>
+    </div>
+  </div>
+  <p class="admin-card__meta">Archived students are removed from the active roster. Records are permanently deleted after 30 days.</p>
+  <div class="admin-table-wrap">
+    <table class="admin-table" aria-label="Archived students">
+      <thead>
+        <tr>
+          <th scope="col">ARA ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Belt</th>
+          <th scope="col">Archived On</th>
+          <th scope="col">Days Left</th>
+          <th scope="col">Reason</th>
+        </tr>
+      </thead>
+      <tbody id="admin-archive-body">
+        <tr>
+          <td colspan="6">Sign in and click Refresh to load archived students.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="form-status" id="admin-archive-status" aria-live="polite"></p>
+</section>

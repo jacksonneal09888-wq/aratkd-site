@@ -1,11 +1,69 @@
 <section class="admin-card" id="admin-settings" data-admin-panel="tab-settings">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Settings</h3>
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">ARA TKD Staff Console</p>
+      <h3>Settings &amp; Reference</h3>
+    </div>
     <span class="admin-pill admin-pill--warning">ARA TKD</span>
   </div>
-  <ul>
-    <li>Sidebar remembers your last tab (localStorage).</li>
-    <li>Rajdhani headings and Roboto body for brand consistency.</li>
-    <li>Activated events appear on the kiosk; hidden events stay off.</li>
+
+  <div class="admin-roster-cards" style="margin-bottom:1.5rem;">
+    <div class="admin-roster-card">
+      <p class="card-label">Portal Mode</p>
+      <p class="card-value">Admin</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Theme</p>
+      <p class="card-value">Auto (follows OS)</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Fonts</p>
+      <p class="card-value">Rajdhani + Roboto</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Session</p>
+      <p class="card-value">JWT — expires in 8h</p>
+    </div>
+  </div>
+
+  <div class="admin-card__header" style="margin-top:1rem;">
+    <h4 style="font-family:var(--font-heading);letter-spacing:0.06em;text-transform:uppercase;font-size:0.9rem;">Belt Promotion Requirements</h4>
+  </div>
+  <div class="admin-table-wrap">
+    <table class="admin-table" aria-label="Belt lesson requirements">
+      <thead>
+        <tr>
+          <th scope="col">Belt</th>
+          <th scope="col">Lessons Required</th>
+          <th scope="col">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>White Belt</td><td>25</td><td>Attendance resets to 0 on each promotion</td></tr>
+        <tr><td>High White Belt</td><td>25</td><td></td></tr>
+        <tr><td>Yellow Belt</td><td>25</td><td></td></tr>
+        <tr><td>High Yellow Belt</td><td>25</td><td></td></tr>
+        <tr><td>Green Belt</td><td>25</td><td></td></tr>
+        <tr><td>High Green Belt</td><td>30</td><td></td></tr>
+        <tr><td>Blue Belt</td><td>30</td><td></td></tr>
+        <tr><td>High Blue Belt</td><td>32</td><td></td></tr>
+        <tr><td>Red Belt</td><td>42</td><td></td></tr>
+        <tr><td>High Red Belt</td><td>48</td><td></td></tr>
+        <tr><td>Black Belt</td><td>50</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-card__header" style="margin-top:1.5rem;">
+    <h4 style="font-family:var(--font-heading);letter-spacing:0.06em;text-transform:uppercase;font-size:0.9rem;">Admin Quick Reference</h4>
+  </div>
+  <ul class="admin-card__meta" style="list-style:none;padding:0;display:grid;gap:0.5rem;margin-top:0.5rem;">
+    <li>✅ Sidebar remembers your last active tab across sessions (localStorage).</li>
+    <li>✅ Events marked <strong>Active</strong> appear on the student kiosk check-in screen.</li>
+    <li>✅ Archiving a student removes them from the live roster for 30 days, then permanently deletes.</li>
+    <li>✅ Attendance count only resets to 0 when a student is promoted to a new belt rank.</li>
+    <li>✅ Students can earn more lessons than required — the threshold is a minimum, not a cap.</li>
+    <li>✅ Kiosk week theme is pulled live from the Google Sheets calendar — no code deploy needed when the calendar updates.</li>
+    <li>✅ The kiosk only accepts check-ins on Mon / Wed / Fri.</li>
   </ul>
 </section>

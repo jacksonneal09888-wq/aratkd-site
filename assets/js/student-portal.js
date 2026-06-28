@@ -553,6 +553,7 @@ const portalEls = {
     adminEventType: document.getElementById("admin-event-type"),
     adminEventActive: document.getElementById("admin-event-active"),
     adminEventsStatus: document.getElementById("admin-events-status"),
+    adminEventFormStatus: document.getElementById("admin-event-form-status"),
     adminTabs: document.getElementById("admin-tabs"),
     adminCalendarUpcoming: document.getElementById("admin-calendar-upcoming"),
     adminEmailForm: document.getElementById("admin-email-form"),
@@ -728,6 +729,7 @@ function refreshAdminEls() {
         adminEventType: "admin-event-type",
         adminEventActive: "admin-event-active",
         adminEventsStatus: "admin-events-status",
+        adminEventFormStatus: "admin-event-form-status",
         adminTabs: "admin-tabs",
         adminCalendarUpcoming: "admin-calendar-upcoming",
         adminEmailForm: "admin-email-form",
@@ -1081,6 +1083,7 @@ document.body.addEventListener("admin:component:loaded", (event) => {
             loadAdminBanners();
         } else if (tabId === "tab-students" || tabId === "tab-membership") {
             loadAdminRoster();
+            if (tabId === "tab-membership") renderAdminMembership();
         } else if (tabId === "tab-events") {
             loadAdminEvents();
         } else if (tabId === "tab-classes" || tabId === "tab-attendance") {
@@ -1088,6 +1091,8 @@ document.body.addEventListener("admin:component:loaded", (event) => {
         } else if (tabId === "tab-calendar") {
             loadAdminEvents();
             loadAdminAttendance();
+        } else if (tabId === "tab-archive") {
+            loadAdminArchive();
         } else if (tabId === "tab-banners" || tabId === "tab-settings") {
             loadAdminBanners();
         } else if (tabId === "tab-communications") {
@@ -3223,7 +3228,7 @@ function handleAdminEventSubmit(event) {
         type: portalEls.adminEventType?.value || "Special Class",
         isActive: portalEls.adminEventActive?.checked || false
     };
-    setAdminEventsStatus("Saving event...", "progress");
+    setAdminEventFormStatus("Saving event...", "progress");
     fetchFresh(url, {
         method: "POST",
         headers: getAdminAuthHeaders({ "Content-Type": "application/json" }),
@@ -3237,10 +3242,12 @@ function handleAdminEventSubmit(event) {
             portalState.admin.events = Array.isArray(data.events) ? data.events : [];
             renderAdminEvents();
             clearAdminEventForm();
-            setAdminEventsStatus("Event saved.", "success");
+            setAdminEventFormStatus("Event saved.", "success");
+            setAdminEventsStatus("Event list updated.", "success");
         })
         .catch((error) => {
             console.error("event submit", error);
+            setAdminEventFormStatus(error.message || "Unable to save event.", "error");
             setAdminEventsStatus(error.message || "Unable to save event.", "error");
         });
 }
@@ -3341,6 +3348,7 @@ function loadAdminRoster(options = {}) {
         .finally(() => {
             portalState.admin.isRosterLoading = false;
             renderAdminRoster();
+            renderAdminMembership();
         });
 }
 
@@ -4191,7 +4199,7 @@ function renderAdminRoster() {
             row.classList.add("is-selected");
         }
         const idCell = document.createElement("td");
-        idCell.innerHTML = `<strong>${student.id}</strong>`;
+        idCell.innerHTML = `<strong>${escapeHtml(student.id)}</strong>`;
         const nameCell = document.createElement("td");
         nameCell.textContent = student.name || "—";
 
@@ -4262,6 +4270,28 @@ function renderAdminRoster() {
         renderStudentModal();
         loadRosterProfile(roster[0].id);
     }
+}
+
+function renderAdminMembership() {
+    const roster = portalState.admin.roster || [];
+    const active = roster.filter((s) => !s.isSuspended && s.status !== "inactive");
+    const counts = { "Month-to-Month": 0, "Tier 1": 0, "Tier 2": 0, "Tier 3": 0, Annual: 0, none: 0 };
+    active.forEach((s) => {
+        const t = s.membershipType || "";
+        if (counts[t] !== undefined) counts[t]++;
+        else counts.none++;
+    });
+    const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+    set("admin-membership-count-active", active.length || "—");
+    set("admin-membership-count-mtm", counts["Month-to-Month"] || "—");
+    set("admin-membership-count-t1", counts["Tier 1"] || "—");
+    set("admin-membership-count-t2", counts["Tier 2"] || "—");
+    set("admin-membership-count-t3", counts["Tier 3"] || "—");
+    set("admin-membership-count-annual", counts.Annual || "—");
+    set("admin-membership-count-none", counts.none || "—");
 }
 
 function renderAdminArchive() {
@@ -4484,6 +4514,13 @@ function setAdminEventsStatus(message, variant = "error") {
     portalEls.adminEventsStatus.textContent = message || "";
     portalEls.adminEventsStatus.classList.toggle("is-success", variant === "success");
     portalEls.adminEventsStatus.classList.toggle("is-progress", variant === "progress");
+}
+
+function setAdminEventFormStatus(message, variant = "error") {
+    if (!portalEls.adminEventFormStatus) return;
+    portalEls.adminEventFormStatus.textContent = message || "";
+    portalEls.adminEventFormStatus.classList.toggle("is-success", variant === "success");
+    portalEls.adminEventFormStatus.classList.toggle("is-progress", variant === "progress");
 }
 
 function setAdminEmailStatus(message, variant = "error") {
