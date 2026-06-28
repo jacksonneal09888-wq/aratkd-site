@@ -3,6 +3,7 @@ import { sign, verify, type JWTPayload } from 'hono/jwt';
 
 interface Env {
   PORTAL_DB: D1Database;
+  AI: Ai;
   ADMIN_PORTAL_KEY?: string;
   KIOSK_PORTAL_KEY?: string;
   PORTAL_JWT_SECRET?: string;
@@ -12,7 +13,6 @@ interface Env {
   BREVO_API_KEY?: string;
   BREVO_SENDER_EMAIL?: string;
   BREVO_SENDER_NAME?: string;
-  ANTHROPIC_API_KEY?: string;
 }
 
 const MASTER_ARA_SYSTEM_PROMPT = `You are the Master Ara Bot — the friendly, knowledgeable AI guide for Ara's Martial Arts Sportsplex in Siler City, NC. You help students, parents, and visitors navigate the website, answer questions about programs, belts, and training, and guide them to take action.
@@ -2718,11 +2718,6 @@ app.post('/portal/admin/email/send', async (c) => {
 });
 
 app.post('/api/chat', async (c) => {
-  const anthropicKey = c.env.ANTHROPIC_API_KEY;
-  if (!anthropicKey) {
-    return c.json({ error: 'Chat service not configured' }, 503);
-  }
-
   const body = await c.req.json().catch(() => ({}));
   const rawMessages = Array.isArray(body.messages) ? body.messages : [];
 
@@ -2738,29 +2733,18 @@ app.post('/api/chat', async (c) => {
     return c.json({ error: 'Last message must be from user' }, 400);
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 600,
-      system: MASTER_ARA_SYSTEM_PROMPT,
-      messages
-    })
-  });
+  const result = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
+    messages: [
+      { role: 'system', content: MASTER_ARA_SYSTEM_PROMPT },
+      ...messages
+    ],
+    max_tokens: 600
+  }) as any;
 
-  if (!response.ok) {
-    const errText = await response.text().catch(() => '');
-    console.error('Anthropic error:', response.status, errText);
-    return c.json({ error: 'Chat service unavailable' }, 502);
+  const content = (result?.response || '').trim();
+  if (!content) {
+    return c.json({ error: 'Empty response from AI' }, 502);
   }
-
-  const data = await response.json() as any;
-  const content = (data?.content?.[0]?.text || '').trim();
   return c.json({ content });
 });
 

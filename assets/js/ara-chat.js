@@ -69,8 +69,14 @@
       /* Floating trigger button */
       '<button id="ara-chat-btn" aria-expanded="false" aria-controls="ara-chat-panel" title="Chat with Master Ara Bot">' +
         '<span class="ara-chat-btn__icon" aria-hidden="true">' +
+          /* TKD high-kick silhouette */
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' +
+            /* Head */ '<circle cx="16" cy="3.5" r="1.8" fill="currentColor" stroke="none"/>' +
+            /* Body leaning into kick */ '<line x1="16" y1="5.3" x2="14" y2="11"/>' +
+            /* High kick — leg extended left */ '<polyline points="14,11 8,7.5 3.5,6"/>' +
+            /* Standing leg */ '<polyline points="14,11 13.5,17 11.5,21"/>' +
+            /* Back arm (balance) */ '<line x1="15" y1="8.5" x2="20" y2="11"/>' +
+            /* Front arm (toward kick) */ '<line x1="15" y1="8.5" x2="12" y2="11"/>' +
           '</svg>' +
         '</span>' +
         '<span class="ara-chat-btn__close" aria-hidden="true">✕</span>' +
