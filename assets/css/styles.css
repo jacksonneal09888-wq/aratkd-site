@@ -6269,3 +6269,26 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     text-transform: uppercase;
     font-size: 0.75rem;
 }
+
+/* Skip-to-content link — hidden until keyboard focused */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 1rem;
+    z-index: 9999;
+    padding: 0.65rem 1.25rem;
+    background: var(--brand-500);
+    color: #fff;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    border-radius: 0 0 0.5rem 0.5rem;
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}

@@ -6,5 +6,6 @@ Disallow: /kiosk
 Disallow: /student-portal
 Disallow: /dist/
 Disallow: /backend/
+Disallow: /pro-arasigns-landing
 
 Sitemap: https://www.aratkd.com/sitemap.xml
