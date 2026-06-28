@@ -64,11 +64,12 @@
     /* Inject label CSS so the button accommodates the "MASTER ARA" text */
     var style = document.createElement('style');
     style.textContent =
-      '#ara-chat-btn{width:auto;min-width:78px;height:auto;padding:10px 14px 9px;border-radius:40px;flex-direction:column;gap:4px;}' +
-      '#ara-chat-btn .ara-chat-btn__icon svg{width:40px;height:40px;}' +
-      '#ara-chat-btn .ara-chat-btn__label{font-size:8.5px;font-weight:800;letter-spacing:1.2px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;}' +
+      '#ara-chat-btn{width:auto;min-width:72px;height:auto;padding:9px 12px 8px;border-radius:36px;flex-direction:column;gap:3px;}' +
+      '#ara-chat-btn .ara-chat-btn__icon{font-size:30px;line-height:1;display:block;}' +
+      '#ara-chat-btn .ara-chat-btn__label{font-size:8px;font-weight:800;letter-spacing:0.8px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;white-space:nowrap;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
-      '#ara-chat-btn.is-open{padding:14px;min-width:unset;border-radius:50%;}';
+      '#ara-chat-btn.is-open .ara-chat-btn__icon{display:none;}' +
+      '#ara-chat-btn.is-open{padding:13px;min-width:unset;border-radius:50%;}';
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
@@ -78,34 +79,8 @@
     wrapper.innerHTML =
       /* Floating trigger button */
       '<button id="ara-chat-btn" aria-expanded="false" aria-controls="ara-chat-panel" title="Chat with Master Ara Bot">' +
-        '<span class="ara-chat-btn__icon" aria-hidden="true">' +
-          /* Master Ara — chibi sensei with black belt */
-          '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">' +
-            /* Head — large chibi proportions */
-            '<circle cx="14" cy="5" r="4" stroke="none"/>' +
-            /* Upper torso */
-            '<line x1="14" y1="9" x2="14" y2="13" stroke-width="2.5" fill="none"/>' +
-            /* Dobok V-collar */
-            '<path d="M12.5 9.5 L14 11.5 L15.5 9.5" stroke-width="1" fill="none"/>' +
-            /* === BLACK BELT — explicit dark color so it reads as black === */
-            /* Belt band across waist */
-            '<rect x="10" y="12.5" width="8" height="3" rx="0.5" fill="#111" stroke="none"/>' +
-            /* Belt knot (center rectangle, white outline to show the tie) */
-            '<rect x="12.5" y="11.8" width="3" height="4.4" rx="0.5" fill="#111" stroke="white" stroke-width="0.7"/>' +
-            /* === END BELT === */
-            /* Lower hips below belt */
-            '<line x1="14" y1="15.5" x2="13.5" y2="17.5" stroke-width="2.5" fill="none"/>' +
-            /* Commanding arm extended forward (teaching gesture) */
-            '<line x1="14" y1="11.5" x2="3" y2="10.5" stroke-width="2" fill="none"/>' +
-            /* Other arm chambered at side */
-            '<line x1="14" y1="11.5" x2="19.5" y2="13" stroke-width="2" fill="none"/>' +
-            /* Wide power stance — left leg */
-            '<line x1="13.5" y1="17.5" x2="10" y2="23" stroke-width="2.5" fill="none"/>' +
-            /* Wide power stance — right leg */
-            '<line x1="13.5" y1="17.5" x2="17.5" y2="23" stroke-width="2.5" fill="none"/>' +
-          '</svg>' +
-        '</span>' +
-        '<span class="ara-chat-btn__label" aria-hidden="true">MASTER ARA</span>' +
+        '<span class="ara-chat-btn__icon" aria-hidden="true">🥋</span>' +
+        '<span class="ara-chat-btn__label" aria-hidden="true">Master Ara</span>' +
         '<span class="ara-chat-btn__close" aria-hidden="true">✕</span>' +
       '</button>' +
 
