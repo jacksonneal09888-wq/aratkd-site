@@ -64,12 +64,12 @@
     /* Inject label CSS so the button accommodates the "MASTER ARA" text */
     var style = document.createElement('style');
     style.textContent =
-      '#ara-chat-btn{width:auto;min-width:72px;height:auto;padding:9px 12px 8px;border-radius:36px;flex-direction:column;gap:3px;}' +
-      '#ara-chat-btn .ara-chat-btn__icon{font-size:30px;line-height:1;display:block;}' +
-      '#ara-chat-btn .ara-chat-btn__label{font-size:8px;font-weight:800;letter-spacing:0.8px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;white-space:nowrap;}' +
+      '#ara-chat-btn{width:auto;min-width:88px;height:auto;padding:13px 16px 12px;border-radius:44px;flex-direction:column;gap:5px;}' +
+      '#ara-chat-btn .ara-chat-btn__icon{font-size:38px;line-height:1;display:block;}' +
+      '#ara-chat-btn .ara-chat-btn__label{font-size:9.5px;font-weight:800;letter-spacing:0.9px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;white-space:nowrap;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__icon{display:none;}' +
-      '#ara-chat-btn.is-open{padding:13px;min-width:unset;border-radius:50%;}';
+      '#ara-chat-btn.is-open{padding:16px;min-width:unset;border-radius:50%;}';
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
