@@ -6906,3 +6906,14 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     .belt-step__name { font-size: 0.88rem; }
     .belt-step__focus { font-size: 0.74rem; }
 }
+
+/* Belt step meaning line */
+.belt-step__meaning {
+    display: block;
+    font-style: italic;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    opacity: 0.75;
+    margin-bottom: 0.65rem;
+    font-weight: 400;
+}
