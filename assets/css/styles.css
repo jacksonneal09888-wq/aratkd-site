@@ -6917,3 +6917,359 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     margin-bottom: 0.65rem;
     font-weight: 400;
 }
+
+/* ============================================================
+   MASTER ARA CHAT WIDGET
+   ============================================================ */
+
+#ara-chat-widget {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9000;
+    font-family: inherit;
+}
+
+/* ── Trigger button ── */
+#ara-chat-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--brand-red, #d81f26);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    position: relative;
+}
+
+#ara-chat-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(216,31,38,0.45);
+}
+
+#ara-chat-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+.ara-chat-btn__icon,
+.ara-chat-btn__close {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.ara-chat-btn__icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.ara-chat-btn__close {
+    font-size: 1.2rem;
+    opacity: 0;
+    transform: rotate(-90deg);
+}
+
+#ara-chat-btn.is-open .ara-chat-btn__icon {
+    opacity: 0;
+    transform: scale(0.7);
+}
+
+#ara-chat-btn.is-open .ara-chat-btn__close {
+    opacity: 1;
+    transform: rotate(0deg);
+}
+
+/* ── Chat panel ── */
+#ara-chat-panel {
+    position: absolute;
+    bottom: 72px;
+    right: 0;
+    width: 360px;
+    max-height: 560px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
+    overflow: hidden;
+    animation: ara-chat-in 0.22s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+#ara-chat-panel[hidden] {
+    display: none;
+}
+
+@keyframes ara-chat-in {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* ── Header ── */
+.ara-chat__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1rem 1rem 1.25rem;
+    background: #111827;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.ara-chat__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--brand-red, #d81f26);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+.ara-chat__name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0;
+    color: #fff;
+}
+
+.ara-chat__status {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.ara-chat__close-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.ara-chat__close-btn:hover { color: #fff; }
+
+/* ── Messages area ── */
+.ara-chat__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    scroll-behavior: smooth;
+}
+
+/* Empty / starter state */
+.ara-chat__empty {
+    text-align: center;
+    padding: 1rem 0.5rem;
+}
+
+.ara-chat__empty-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #111827;
+    margin: 0 0 0.25rem;
+}
+
+.ara-chat__empty-sub {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin: 0 0 1rem;
+}
+
+.ara-chat__starters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ara-chat__starter-btn {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+    color: #374151;
+    transition: background 0.15s, border-color 0.15s;
+    font-family: inherit;
+}
+
+.ara-chat__starter-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
+/* Message bubbles */
+.ara-chat__bubble {
+    max-width: 84%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ara-chat__bubble--user {
+    align-self: flex-end;
+}
+
+.ara-chat__bubble--bot {
+    align-self: flex-start;
+}
+
+.ara-chat__bubble-text {
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    word-break: break-word;
+}
+
+.ara-chat__bubble--user .ara-chat__bubble-text {
+    background: var(--brand-red, #d81f26);
+    color: #fff;
+    border-radius: 12px 12px 2px 12px;
+}
+
+.ara-chat__bubble--bot .ara-chat__bubble-text {
+    background: #f3f4f6;
+    color: #111827;
+    border-radius: 2px 12px 12px 12px;
+}
+
+/* Typing indicator */
+.ara-chat__typing {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 0.9rem;
+    background: #f3f4f6;
+    border-radius: 2px 12px 12px 12px;
+    align-self: flex-start;
+    max-width: fit-content;
+    gap: 0.3rem;
+}
+
+.ara-chat__typing span {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9ca3af;
+    animation: ara-typing-bounce 1.2s infinite ease-in-out;
+}
+
+.ara-chat__typing span:nth-child(2) { animation-delay: 0.2s; }
+.ara-chat__typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ara-typing-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%            { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Action chips */
+.ara-chat__action-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.ara-chat__chip {
+    background: #fff;
+    border: 1.5px solid var(--brand-red, #d81f26);
+    color: var(--brand-red, #d81f26);
+    border-radius: 20px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.ara-chat__chip:hover {
+    background: var(--brand-red, #d81f26);
+    color: #fff;
+}
+
+/* ── Input form ── */
+.ara-chat__form {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.65rem 0.85rem;
+    flex-shrink: 0;
+    background: #fff;
+}
+
+.ara-chat__input {
+    flex: 1;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 20px 0 0 20px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+    background: #f9fafb;
+}
+
+.ara-chat__input:focus {
+    border-color: var(--brand-red, #d81f26);
+    background: #fff;
+}
+
+.ara-chat__send {
+    background: var(--brand-red, #d81f26);
+    border: 1.5px solid var(--brand-red, #d81f26);
+    border-left: none;
+    border-radius: 0 20px 20px 0;
+    padding: 0.55rem 0.8rem;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s;
+}
+
+.ara-chat__send:hover { background: #b71c1c; border-color: #b71c1c; }
+
+.ara-chat__send svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 440px) {
+    #ara-chat-widget {
+        bottom: 1rem;
+        right: 1rem;
+    }
+    #ara-chat-panel {
+        width: calc(100vw - 2rem);
+        right: -1rem;
+        bottom: 70px;
+        max-height: 70vh;
+    }
+}
