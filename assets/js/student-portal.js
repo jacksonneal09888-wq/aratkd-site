@@ -1073,30 +1073,32 @@ document.body.addEventListener("admin:component:loaded", (event) => {
     attachHandlers();
     if (portalState.admin.isAuthorized) {
         renderAdminDashboard();
-        loadAdminRoster();
-        loadAdminEvents();
-        loadAdminAttendance();
-        loadAdminBanners();
-        renderCommunicationsLog();
         renderAdminEnrollSection();
+        if (!tabId || tabId === "tab-dashboard") {
+            loadAdminRoster();
+            loadAdminEvents();
+            loadAdminAttendance();
+            loadAdminBanners();
+        } else if (tabId === "tab-students" || tabId === "tab-membership") {
+            loadAdminRoster();
+        } else if (tabId === "tab-events") {
+            loadAdminEvents();
+        } else if (tabId === "tab-classes" || tabId === "tab-attendance") {
+            loadAdminAttendance();
+        } else if (tabId === "tab-calendar") {
+            loadAdminEvents();
+            loadAdminAttendance();
+        } else if (tabId === "tab-banners" || tabId === "tab-settings") {
+            loadAdminBanners();
+        } else if (tabId === "tab-communications") {
+            renderCommunicationsLog();
+        }
     }
     if (tabId) {
         showAdminTab(tabId);
         if (tabId === "tab-communications") {
             renderCommunicationsLog();
         }
-    }
-});
-document.body.addEventListener("admin-components-loaded", () => {
-    refreshAdminEls();
-    attachHandlers();
-    if (portalState.admin.isAuthorized) {
-        renderAdminDashboard();
-        loadAdminRoster();
-        loadAdminEvents();
-        loadAdminAttendance();
-        loadAdminBanners();
-        renderAdminEnrollSection();
     }
 });
 
@@ -1662,9 +1664,7 @@ function bindAdminEvents() {
 function adminRefreshIfSignedIn() {
     if (portalState.admin?.isAuthorized) {
         renderAdminDashboard();
-        loadAdminRoster();
-        loadAdminEvents();
-        loadAdminAttendance();
+        renderAdminRoster();
     }
 }
 
@@ -5316,7 +5316,7 @@ function renderReportCard() {
     )}</p>
         </div>
         <div class="report-card-section">
-            <h4>Attendance (Last 60 days)</h4>
+            <h4>Attendance (Current Belt Cycle)</h4>
             <p>Lessons: ${reportLessonsCompleted} / ${reportLessonsRequired} • Remaining: ${reportLessonsRemaining}</p>
             <ul>
                 ${(attendance.recent || [])
@@ -6955,18 +6955,6 @@ function handleRosterEditSubmit(event) {
         status: portalEls.adminRosterStatus?.value || "",
         membershipType: portalEls.adminRosterMembership?.value || ""
     };
-    const dobField = document.getElementById("admin-roster-dob");
-    if (dobField?.value) {
-        payload.birthDate = dobField.value;
-    }
-    const loginField = document.getElementById("admin-roster-login");
-    if (loginField?.value) {
-        payload.loginId = loginField.value;
-    }
-    const classTypeField = document.getElementById("admin-roster-class");
-    if (classTypeField?.value) {
-        payload.classType = classTypeField.value;
-    }
 
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}`);
     setRosterEditStatus("Saving roster changes...", "progress");
@@ -7637,6 +7625,16 @@ function renderStudentModalAttendance(student) {
     });
 }
 
+function populateSelectIfEmpty(selectEl, options) {
+    if (!selectEl || selectEl.options.length > 0) return;
+    options.forEach(({ value, label }) => {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        selectEl.appendChild(opt);
+    });
+}
+
 function renderStudentModal() {
     if (!portalEls.studentModal) return;
     const student = portalState.admin.rosterSelected;
@@ -7644,6 +7642,44 @@ function renderStudentModal() {
         portalEls.studentModal.hidden = true;
         return;
     }
+
+    populateSelectIfEmpty(portalEls.studentModalBelt, [
+        { value: "White Belt", label: "White Belt" },
+        { value: "High White Belt", label: "High White Belt" },
+        { value: "Yellow Belt", label: "Yellow Belt" },
+        { value: "High Yellow Belt", label: "High Yellow Belt" },
+        { value: "Green Belt", label: "Green Belt" },
+        { value: "High Green Belt", label: "High Green Belt" },
+        { value: "Blue Belt", label: "Blue Belt" },
+        { value: "High Blue Belt", label: "High Blue Belt" },
+        { value: "Red Belt", label: "Red Belt" },
+        { value: "High Red Belt", label: "High Red Belt" },
+        { value: "Black Belt", label: "Black Belt" }
+    ]);
+    populateSelectIfEmpty(portalEls.studentModalMembership, [
+        { value: "", label: "Not set" },
+        { value: "Month-to-Month", label: "Month-to-Month" },
+        { value: "Tier 1", label: "Tier 1" },
+        { value: "Tier 2", label: "Tier 2" },
+        { value: "Tier 3", label: "Tier 3" },
+        { value: "Annual", label: "Annual" }
+    ]);
+    populateSelectIfEmpty(portalEls.studentModalStatusField, [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+        { value: "frozen", label: "Frozen" },
+        { value: "suspended", label: "Suspended" },
+        { value: "prospect", label: "Prospect" }
+    ]);
+    populateSelectIfEmpty(portalEls.studentModalNoteType, [
+        { value: "note", label: "Note" },
+        { value: "conversation", label: "Conversation" },
+        { value: "billing", label: "Billing" },
+        { value: "payment", label: "Payment" },
+        { value: "behavior", label: "Behavior" },
+        { value: "message", label: "Message" }
+    ]);
+
     const avatarText = (student.name || student.id || "ARA").slice(0, 3).toUpperCase();
     if (portalEls.studentModalAvatar) portalEls.studentModalAvatar.textContent = avatarText;
     if (portalEls.studentModalTitle) {
