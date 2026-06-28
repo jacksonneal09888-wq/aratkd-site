@@ -2733,19 +2733,24 @@ app.post('/api/chat', async (c) => {
     return c.json({ error: 'Last message must be from user' }, 400);
   }
 
-  const result = await c.env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
-    messages: [
-      { role: 'system', content: MASTER_ARA_SYSTEM_PROMPT },
-      ...messages
-    ],
-    max_tokens: 600
-  }) as any;
+  try {
+    const result = await c.env.AI.run('@cf/meta/llama-3.2-3b-instruct' as any, {
+      messages: [
+        { role: 'system', content: MASTER_ARA_SYSTEM_PROMPT },
+        ...messages
+      ],
+      max_tokens: 600
+    }) as any;
 
-  const content = (result?.response || '').trim();
-  if (!content) {
-    return c.json({ error: 'Empty response from AI' }, 502);
+    const content = (result?.response || '').trim();
+    if (!content) {
+      return c.json({ error: 'Empty response from AI' }, 502);
+    }
+    return c.json({ content });
+  } catch (err: any) {
+    console.error('Workers AI error:', err?.message || err);
+    return c.json({ error: 'ai_unavailable', detail: err?.message || 'Workers AI failed' }, 503);
   }
-  return c.json({ content });
 });
 
 export default app;

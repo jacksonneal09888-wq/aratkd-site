@@ -69,14 +69,14 @@
       /* Floating trigger button */
       '<button id="ara-chat-btn" aria-expanded="false" aria-controls="ara-chat-panel" title="Chat with Master Ara Bot">' +
         '<span class="ara-chat-btn__icon" aria-hidden="true">' +
-          /* TKD high-kick silhouette */
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-            /* Head */ '<circle cx="16" cy="3.5" r="1.8" fill="currentColor" stroke="none"/>' +
-            /* Body leaning into kick */ '<line x1="16" y1="5.3" x2="14" y2="11"/>' +
-            /* High kick — leg extended left */ '<polyline points="14,11 8,7.5 3.5,6"/>' +
-            /* Standing leg */ '<polyline points="14,11 13.5,17 11.5,21"/>' +
-            /* Back arm (balance) */ '<line x1="15" y1="8.5" x2="20" y2="11"/>' +
-            /* Front arm (toward kick) */ '<line x1="15" y1="8.5" x2="12" y2="11"/>' +
+          /* TKD high-kick filled silhouette */
+          '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">' +
+            /* Head */ '<circle cx="16" cy="3.2" r="2.2"/>' +
+            /* Torso — leans left into the kick */ '<path d="M14.5 5.2 L17 5.8 L16 11 L13.5 10.2 Z"/>' +
+            /* Kicking leg — thigh going upper-left, shin & foot extending */ '<path d="M13.5 10.2 L9.5 7 L8 8 L4.5 6.5 L4 8 L7.5 9.5 L9 10.2 L13 12 L15 11 Z"/>' +
+            /* Standing leg — straight down to foot */ '<path d="M16 11 L15.5 17.5 L13.5 22 L15.5 22 L17 18 L17.5 11 Z"/>' +
+            /* Back arm — swings right for counter-balance */ '<path d="M16.5 7.5 L21 10 L21.5 11.5 L17 9.5 Z"/>' +
+            /* Front arm — follows the kick direction */ '<path d="M15 7.5 L11.5 9.5 L11 11 L14.5 9.5 Z"/>' +
           '</svg>' +
         '</span>' +
         '<span class="ara-chat-btn__close" aria-hidden="true">✕</span>' +
