@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ara TKD | Student Portal</title>
     <meta name="description" content="Log into the Ara TKD student portal to access belt study guides, testing checklists, and upload certificates.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20260527-adminpanel">
 </head>
 <body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <header class="site-header">
         <div class="container">
             <div class="brand">
-                <a href="index.html#top" class="brand-link">
+                <a href="/" class="brand-link">
                     <span class="brand-mark">ARA</span>
                     <span class="brand-name">Martial Arts</span>
                 </a>
@@ -30,17 +32,18 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="language-switcher">
-                    <span class="language-switcher__label">Language</span>
-                    <div id="google_translate_element"></div>
-                    <span class="language-switcher__powered">Powered by Google Translate</span>
+                <div class="lang-toggle" aria-label="Language / Idioma">
+                    <button class="lang-toggle__btn is-active" data-lang="en" aria-pressed="true">EN</button>
+                    <span class="lang-toggle__sep" aria-hidden="true">|</span>
+                    <button class="lang-toggle__btn" data-lang="es" aria-pressed="false">ES</button>
+                    <div id="google_translate_element" style="position:absolute;visibility:hidden;pointer-events:none;" aria-hidden="true"></div>
                 </div>
                 <a href="index.html#contact" class="cta-btn">Book a Trial</a>
             </div>
         </div>
     </header>
 
-    <main id="portal-top">
+    <main id="main-content">
         <section class="hero" style="padding: 4rem 0 3rem;">
             <div class="container hero-content" style="grid-template-columns: 1fr;">
                 <div class="hero-copy">

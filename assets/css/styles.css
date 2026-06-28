@@ -3171,12 +3171,11 @@ body.admin-modal-open {
     }
     .admin-table-wrap {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
-    .portal-hero .language-switcher {
+    .lang-toggle {
         width: 100%;
-    }
-    .language-switcher select {
-        width: 100%;
+        justify-content: flex-start;
     }
     .admin-trigger {
         width: 36px;
@@ -3262,6 +3261,7 @@ body.admin-modal-open {
 
 .admin-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-status-pill {
@@ -4830,6 +4830,7 @@ body[data-admin-panel-view="report"] .admin-report-card__dialog {
 
 .admin-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
@@ -5463,6 +5464,7 @@ body[data-admin-active-tab="tab-banners"] #admin-banners[hidden] {
 
 .admin-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .admin-grid {

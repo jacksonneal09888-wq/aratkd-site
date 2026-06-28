@@ -21,7 +21,7 @@
         </label>
         <label>
           <span>Phone</span>
-          <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
+          <input type="tel" id="admin-enroll-phone" name="phone" placeholder="(919) 555-1234" pattern="[\d\s\-\+\(\)]*">
         </label>
         <label>
           <span>Starting Belt</span>
@@ -115,10 +115,11 @@
         <button type="button" class="btn-ghost" id="admin-roster-newtab">↗ New Tab</button>
         <button type="button" class="btn-ghost" data-roster-action="report">Report Card</button>
         <button type="button" class="btn-ghost" data-roster-action="note">Add Note</button>
-        <button type="button" class="btn-ghost" data-roster-action="deactivate">Deactivate</button>
-        <button type="button" class="btn-ghost" data-roster-action="activate">Reactivate</button>
-        <button type="button" class="text-link-btn is-danger" data-roster-action="archive">Archive</button>
+        <button type="button" class="btn-ghost" data-roster-action="deactivate" title="Marks student inactive — keeps record, stops billing">Deactivate</button>
+        <button type="button" class="btn-ghost" data-roster-action="activate" title="Returns student to active status">Reactivate</button>
+        <button type="button" class="text-link-btn is-danger" data-roster-action="archive" title="Permanently removes from roster after 30 days — cannot be undone">Archive</button>
       </div>
+      <p class="admin-card__meta" style="margin-top:0.35rem;font-size:0.78rem;">Deactivate = pause billing, keep record. Archive = remove from roster after 30 days.</p>
     </div>
 
     <div class="admin-roster-cards">
@@ -156,7 +157,7 @@
         </label>
         <label>
           <span>Phone</span>
-          <input type="tel" id="admin-roster-phone" placeholder="9195551234">
+          <input type="tel" id="admin-roster-phone" placeholder="(919) 555-1234" pattern="[\d\s\-\+\(\)]*">
         </label>
         <label>
           <span>Membership</span>

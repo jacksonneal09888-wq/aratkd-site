@@ -48,8 +48,8 @@
         </div>
         <div class="admin-email-right">
           <label>
-            <span>Subject</span>
-            <input type="text" id="email-subject">
+            <span>Subject <small id="email-subject-count" class="admin-card__meta" aria-live="polite"></small></span>
+            <input type="text" id="email-subject" maxlength="78" placeholder="e.g. Class Update — Ara's Martial Arts">
           </label>
           <label>
             <span>Template</span>
@@ -67,8 +67,8 @@
             <textarea id="email-body" class="email-message" rows="10" placeholder="Write your announcement..."></textarea>
           </label>
           <label>
-            <span>Attachment (optional)</span>
-            <input type="file" id="email-attachment" />
+            <span>Attachment (optional — PDF or image only, max 5 MB)</span>
+            <input type="file" id="email-attachment" accept="application/pdf,image/png,image/jpeg,image/gif" />
           </label>
         </div>
       </div>
@@ -103,3 +103,28 @@
     </div>
   </aside>
 </div>
+<script>
+(function () {
+  var subj = document.getElementById('email-subject');
+  var count = document.getElementById('email-subject-count');
+  if (!subj || !count) return;
+  function update() {
+    var len = subj.value.length;
+    count.textContent = len + '/78';
+    count.style.color = len > 60 ? '#f59e0b' : '';
+  }
+  subj.addEventListener('input', update);
+  update();
+
+  var attach = document.getElementById('email-attachment');
+  if (attach) {
+    attach.addEventListener('change', function () {
+      var file = attach.files[0];
+      if (file && file.size > 5 * 1024 * 1024) {
+        attach.value = '';
+        alert('Attachment exceeds 5 MB. Please choose a smaller file.');
+      }
+    });
+  }
+})();
+</script>
