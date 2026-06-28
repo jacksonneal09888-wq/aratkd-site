@@ -6665,3 +6665,244 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     stroke-linejoin: round;
     display: block;
 }
+
+/* ============================================================
+   BELT JOURNEY SECTION
+   ============================================================ */
+
+.belt-journey {
+    background: #111827;
+    color: #fff;
+    padding: 5rem 0 0;
+    overflow: hidden;
+}
+
+.belt-journey__header {
+    max-width: 700px;
+    padding-bottom: 3rem;
+}
+
+.belt-journey__header .eyebrow {
+    color: var(--brand-red, #d81f26);
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.belt-journey__header h2 {
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.belt-journey__header p {
+    color: #9ca3af;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 580px;
+}
+
+/* Belt track — horizontally scrollable strip */
+.belt-track {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+    gap: 0;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+.belt-track::-webkit-scrollbar {
+    height: 4px;
+}
+.belt-track::-webkit-scrollbar-track { background: transparent; }
+.belt-track::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+}
+
+/* Individual belt step */
+.belt-step {
+    flex: 1 0 180px;
+    min-width: 140px;
+    max-width: 220px;
+    padding: 2rem 1.25rem 2.25rem;
+    position: relative;
+    scroll-snap-align: start;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    cursor: default;
+}
+
+.belt-step:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.12);
+    z-index: 2;
+}
+
+/* Phase label */
+.belt-step__phase {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.6rem;
+    opacity: 0.8;
+}
+
+/* Belt name */
+.belt-step__name {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+}
+
+/* Focus description */
+.belt-step__focus {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    opacity: 0.82;
+    margin: 0;
+}
+
+/* ── Belt colour palettes ── */
+
+.belt-step--white {
+    background: #e8e8e0;
+    color: #1a1a1a;
+}
+.belt-step--white .belt-step__phase,
+.belt-step--white .belt-step__focus { opacity: 0.6; }
+
+/* High white: white base with yellow-stripe accent on left */
+.belt-step--high-white {
+    background: #efefea;
+    color: #1a1a1a;
+    border-left: 6px solid #f5c518;
+}
+.belt-step--high-white .belt-step__phase,
+.belt-step--high-white .belt-step__focus { opacity: 0.6; }
+
+.belt-step--yellow {
+    background: #f5c518;
+    color: #1a1a00;
+}
+.belt-step--yellow .belt-step__phase,
+.belt-step--yellow .belt-step__focus { opacity: 0.7; }
+
+/* High yellow: yellow with green stripe */
+.belt-step--high-yellow {
+    background: #f0bc10;
+    color: #1a1a00;
+    border-left: 6px solid #15803d;
+}
+.belt-step--high-yellow .belt-step__phase,
+.belt-step--high-yellow .belt-step__focus { opacity: 0.7; }
+
+.belt-step--green {
+    background: #15803d;
+    color: #fff;
+}
+
+/* High green: green with blue stripe */
+.belt-step--high-green {
+    background: #166534;
+    color: #fff;
+    border-left: 6px solid #1d4ed8;
+}
+
+.belt-step--blue {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+/* High blue: blue with red stripe */
+.belt-step--high-blue {
+    background: #1e40af;
+    color: #fff;
+    border-left: 6px solid #d81f26;
+}
+
+.belt-step--red {
+    background: #d81f26;
+    color: #fff;
+}
+
+/* High red: red with black stripe */
+.belt-step--high-red {
+    background: #be1a1f;
+    color: #fff;
+    border-left: 6px solid #111827;
+}
+
+.belt-step--black {
+    background: #1a1a1a;
+    color: #fff;
+    border-left: 1px solid rgba(255,255,255,0.08);
+}
+.belt-step--black .belt-step__phase,
+.belt-step--black .belt-step__focus { opacity: 0.7; }
+
+/* Dan degrees — slightly lighter to differentiate */
+.belt-step--dan {
+    background: #242424;
+}
+
+/* 4th Dan / Master — subtle gold accent */
+.belt-step--master {
+    background: #1f1a0a;
+    border-left: 6px solid #b8960c;
+}
+.belt-step--master .belt-step__phase { color: #d4a800; opacity: 1; }
+
+/* Reveal animation (driven by data-reveal in main.js scroll observer) */
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+[data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* Footer CTAs */
+.belt-journey__footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 2.5rem 0 4rem;
+    flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .belt-step {
+        flex: 0 0 160px;
+        padding: 1.5rem 1rem 1.75rem;
+    }
+    .belt-step__name { font-size: 0.95rem; }
+}
+
+@media (max-width: 600px) {
+    .belt-journey { padding-top: 3.5rem; }
+    .belt-journey__header { padding-bottom: 2rem; }
+    .belt-journey__footer { padding: 1.75rem 0 3rem; }
+    .belt-step {
+        flex: 0 0 140px;
+        min-width: 130px;
+        padding: 1.25rem 0.85rem 1.5rem;
+    }
+    .belt-step__name { font-size: 0.88rem; }
+    .belt-step__focus { font-size: 0.74rem; }
+}
