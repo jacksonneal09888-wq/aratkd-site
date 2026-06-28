@@ -3,7 +3,9 @@ const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
 const themeState = { override: null, rotation: null };
-let kioskCalendarCsvUrl = null;
+const CALENDAR_SPREADSHEET_ID = "14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4";
+const CALENDAR_GID = "1157707621";
+let kioskCalendarCsvUrl = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${CALENDAR_GID}`;
 
 const state = {
   selectedClass: null,
@@ -457,7 +459,7 @@ async function loadClasses() {
       throw new Error("Unable to load classes");
     }
     const data = await res.json();
-    if (data.calendarCsvUrl && !kioskCalendarCsvUrl) {
+    if (data.calendarCsvUrl && data.calendarCsvUrl !== kioskCalendarCsvUrl) {
       kioskCalendarCsvUrl = data.calendarCsvUrl;
       await fetchWeekTheme();
       updateWeekTheme();
