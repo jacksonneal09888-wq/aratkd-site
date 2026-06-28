@@ -1,79 +1,80 @@
-<section class="admin-card" id="admin-enroll" data-admin-panel="tab-students">
-  <div class="admin-summary__header">
-    <div>
-      <p class="admin-card__meta">Create new student</p>
-      <h3>Add Student</h3>
+<details class="admin-accordion" id="admin-enroll" data-admin-panel="tab-students">
+  <summary class="admin-accordion__trigger">
+    <span class="admin-accordion__title">Enroll New Student</span>
+    <span class="eyebrow" style="margin-left:auto;">Expand to add</span>
+  </summary>
+  <div style="padding:1rem 0 0.5rem;">
+    <p class="admin-card__meta" style="margin-bottom:1rem;">Fill in the details below. Belt defaults to White Belt, class track defaults to Basic.</p>
+    <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
+      <div class="admin-enroll__grid">
+        <label>
+          <span>Student Name</span>
+          <input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required>
+        </label>
+        <label>
+          <span>Date of Birth</span>
+          <input type="date" id="admin-enroll-dob" name="birthDate" required>
+        </label>
+        <label>
+          <span>Parent Email</span>
+          <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
+        </label>
+        <label>
+          <span>Phone</span>
+          <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
+        </label>
+        <label>
+          <span>Starting Belt</span>
+          <select id="admin-enroll-belt" name="belt">
+            <option value="White Belt">White Belt</option>
+            <option value="High White Belt">High White Belt</option>
+            <option value="Yellow Belt">Yellow Belt</option>
+            <option value="High Yellow Belt">High Yellow Belt</option>
+            <option value="Green Belt">Green Belt</option>
+            <option value="High Green Belt">High Green Belt</option>
+            <option value="Blue Belt">Blue Belt</option>
+            <option value="High Blue Belt">High Blue Belt</option>
+            <option value="Red Belt">Red Belt</option>
+            <option value="High Red Belt">High Red Belt</option>
+            <option value="Black Belt">Black Belt</option>
+          </select>
+        </label>
+        <label>
+          <span>Class Track</span>
+          <select id="admin-enroll-class-type" name="classType">
+            <option value="basic">Basic Class</option>
+            <option value="advanced">Advanced Class</option>
+            <option value="little-ninjas">Little Ninjas</option>
+          </select>
+        </label>
+        <label>
+          <span>Seed Attendance Days</span>
+          <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
+        </label>
+      </div>
+      <div class="admin-enroll__actions">
+        <button type="submit" class="btn-primary">Create Student</button>
+        <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
+      </div>
+    </form>
+    <div class="admin-enroll__result" id="admin-enroll-result" hidden>
+      <p class="admin-enroll__result-title">New student ready for login.</p>
+      <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
     </div>
   </div>
-  <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
-    <div class="admin-enroll__grid">
-      <label>
-        <span>Student Name</span>
-        <input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required>
-      </label>
-      <label>
-        <span>Date of Birth</span>
-        <input type="date" id="admin-enroll-dob" name="birthDate" required>
-      </label>
-      <label>
-        <span>Parent Email</span>
-        <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
-      </label>
-      <label>
-        <span>Phone</span>
-        <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
-      </label>
-      <label>
-        <span>Starting Belt</span>
-        <select id="admin-enroll-belt" name="belt">
-          <option value="White Belt">White Belt</option>
-          <option value="High White Belt">High White Belt</option>
-          <option value="Yellow Belt">Yellow Belt</option>
-          <option value="High Yellow Belt">High Yellow Belt</option>
-          <option value="Green Belt">Green Belt</option>
-          <option value="High Green Belt">High Green Belt</option>
-          <option value="Blue Belt">Blue Belt</option>
-          <option value="High Blue Belt">High Blue Belt</option>
-          <option value="Red Belt">Red Belt</option>
-          <option value="High Red Belt">High Red Belt</option>
-          <option value="Black Belt">Black Belt</option>
-        </select>
-      </label>
-      <label>
-        <span>Class Track</span>
-        <select id="admin-enroll-class-type" name="classType">
-          <option value="basic">Basic Class</option>
-          <option value="advanced">Advanced Class</option>
-          <option value="little-ninjas">Little Ninjas</option>
-        </select>
-      </label>
-      <label>
-        <span>Seed Attendance Days</span>
-        <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
-      </label>
-    </div>
-    <div class="admin-enroll__actions">
-      <button type="submit" class="cta-btn">Create Student</button>
-      <p class="form-status" id="admin-enroll-status" aria-live="polite"></p>
-    </div>
-  </form>
-  <div class="admin-enroll__result" id="admin-enroll-result" hidden>
-    <p class="admin-enroll__result-title">New student ready for login.</p>
-    <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
-  </div>
-</section>
+</details>
 
 <section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
   <div class="admin-summary__header">
     <div>
-      <p class="admin-card__meta">Live roster</p>
+      <p class="admin-card__meta">Live roster · tap a row to select</p>
       <h3>Student Roster</h3>
     </div>
     <div class="admin-topbar__actions">
-      <a class="text-link-btn" href="admin-new-student.html" target="_blank" rel="noopener">Add New Student</a>
       <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
     </div>
   </div>
+
   <div class="admin-filter-row">
     <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
     <select id="admin-roster-sort" aria-label="Sort roster">
@@ -82,6 +83,7 @@
       <option value="status">Status</option>
     </select>
   </div>
+
   <div class="admin-table-wrap admin-table-wrap--wide">
     <table class="admin-table admin-table--wide" aria-label="Student roster">
       <thead>
@@ -95,65 +97,54 @@
         </tr>
       </thead>
       <tbody id="admin-roster-body">
-        <tr>
-          <td colspan="6">Sign in to load the roster.</td>
-        </tr>
+        <tr><td colspan="6">Sign in to load the roster.</td></tr>
       </tbody>
     </table>
   </div>
+
   <div class="admin-roster-detail" id="admin-roster-detail" hidden>
+
     <div class="admin-roster-detail__head">
       <div>
         <p class="admin-roster-detail__label">Selected Student</p>
         <p class="admin-roster-detail__name" id="admin-roster-student-name">—</p>
         <p class="admin-roster-detail__meta" id="admin-roster-student-meta">—</p>
       </div>
-    <div class="admin-roster-actions">
-      <button type="button" class="btn-ghost" id="admin-roster-newtab">Open in New Tab</button>
-      <button type="button" class="btn-primary" id="admin-student-drawer-open">Open Student Panel</button>
-      <button type="button" class="text-link-btn" data-roster-action="report">Report Card</button>
-      <button type="button" class="text-link-btn" data-roster-action="note">Add Note</button>
-      <button type="button" class="text-link-btn" data-roster-action="deactivate">Deactivate</button>
-      <button type="button" class="text-link-btn" data-roster-action="activate">Reactivate</button>
-      <button type="button" class="text-link-btn is-danger" data-roster-action="archive">Archive (30 days)</button>
+      <div class="admin-roster-actions">
+        <button type="button" class="btn-primary" id="admin-student-drawer-open">Open Full Profile</button>
+        <button type="button" class="btn-ghost" id="admin-roster-newtab">↗ New Tab</button>
+        <button type="button" class="btn-ghost" data-roster-action="report">Report Card</button>
+        <button type="button" class="btn-ghost" data-roster-action="note">Add Note</button>
+        <button type="button" class="btn-ghost" data-roster-action="deactivate">Deactivate</button>
+        <button type="button" class="btn-ghost" data-roster-action="activate">Reactivate</button>
+        <button type="button" class="text-link-btn is-danger" data-roster-action="archive">Archive</button>
+      </div>
     </div>
+
+    <div class="admin-roster-cards">
+      <div class="admin-roster-card">
+        <p class="card-label">Membership</p>
+        <p class="card-value" id="admin-roster-card-membership">—</p>
+      </div>
+      <div class="admin-roster-card">
+        <p class="card-label">Status</p>
+        <p class="card-value" id="admin-roster-card-status">—</p>
+      </div>
+      <div class="admin-roster-card">
+        <p class="card-label">Last 30 Days</p>
+        <p class="card-value" id="admin-roster-card-30">—</p>
+      </div>
+      <div class="admin-roster-card">
+        <p class="card-label">Lessons</p>
+        <p class="card-value" id="admin-roster-card-60">—</p>
+      </div>
+      <div class="admin-roster-card">
+        <p class="card-label">Last Attended</p>
+        <p class="card-value" id="admin-roster-last-attended">—</p>
+      </div>
     </div>
+
     <form id="admin-roster-edit-form" autocomplete="off">
-      <div class="admin-roster-cards">
-        <div class="admin-roster-card">
-          <p class="card-label">Membership</p>
-          <p class="card-value" id="admin-roster-card-membership">Not set</p>
-        </div>
-        <div class="admin-roster-card">
-          <p class="card-label">Status</p>
-          <p class="card-value" id="admin-roster-card-status">—</p>
-        </div>
-        <div class="admin-roster-card">
-          <p class="card-label">Last 30 Days</p>
-          <p class="card-value" id="admin-roster-card-30">—</p>
-        </div>
-        <div class="admin-roster-card">
-          <p class="card-label">Lessons</p>
-          <p class="card-value" id="admin-roster-card-60">—</p>
-        </div>
-        <div class="admin-roster-card">
-          <p class="card-label">Last Attended</p>
-          <p class="card-value" id="admin-roster-last-attended">—</p>
-        </div>
-      </div>
-      <div class="admin-roster-detail__membership">
-        <label>
-          Membership
-          <select id="admin-roster-membership">
-            <option value="">Not set</option>
-            <option value="Month-to-Month">Month-to-Month</option>
-            <option value="Tier 1">Tier 1</option>
-            <option value="Tier 2">Tier 2</option>
-            <option value="Tier 3">Tier 3</option>
-            <option value="Annual">Annual</option>
-          </select>
-        </label>
-      </div>
       <div class="admin-roster-detail__form admin-enroll__grid">
         <label>
           <span>Name</span>
@@ -166,6 +157,17 @@
         <label>
           <span>Phone</span>
           <input type="tel" id="admin-roster-phone" placeholder="9195551234">
+        </label>
+        <label>
+          <span>Membership</span>
+          <select id="admin-roster-membership">
+            <option value="">Not set</option>
+            <option value="Month-to-Month">Month-to-Month</option>
+            <option value="Tier 1">Tier 1</option>
+            <option value="Tier 2">Tier 2</option>
+            <option value="Tier 3">Tier 3</option>
+            <option value="Annual">Annual</option>
+          </select>
         </label>
         <label>
           <span>Belt</span>
@@ -195,14 +197,17 @@
           </select>
         </label>
       </div>
-      <div class="admin-roster-actions">
+      <div class="admin-roster-actions" style="margin-top:0.75rem;">
         <button type="submit" class="btn-primary" id="admin-roster-save">Save Changes</button>
         <button type="button" class="btn-ghost" id="admin-attendance-adjust-open">Adjust Attendance</button>
       </div>
       <p class="form-status" id="admin-roster-edit-status" aria-live="polite"></p>
     </form>
+
     <form id="admin-attendance-adjust-form" class="admin-enroll__grid" hidden>
-      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0;">Use Add/Remove for small fixes, or Set Exact Lessons to force the total to the right number.</p>
+      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0 0 0.5rem;">
+        <strong>Attendance Correction</strong> — Use Add/Remove for small fixes. Set Exact Lessons forces the total to a specific number.
+      </p>
       <label>
         <span>Lesson Count</span>
         <input type="number" id="admin-attendance-adjust-value" min="0" placeholder="e.g. 3">
@@ -217,20 +222,23 @@
       </label>
       <label>
         <span>Note</span>
-        <input type="text" id="admin-attendance-adjust-note" placeholder="Adjustment reason">
+        <input type="text" id="admin-attendance-adjust-note" placeholder="Reason for adjustment">
       </label>
       <div class="admin-roster-actions" style="grid-column:1 / -1;">
-        <button type="submit" class="btn-ghost" data-adjust="add">Add Lessons</button>
-        <button type="submit" class="btn-ghost" data-adjust="remove">Remove Lessons</button>
-        <button type="submit" class="btn-primary" data-adjust="set">Set Exact Lessons</button>
+        <button type="submit" class="btn-ghost" data-adjust="add">+ Add Lessons</button>
+        <button type="submit" class="btn-ghost" data-adjust="remove">− Remove Lessons</button>
+        <button type="submit" class="btn-primary" data-adjust="set">Set Exact Total</button>
       </div>
       <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
     </form>
+
     <form id="admin-bulk-attendance-form" class="admin-enroll__grid" hidden>
-      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0;">Bulk lesson fix by belt. Preset button fills Yellow, Green, and High Green with 12 lessons.</p>
+      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0 0 0.5rem;">
+        <strong>Bulk Lesson Fix</strong> — Set the same lesson count for all students at selected belt ranks.
+      </p>
       <label style="grid-column:1 / -1;">
-        <span>Belts</span>
-        <select id="admin-bulk-attendance-belts" multiple size="6">
+        <span>Belt Ranks (hold Ctrl/Cmd to select multiple)</span>
+        <select id="admin-bulk-attendance-belts" multiple size="5">
           <option value="Yellow Belt">Yellow Belt</option>
           <option value="High Yellow Belt">High Yellow Belt</option>
           <option value="Green Belt">Green Belt</option>
@@ -258,10 +266,11 @@
         <input type="text" id="admin-bulk-attendance-note" placeholder="Bulk attendance correction">
       </label>
       <div class="admin-roster-actions" style="grid-column:1 / -1;">
-        <button type="button" class="btn-ghost" id="admin-bulk-attendance-preset">Preset Yellow/Green/High Green = 12</button>
-        <button type="submit" class="btn-primary">Apply Bulk Lesson Fix</button>
+        <button type="button" class="btn-ghost" id="admin-bulk-attendance-preset">Quick-fill Yellow / Green / High Green = 12</button>
+        <button type="submit" class="btn-primary">Apply Bulk Fix</button>
       </div>
       <p class="form-status" id="admin-bulk-attendance-status" aria-live="polite"></p>
     </form>
+
   </div>
 </section>

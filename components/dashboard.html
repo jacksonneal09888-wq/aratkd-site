@@ -1,35 +1,84 @@
 <section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Usage Overview</h3>
-    <p class="admin-card__meta">Snapshot of portal logins and belt updates</p>
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">Live roster snapshot</p>
+      <h3>At a Glance</h3>
+    </div>
+    <p class="admin-generated admin-card__meta">Refreshed <span id="admin-generated-at">—</span></p>
   </div>
-  <p class="admin-generated">Last updated <span id="admin-generated-at">—</span></p>
+
+  <div class="admin-roster-cards" style="margin-bottom:1rem;">
+    <div class="admin-roster-card">
+      <p class="card-label">Active Students</p>
+      <p class="card-value" id="admin-membership-count-active">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Month-to-Month</p>
+      <p class="card-value" id="admin-membership-count-mtm">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Tier 1</p>
+      <p class="card-value" id="admin-membership-count-t1">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Tier 2</p>
+      <p class="card-value" id="admin-membership-count-t2">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Tier 3</p>
+      <p class="card-value" id="admin-membership-count-t3">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Annual</p>
+      <p class="card-value" id="admin-membership-count-annual">—</p>
+    </div>
+    <div class="admin-roster-card">
+      <p class="card-label">Not Set</p>
+      <p class="card-value" id="admin-membership-count-none">—</p>
+    </div>
+  </div>
+
+  <div class="admin-card__header" style="margin:0.5rem 0;">
+    <h4 class="admin-card__subtitle">Portal Activity</h4>
+    <p class="admin-card__meta">Student logins, belt updates, and check-ins</p>
+  </div>
   <div class="admin-table-wrap">
     <table class="admin-table" aria-label="Portal usage summary">
       <thead>
         <tr>
-          <th scope="col">Student ID</th>
-          <th scope="col">Total Events</th>
+          <th scope="col">Student</th>
+          <th scope="col">Events</th>
           <th scope="col">Logins</th>
-          <th scope="col">Latest Belt</th>
+          <th scope="col">Belt</th>
           <th scope="col">Last Activity</th>
           <th scope="col">Status</th>
-          <th scope="col">Actions</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
       <tbody id="admin-summary-body">
-        <tr>
-          <td colspan="7">Sign in to load analytics.</td>
-        </tr>
+        <tr><td colspan="7">Sign in to load analytics.</td></tr>
       </tbody>
     </table>
   </div>
 </section>
 
+<section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
+  <div class="admin-summary__header">
+    <div>
+      <p class="admin-card__meta">Kiosk check-ins and portal events</p>
+      <h3>Recent Events</h3>
+    </div>
+    <span class="admin-pill admin-pill--warning">Live</span>
+  </div>
+  <ul class="admin-event-list" id="admin-events-list">
+    <li>No recent events logged.</li>
+  </ul>
+</section>
+
 <section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard">
   <div class="admin-card__header">
     <h3 class="admin-card__title">Messaging Insights</h3>
-    <p class="admin-card__meta">Local log metrics</p>
+    <p class="admin-card__meta">Local communication log</p>
   </div>
   <div class="admin-roster-cards">
     <div class="admin-roster-card">
@@ -37,7 +86,7 @@
       <p class="card-value" id="msg-metric-today">0</p>
     </div>
     <div class="admin-roster-card">
-      <p class="card-label">Messages This Week</p>
+      <p class="card-label">This Week</p>
       <p class="card-value" id="msg-metric-week">0</p>
     </div>
     <div class="admin-roster-card">
@@ -45,14 +94,4 @@
       <p class="card-value" id="msg-metric-belt">—</p>
     </div>
   </div>
-</section>
-
-<section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Recent Portal Events</h3>
-    <span class="admin-pill admin-pill--warning">Live feed</span>
-  </div>
-  <ul class="admin-event-list" id="admin-events-list">
-    <li>No events yet.</li>
-  </ul>
 </section>
