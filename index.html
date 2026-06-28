@@ -67,6 +67,56 @@
     }
     </script>
 
+    <!-- FAQPage Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How old does my child need to be to start?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Our Little Ninjas program starts at age 3. Kids & Family Taekwondo runs from around age 6 through teens, and adults are always welcome. There is no upper age limit."}
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer a trial class?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes! We welcome families to come watch or participate in a trial class before committing. Text us at (919) 533-9313 or use the contact form to set up your first visit."}
+        },
+        {
+          "@type": "Question",
+          "name": "Does my child need prior martial arts experience?",
+          "acceptedAnswer": {"@type": "Answer", "text": "None at all. Every student starts from the beginning. Master Ara and our instructor team guide each student at their own pace, building confidence and skills from the ground up."}
+        },
+        {
+          "@type": "Question",
+          "name": "What is the After School Success Program?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Our After School program picks up students from local schools, provides homework assistance and academic support, and includes daily Taekwondo instruction — all in one supervised, structured environment."}
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer classes in Spanish?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Yes — Master Ara and our team are bilingual. Spanish-speaking families are fully supported and welcome to communicate in Spanish at any time."}
+        },
+        {
+          "@type": "Question",
+          "name": "What should my child wear to their first class?",
+          "acceptedAnswer": {"@type": "Answer", "text": "Comfortable athletic clothes work perfectly for your first visit. Once you enroll, we will guide you on uniform (dobok) options. No special gear is needed to start."}
+        },
+        {
+          "@type": "Question",
+          "name": "How often should we attend?",
+          "acceptedAnswer": {"@type": "Answer", "text": "We recommend 2-3 classes per week to build momentum and see consistent progress. Classes run Monday through Friday with flexible scheduling to fit your family's routine."}
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a long-term contract?",
+          "acceptedAnswer": {"@type": "Answer", "text": "We offer flexible membership options. Contact us to discuss what works best for your family — we want training to be accessible, not stressful."}
+        }
+      ]
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -100,10 +150,11 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="language-switcher">
-                    <span class="language-switcher__label">Language</span>
-                    <div id="google_translate_element"></div>
-                    <span class="language-switcher__powered">Powered by Google Translate</span>
+                <div class="lang-toggle" aria-label="Language / Idioma">
+                    <button class="lang-toggle__btn is-active" data-lang="en" aria-pressed="true">EN</button>
+                    <span class="lang-toggle__sep" aria-hidden="true">|</span>
+                    <button class="lang-toggle__btn" data-lang="es" aria-pressed="false">ES</button>
+                    <div id="google_translate_element" style="position:absolute;visibility:hidden;pointer-events:none;" aria-hidden="true"></div>
                 </div>
             </div>
         </div>
@@ -118,7 +169,7 @@
                             <img src="assets/Images/Little%20ninjas%202026%20-1.png" alt="Little Ninjas 2026 banner">
                         </div>
                         <div class="hero-flyer">
-                            <img src="taekwondo%20flayer%20enero.jpg" alt="Taekwondo benefits flyer">
+                            <img src="assets/Images/taekwondo%20flayer%20enero.jpg" alt="Taekwondo benefits flyer">
                         </div>
                     </div>
                 </div>
@@ -132,6 +183,7 @@
                         <li>Classes for kids, teens, and adults on one schedule</li>
                     </ul>
                     <div class="hero-actions">
+                        <a href="#contact" class="cta-btn">Try a Free Class</a>
                         <a href="#programs" class="secondary-btn">Explore Programs</a>
                     </div>
                 </div>
@@ -145,7 +197,7 @@
                     <p>From Little Ninjas to leadership training, our curriculum keeps Siler City students active, focused, and confident all year long.</p>
                 </header>
                 <div class="card-grid">
-                    <article class="card">
+                    <article class="card" data-reveal>
                         <h3>Little Ninjas (Ages 3-5)</h3>
                         <p>Introduce early learners to Taekwondo through upbeat drills that reinforce balance, listening skills, and respect.</p>
                         <ul>
@@ -154,7 +206,7 @@
                             <li>Positive mat etiquette that carries home and to school</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal data-reveal-delay="100">
                         <h3>Kids &amp; Family Taekwondo</h3>
                         <p>Train with Master Ara for heightened confidence, fitness, and perseverance using the World Taekwondo Federation curriculum.</p>
                         <ul>
@@ -163,7 +215,7 @@
                             <li>Family classes that keep siblings and parents progressing together</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal data-reveal-delay="200">
                         <h3>After School Success Program</h3>
                         <p>Our community-driven after-school option blends academics, martial arts, and life skills for Chatham County families.</p>
                         <ul>
@@ -172,7 +224,7 @@
                             <li>Transportation from local schools and healthy routines</li>
                         </ul>
                     </article>
-                    <article class="card">
+                    <article class="card" data-reveal data-reveal-delay="300">
                         <h3>Hapkido &amp; Self-Defense</h3>
                         <p>Learn practical self-defense secrets that keep your family safe while elevating discipline and focus.</p>
                         <ul>
@@ -191,49 +243,49 @@
                     <h2>Meet the Instructors</h2>
                 </header>
                 <div class="profile-grid">
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal>
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo" src="assets/Images/Master%20Ara.jpg" alt="Master Ara demonstrating Taekwondo technique">
+                            <img class="profile-card__photo" src="assets/Images/Master%20Ara.jpg" alt="Master Ara demonstrating Taekwondo technique" loading="lazy">
                         </figure>
                         <h3>Master Ara</h3>
                         <p class="profile-title">Master Instructor</p>
                         <p>Founder of Ara's Martial Arts Sportsplex and World Taekwondo Federation black belt guiding students toward confidence, discipline, and championship-ready technique.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal data-reveal-delay="80">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--fatima" src="assets/Images/Coach%20Fatima.jpeg" alt="Coach Fatima Enriquez coaching athletes">
+                            <img class="profile-card__photo profile-card__photo--fatima" src="assets/Images/Coach%20Fatima.jpeg" alt="Coach Fatima Enriquez coaching athletes" loading="lazy">
                         </figure>
                         <h3>Coach Fatima Enriquez</h3>
                         <p class="profile-title">Certified Personal Trainer</p>
                         <p>Leads our boot-camp and conditioning classes with individualized form corrections, motivational coaching, and a passion for student wellness.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal data-reveal-delay="160">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--elle" src="assets/Images/Instructor%20Elle.png" alt="Instructor Elide Ara demonstrating martial arts technique">
+                            <img class="profile-card__photo profile-card__photo--elle" src="assets/Images/Instructor%20Elle.png" alt="Instructor Elide Ara demonstrating martial arts technique" loading="lazy">
                         </figure>
                         <h3>Instructor Elide Ara</h3>
                         <p class="profile-title">3rd Degree Black Belt</p>
                         <p>Champions advanced forms and sparring precision, mentoring competitors and leadership students to elevate performance while modeling confidence and courtesy.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal data-reveal-delay="240">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--fisher" src="assets/Images/Jr%20Instructor%20Fisher.png" alt="Jr. Instructor Fisher guiding students through drills">
+                            <img class="profile-card__photo profile-card__photo--fisher" src="assets/Images/Jr%20Instructor%20Fisher.png" alt="Jr. Instructor Fisher guiding students through drills" loading="lazy">
                         </figure>
                         <h3>Jr. Instructor Fisher</h3>
                         <p class="profile-title">Junior Leadership Coach &middot; 2nd Degree Black Belt</p>
                         <p>Supports all students with targeted forms coaching, conditioning drills, and mentorship, helping the next wave of black belts lead with confidence.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal data-reveal-delay="320">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--cane" src="assets/Images/Jr%20instructor%20Cane.png" alt="Jr. Instructor Cane demonstrating focus and balance">
+                            <img class="profile-card__photo profile-card__photo--cane" src="assets/Images/Jr%20instructor%20Cane.png" alt="Jr. Instructor Cane demonstrating focus and balance" loading="lazy">
                         </figure>
                         <h3>Jr. Instructor Cane</h3>
                         <p class="profile-title">Junior Leadership Coach &middot; 1st Degree Black Belt</p>
                         <p>Breaks down sparring concepts into clear, confidence-building drills so students master timing, control, and ring awareness in a supportive environment.</p>
                     </article>
-                    <article class="profile-card">
+                    <article class="profile-card" data-reveal data-reveal-delay="400">
                         <figure class="profile-card__media">
-                            <img class="profile-card__photo profile-card__photo--jackson" src="assets/Images/Coach%20Jackson.jpg" alt="Coach Jackson leading a class">
+                            <img class="profile-card__photo profile-card__photo--jackson" src="assets/Images/Coach%20Jackson.jpg" alt="Coach Jackson leading a class" loading="lazy">
                         </figure>
                         <h3>Coach Jackson</h3>
                         <p class="profile-title">Coach &middot; Assistant Instructor</p>
@@ -312,21 +364,21 @@
                 </header>
 
                 <div class="focus-section__pillars" role="list">
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal>
                         <span class="focus-pillar__icon" aria-hidden="true">01</span>
                         <div>
                             <h3>Eye Focused</h3>
                             <p>Students lock in on instructors and goals to sharpen discipline and confidence on every drill.</p>
                         </div>
                     </article>
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal data-reveal-delay="120">
                         <span class="focus-pillar__icon" aria-hidden="true">02</span>
                         <div>
                             <h3>Mind Focused</h3>
                             <p>Mindset coaching keeps attitudes positive, respectful, and ready to absorb new skills.</p>
                         </div>
                     </article>
-                    <article class="focus-pillar" role="listitem">
+                    <article class="focus-pillar" role="listitem" data-reveal data-reveal-delay="240">
                         <span class="focus-pillar__icon" aria-hidden="true">03</span>
                         <div>
                             <h3>Body Focused</h3>
@@ -371,6 +423,49 @@
                         <blockquote>"Taekwondo is suitable for all ages, and the ARA's membership ranges from 3 years old and older."</blockquote>
                         <figcaption>&mdash; Academy Welcome Message</figcaption>
                     </figure>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <div class="container">
+                <header class="section-header">
+                    <h2>Common Questions</h2>
+                    <p>Everything families want to know before stepping on the mat for the first time.</p>
+                </header>
+                <div class="faq-grid">
+                    <details class="faq-item" data-reveal>
+                        <summary>How old does my child need to be to start?</summary>
+                        <p>Our Little Ninjas program starts at age 3. Kids &amp; Family Taekwondo runs from around age 6 through teens, and adults are always welcome. There's no upper age limit — discipline and fitness apply at every stage of life.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="80">
+                        <summary>Do you offer a trial class?</summary>
+                        <p>Yes! We welcome families to come watch or participate in a trial class before committing. Text us at <a href="sms:19195339313">(919) 533-9313</a> or use the contact form below to set up your first visit.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="160">
+                        <summary>Does my child need prior martial arts experience?</summary>
+                        <p>None at all. Every student starts from the beginning. Master Ara and our instructor team guide each student at their own pace, building confidence and skills from the ground up.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="240">
+                        <summary>What is the After School Success Program?</summary>
+                        <p>Our After School program provides transportation from local schools, homework assistance and academic support, and daily Taekwondo instruction — all in one supervised, structured environment for Chatham County families.</p>
+                    </details>
+                    <details class="faq-item" data-reveal>
+                        <summary>Do you offer classes in Spanish? / ¿Ofrecen clases en español?</summary>
+                        <p>Sí — Master Ara and our team are bilingual. All Spanish-speaking families are fully supported. Use the <strong>ES</strong> button in the header to switch this entire page to Spanish, or simply communicate with us in Spanish at any time.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="80">
+                        <summary>What should my child wear to their first class?</summary>
+                        <p>Comfortable athletic clothes work perfectly for your first visit. Once you enroll, we'll guide you on uniform (dobok) options. No special gear is needed to start.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="160">
+                        <summary>How often should we attend?</summary>
+                        <p>We recommend 2–3 classes per week to build momentum and see consistent progress. Classes run Monday through Friday, so there's schedule flexibility to fit your family's routine.</p>
+                    </details>
+                    <details class="faq-item" data-reveal data-reveal-delay="240">
+                        <summary>Is there a long-term contract?</summary>
+                        <p>We offer flexible membership options. Contact us to discuss what works best for your family — we want training to be accessible, not stressful.</p>
+                    </details>
                 </div>
             </div>
         </section>

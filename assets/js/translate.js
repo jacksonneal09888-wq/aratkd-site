@@ -4,14 +4,10 @@ function hideGoogleBanner() {
   if (frame) {
     frame.style.display = 'none';
     const parent = frame.parentElement;
-    if (parent) {
-      parent.style.display = 'none';
-    }
+    if (parent) parent.style.display = 'none';
   }
   const tooltip = document.getElementById('goog-gt-tt');
-  if (tooltip) {
-    tooltip.style.display = 'none';
-  }
+  if (tooltip) tooltip.style.display = 'none';
 }
 
 function observeTranslateArtifacts() {
@@ -22,10 +18,51 @@ function observeTranslateArtifacts() {
   document.addEventListener('click', hideGoogleBanner);
 }
 
-window.initAraTranslate = function () {
-  if (typeof google === 'undefined' || !google.translate) {
+function switchLanguage(lang) {
+  if (lang === 'en') {
+    const exp = new Date(0).toUTCString();
+    document.cookie = 'googtrans=; path=/; expires=' + exp;
+    document.cookie = 'googtrans=; path=/; domain=.' + location.hostname + '; expires=' + exp;
+    window.location.reload();
     return;
   }
+  const sel = document.querySelector('.goog-te-combo');
+  if (sel) {
+    sel.value = lang;
+    const evt = document.createEvent('HTMLEvents');
+    evt.initEvent('change', false, true);
+    sel.dispatchEvent(evt);
+  }
+}
+
+function initLangToggle() {
+  const buttons = document.querySelectorAll('.lang-toggle__btn');
+  if (!buttons.length) return;
+
+  const cookie = document.cookie.split(';').find(c => c.trim().startsWith('googtrans=')) || '';
+  if (cookie.includes('/es')) {
+    buttons.forEach(btn => {
+      const isEs = btn.dataset.lang === 'es';
+      btn.classList.toggle('is-active', isEs);
+      btn.setAttribute('aria-pressed', isEs ? 'true' : 'false');
+    });
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => {
+        b.classList.remove('is-active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
+      switchLanguage(btn.dataset.lang);
+    });
+  });
+}
+
+window.initAraTranslate = function () {
+  if (typeof google === 'undefined' || !google.translate) return;
   new google.translate.TranslateElement(
     {
       pageLanguage: 'en',
@@ -36,4 +73,5 @@ window.initAraTranslate = function () {
     'google_translate_element'
   );
   observeTranslateArtifacts();
+  setTimeout(initLangToggle, 900);
 };

@@ -28,10 +28,11 @@
     <link rel="stylesheet" href="assets/css/master-ara.css">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <header class="site-header">
         <div class="container">
             <div class="brand">
-                <a href="index.html#top" class="brand-link">
+                <a href="/" class="brand-link">
                     <span class="brand-mark">ARA</span>
                     <span class="brand-name">Martial Arts</span>
                 </a>
@@ -48,17 +49,18 @@
                 </ul>
             </nav>
             <div class="header-actions">
-                <div class="language-switcher">
-                    <span class="language-switcher__label">Language</span>
-                    <div id="google_translate_element"></div>
-                    <span class="language-switcher__powered">Powered by Google Translate</span>
+                <div class="lang-toggle" aria-label="Language / Idioma">
+                    <button class="lang-toggle__btn is-active" data-lang="en" aria-pressed="true">EN</button>
+                    <span class="lang-toggle__sep" aria-hidden="true">|</span>
+                    <button class="lang-toggle__btn" data-lang="es" aria-pressed="false">ES</button>
+                    <div id="google_translate_element" style="position:absolute;visibility:hidden;pointer-events:none;" aria-hidden="true"></div>
                 </div>
                 <a href="index.html#contact" class="cta-btn">Book a Trial</a>
             </div>
         </div>
     </header>
 
-    <main id="top">
+    <main id="main-content">
         <section class="hero">
             <div class="container hero-content">
                 <div class="hero-copy">
@@ -67,7 +69,7 @@
                     <div class="hero-actions">
                         <a href="#yoga" class="cta-btn">Explore Yoga</a>
                         <a href="#zumba" class="secondary-btn">Discover Zumba</a>
-                        <a href="#bootcamp" class="secondary-btn">Conditioning Boot Camp</a>
+                        <a href="#bootcamp" class="secondary-btn">Boot Camp</a>
                     </div>
                 </div>
                 <div class="hero-aside">
@@ -90,16 +92,16 @@
         <section class="section" id="yoga-zumba-banners">
             <div class="container">
                 <div class="banner-grid">
-                    <div class="banner-card">
-                        <img src="assets/materials/Yoga.jpg" alt="Yoga class" class="banner-image">
+                    <div class="banner-card" id="yoga">
+                        <img src="assets/materials/Yoga.jpg" alt="Yoga class" class="banner-image" loading="lazy">
                         <div class="banner-content">
                             <h3>Yoga with Coach Fatima</h3>
                             <p>Improve your flexibility, strength, and mental clarity with our calming and challenging yoga classes.</p>
                             <a href="#contact" class="cta-btn">Join Yoga</a>
                         </div>
                     </div>
-                    <div class="banner-card">
-                        <img src="assets/materials/Zumba.jpg" alt="Zumba class" class="banner-image">
+                    <div class="banner-card" id="zumba">
+                        <img src="assets/materials/Zumba.jpg" alt="Zumba class" class="banner-image" loading="lazy">
                         <div class="banner-content">
                             <h3>Zumba with Coach Fatima</h3>
                             <p>Dance your way to fitness with high-energy, fun-filled Zumba classes that feel more like a party than a workout!</p>
@@ -110,7 +112,7 @@
                 <div class="hero-highlight hero-highlight--open-enrollment" id="bootcamp">
                     <span class="hero-badge">Limited Spots</span>
                     <h2>Conditioning Boot Camp Is Back</h2>
-                    <p>Coach Fatima Enriquez leads a high-energy 2024 boot-camp and conditioning series designed to sharpen form, stamina, and mindset.</p>
+                    <p>Coach Fatima Enriquez leads a high-energy boot-camp and conditioning series designed to sharpen form, stamina, and mindset.</p>
                     <ul>
                         <li>Certified personal trainer on every session</li>
                         <li>Only 8 spots per class for focused coaching</li>

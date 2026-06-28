@@ -293,47 +293,43 @@ body.js-enabled [data-reveal].is-visible {
     margin-left: auto;
 }
 
-.language-switcher {
+.lang-toggle {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    color: #fff;
-    font-size: 0.75rem;
-    min-width: 150px;
+    align-items: center;
+    gap: 0.3rem;
+    position: relative;
 }
 
-.language-switcher__label {
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.6rem;
-    opacity: 0.7;
-}
-
-.language-switcher__powered {
-    font-size: 0.6rem;
-    opacity: 0.55;
-}
-
-#google_translate_element,
-#google_translate_element * {
-    font-family: 'Roboto', Arial, sans-serif !important;
-}
-
-#google_translate_element select {
+.lang-toggle__btn {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    color: #fff;
-    padding: 4px 28px 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    padding: 0.28rem 0.65rem;
     border-radius: 999px;
-    font-size: 0.75rem;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    outline: none;
-    min-width: 140px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
+    line-height: 1;
 }
 
-#google_translate_element select option {
-    color: #111827;
+.lang-toggle__btn.is-active {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #fff;
+}
+
+.lang-toggle__btn:hover:not(.is-active) {
+    background: rgba(255, 255, 255, 0.13);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.lang-toggle__sep {
+    color: rgba(255, 255, 255, 0.28);
+    font-size: 0.75rem;
+    user-select: none;
 }
 
 .goog-te-banner-frame.skiptranslate,
@@ -382,9 +378,6 @@ body {
         flex-direction: column;
         align-items: flex-end;
         gap: 0.35rem;
-    }
-    .language-switcher {
-        min-width: 180px;
     }
 }
 
@@ -467,11 +460,6 @@ body {
     .main-nav {
         width: 100%;
         order: 2;
-    }
-
-    .language-switcher {
-        flex: 1 1 180px;
-        min-width: 0;
     }
 
     .cta-btn {
@@ -6291,4 +6279,84 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     top: 0;
     outline: 3px solid #fff;
     outline-offset: 2px;
+}
+
+/* FAQ section */
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: var(--surface-2, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+}
+
+.faq-item:hover {
+    box-shadow: var(--shadow-1);
+}
+
+.faq-item summary {
+    cursor: pointer;
+    padding: 1rem 1.25rem;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-strong, #0f172a);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    line-height: 1.4;
+    user-select: none;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item summary::after {
+    content: '+';
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--brand-500, #d81f26);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.faq-item[open] summary::after {
+    transform: rotate(45deg);
+}
+
+.faq-item > p,
+.faq-item > div {
+    padding: 0 1.25rem 1rem;
+    color: var(--text-mid, #475467);
+    line-height: 1.65;
+    font-size: 0.95rem;
+}
+
+.faq-item > p a {
+    color: var(--brand-500, #d81f26);
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+[data-theme="dark"] .faq-item {
+    background: var(--surface-2, #1e293b);
+    border-color: rgba(255,255,255,0.08);
+}
+
+[data-theme="dark"] .faq-item summary {
+    color: var(--text-strong, #f1f5f9);
 }
