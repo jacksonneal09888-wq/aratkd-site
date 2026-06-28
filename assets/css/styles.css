@@ -6362,3 +6362,306 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
 [data-theme="dark"] .faq-item summary {
     color: var(--text-strong, #f1f5f9);
 }
+
+/* =====================================================
+   ARA UI — Toast Notifications
+   ===================================================== */
+.ara-toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.55rem;
+    pointer-events: none;
+    max-width: 360px;
+    width: calc(100vw - 2rem);
+}
+
+.ara-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+    font-size: 0.875rem;
+    font-family: var(--font-body, 'Roboto', sans-serif);
+    background: #fff;
+    border-left: 4px solid #d1d5db;
+    color: #111827;
+    line-height: 1.45;
+    animation: ara-toast-in 0.22s cubic-bezier(.2,.8,.4,1) both;
+}
+
+[data-theme="dark"] .ara-toast {
+    background: #1e2535;
+    color: #e5e7eb;
+    border-left-color: #374151;
+}
+
+.ara-toast.is-out {
+    animation: ara-toast-out 0.2s ease forwards;
+}
+
+@keyframes ara-toast-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+@keyframes ara-toast-out {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(8px) scale(0.95); }
+}
+
+.ara-toast--success { border-left-color: #10b981; }
+.ara-toast--error   { border-left-color: #ef4444; }
+.ara-toast--info    { border-left-color: #3b82f6; }
+.ara-toast--warning { border-left-color: #f59e0b; }
+
+.ara-toast__icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    font-style: normal;
+}
+
+.ara-toast__body { flex: 1; }
+
+.ara-toast__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.4;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+    color: inherit;
+    transition: opacity 0.15s;
+}
+
+.ara-toast__close:hover { opacity: 0.85; }
+
+/* =====================================================
+   ARA UI — Confirm / Prompt Modal
+   ===================================================== */
+.ara-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.48);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: ara-backdrop-in 0.18s ease;
+}
+
+@keyframes ara-backdrop-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.ara-confirm-dialog {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem;
+    width: min(440px, 100%);
+    box-shadow: 0 8px 48px rgba(0,0,0,0.24);
+    animation: ara-dialog-in 0.2s cubic-bezier(.2,.8,.4,1);
+}
+
+[data-theme="dark"] .ara-confirm-dialog {
+    background: #1e2535;
+    color: #e5e7eb;
+}
+
+@keyframes ara-dialog-in {
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.ara-confirm-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.65rem;
+    font-style: normal;
+}
+
+.ara-confirm-title {
+    font-family: var(--font-heading, 'Rajdhani', sans-serif);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.45rem;
+    line-height: 1.25;
+}
+
+.ara-confirm-body {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0 0 1.25rem;
+    line-height: 1.55;
+}
+
+[data-theme="dark"] .ara-confirm-body { color: #9ca3af; }
+
+.ara-confirm-input {
+    display: block;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid rgba(0,0,0,0.18);
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    background: var(--input-bg, #fff);
+    color: inherit;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.ara-confirm-input:focus {
+    outline: none;
+    border-color: var(--brand-500, #d81f26);
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.12);
+}
+
+[data-theme="dark"] .ara-confirm-input {
+    background: #0f172a;
+    border-color: rgba(255,255,255,0.15);
+    color: #e5e7eb;
+}
+
+.ara-confirm-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-family: var(--font-heading, 'Rajdhani', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.15s;
+    background-color: #ef4444;
+    color: #fff;
+}
+
+.btn-danger:hover { background-color: #dc2626; transform: translateY(-1px); }
+.btn-danger:active { transform: translateY(0); }
+
+/* =====================================================
+   ARA UI — Belt Rank Pills
+   ===================================================== */
+.belt-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.belt-pill::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.belt-pill--white  { background: #f3f4f6; color: #374151; }
+.belt-pill--white::before  { background: #d1d5db; box-shadow: inset 0 0 0 1px #9ca3af; }
+
+.belt-pill--yellow { background: #fef9c3; color: #854d0e; }
+.belt-pill--yellow::before { background: #facc15; }
+
+.belt-pill--orange { background: #ffedd5; color: #9a3412; }
+.belt-pill--orange::before { background: #f97316; }
+
+.belt-pill--green  { background: #dcfce7; color: #15803d; }
+.belt-pill--green::before  { background: #22c55e; }
+
+.belt-pill--blue   { background: #dbeafe; color: #1d4ed8; }
+.belt-pill--blue::before   { background: #3b82f6; }
+
+.belt-pill--purple { background: #ede9fe; color: #6d28d9; }
+.belt-pill--purple::before { background: #8b5cf6; }
+
+.belt-pill--red    { background: rgba(216,31,38,0.12); color: #b6151c; }
+.belt-pill--red::before    { background: #d81f26; }
+
+.belt-pill--brown  { background: #fdf2d0; color: #78350f; }
+.belt-pill--brown::before  { background: #92400e; }
+
+.belt-pill--black  { background: #111827; color: #f9fafb; }
+.belt-pill--black::before  { background: #374151; box-shadow: inset 0 0 0 1px #6b7280; }
+
+/* =====================================================
+   ARA UI — Skeleton Loader
+   ===================================================== */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+    border-radius: 0.4rem;
+    display: block;
+}
+
+[data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, #2a3147 25%, #344063 50%, #2a3147 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-line {
+    height: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-line--short { width: 60%; }
+.skeleton-line--med   { width: 80%; }
+
+/* =====================================================
+   Admin sidebar — SVG icon sizing
+   ===================================================== */
+.admin-nav__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.admin-nav__icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    display: block;
+}

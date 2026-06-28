@@ -4204,7 +4204,15 @@ function renderAdminRoster() {
         nameCell.textContent = student.name || "—";
 
         const beltCell = document.createElement("td");
-        beltCell.textContent = student.currentBelt || "—";
+        const beltName = student.currentBelt || "—";
+        if (beltName !== "—" && typeof window.araBeltPillClass === 'function') {
+            const beltSpan = document.createElement('span');
+            beltSpan.className = 'belt-pill ' + window.araBeltPillClass(beltName);
+            beltSpan.textContent = beltName;
+            beltCell.appendChild(beltSpan);
+        } else {
+            beltCell.textContent = beltName;
+        }
 
         const statusCell = document.createElement("td");
         const pill = document.createElement("span");
@@ -4586,6 +4594,27 @@ function readAttachment(file) {
     });
 }
 
+async function sendEmailViaGoogleGroup(pending) {
+    const groupEmail = document.body?.dataset?.googleGroup || 'aratkd-parents@googlegroups.com';
+    const form = new FormData();
+    form.append('name', 'ARA TKD Admin');
+    form.append('email', 'aratkdsports@gmail.com');
+    form.append('message', pending.message || '');
+    form.append('_subject', pending.subject || 'Message from ARA TKD');
+    form.append('_template', 'table');
+    form.append('_captcha', 'false');
+    const res = await fetch(`https://formsubmit.co/${encodeURIComponent(groupEmail)}`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: form
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Google Group send failed');
+    }
+    return res.json().catch(() => ({}));
+}
+
 async function sendEmailViaBrevo(pending) {
     const apiKey = getBrevoApiKey();
     if (!apiKey) {
@@ -4913,8 +4942,11 @@ function confirmAdminEmailSend(event) {
     );
     let sendPromise = null;
     const usingBrevo = Boolean(apiKey && pending.recipients?.length);
+    const usingGoogleGroup = !usingBrevo && !url && (pending.recipientType === 'all' || !pending.recipientType);
     if (apiKey && pending.recipients?.length) {
         sendPromise = sendEmailViaBrevo(pending);
+    } else if (usingGoogleGroup) {
+        sendPromise = sendEmailViaGoogleGroup(pending);
     } else if (url) {
         sendPromise = fetchFresh(url, {
             method: "POST",
@@ -4964,9 +4996,12 @@ function confirmAdminEmailSend(event) {
             });
             const queuedMessage = usingBrevo
                 ? `Email queued to Brevo for ${pending.recipients.length} recipient(s).`
+                : usingGoogleGroup
+                ? `Message sent to the ARA TKD Parents Group.`
                 : `Email queued for delivery to ~${pending.recipients.length} recipient(s).`;
             setAdminEmailStatus(queuedMessage, "success");
             setAdminStatus("Email queued for delivery.", "success");
+            if (typeof window.araToast === 'function') window.araToast(queuedMessage, 'success');
             pushMessagesToStudents(pending);
             if (portalEls.adminEmailBody) portalEls.adminEmailBody.value = "";
             if (portalEls.adminEmailSubject) portalEls.adminEmailSubject.value = "";
@@ -5172,7 +5207,7 @@ function handleAdminSummaryAction(event) {
     updateStudentSuspension(studentId, suspend, reason);
 }
 
-function archiveStudent(studentId) {
+function archiveStudent(studentId, skipConfirm, presetReason) {
     if (!HAS_REMOTE_API) return;
     if (!portalState.admin.isAuthorized) {
         setAdminStatus("Sign in first.");
@@ -5183,11 +5218,13 @@ function archiveStudent(studentId) {
         (entry) => entry.id?.toLowerCase() === studentId.toLowerCase()
     );
     const label = student?.name || studentId;
-    const confirmText =
-        `Archive ${label}?\\n\\n` +
-        `This will hide the student for 30 days, then permanently remove them.`;
-    if (!window.confirm(confirmText)) return;
-    const reason = window.prompt("Reason for removal (optional)", "") || "";
+    if (!skipConfirm) {
+        const confirmText =
+            `Archive ${label}?\n\n` +
+            `This will hide the student for 30 days, then permanently remove them.`;
+        if (!window.confirm(confirmText)) return;
+    }
+    const reason = skipConfirm ? (presetReason || '') : (window.prompt("Reason for removal (optional)", "") || "");
     const url = buildApiUrl(`/portal/admin/students/${encodeURIComponent(studentId)}/archive`);
     if (!url) return;
 
@@ -7922,13 +7959,57 @@ function handleRosterDetailButtons(event) {
         return;
     }
     if (action === 'archive' || action === 'remove') {
-        archiveStudent(studentId);
+        const student = (portalState.admin.roster || []).find(s => s.id?.toLowerCase() === studentId.toLowerCase());
+        const label = student?.name || studentId;
+        if (typeof window.araConfirm === 'function') {
+            window.araConfirm({
+                icon: '⚠️',
+                title: `Archive ${label}?`,
+                body: 'This hides the student for 30 days then permanently removes them. Cannot be undone.',
+                confirmLabel: 'Archive',
+                cancelLabel: 'Cancel',
+                danger: true
+            }).then(confirmed => {
+                if (!confirmed) return;
+                window.araPrompt({
+                    title: 'Reason for archiving (optional)',
+                    body: 'Add a note so staff know why this record was removed.',
+                    inputPlaceholder: 'e.g. Moved away, billing issue...',
+                    confirmLabel: 'Archive Student',
+                    cancelLabel: 'Cancel',
+                    danger: true
+                }).then(reason => {
+                    if (reason === null) return;
+                    archiveStudent(studentId, true, reason || '');
+                });
+            });
+        } else {
+            archiveStudent(studentId);
+        }
         return;
     }
     if (action === 'deactivate' || action === 'activate') {
         const suspend = action === 'deactivate';
-        const reason = suspend ? window.prompt('Enter suspension reason', 'Billing issue') || '' : '' ;
-        updateStudentSuspension(studentId, suspend, reason);
+        if (suspend && typeof window.araPrompt === 'function') {
+            const student = (portalState.admin.roster || []).find(s => s.id?.toLowerCase() === studentId.toLowerCase());
+            const label = student?.name || studentId;
+            window.araPrompt({
+                icon: '⏸️',
+                title: `Deactivate ${label}?`,
+                body: 'The student will be hidden from active roster but their record is kept. Add a reason below.',
+                inputPlaceholder: 'e.g. Billing issue, taking a break...',
+                inputDefault: 'Billing issue',
+                confirmLabel: 'Deactivate',
+                cancelLabel: 'Cancel',
+                danger: true
+            }).then(reason => {
+                if (reason === null) return;
+                updateStudentSuspension(studentId, true, reason || '');
+            });
+        } else {
+            const reason = suspend ? window.prompt('Enter suspension reason', 'Billing issue') || '' : '';
+            updateStudentSuspension(studentId, suspend, reason);
+        }
         return;
     }
 }
