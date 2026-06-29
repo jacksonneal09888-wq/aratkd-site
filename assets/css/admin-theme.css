@@ -1640,3 +1640,784 @@ body[data-portal-mode="admin"]:not(.admin-active) .form-status {
     text-align: center !important;
     margin-top: 0.75rem !important;
 }
+
+/* ================================================================
+   COMPREHENSIVE ADMIN DARK THEME ADDITIONS — 2026-06-29
+   All missing classes audited from every component + panel file
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   GLOBAL HELPERS
+   ---------------------------------------------------------------- */
+/* Unscoped eyebrow used in panel headers (.eyebrow without .ara-) */
+body.admin-active .eyebrow {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    color: #d81f26 !important;
+    margin: 0 0 0.15rem !important;
+}
+
+/* ara-optional label annotation */
+body.admin-active .ara-optional {
+    color: rgba(255,255,255,0.28) !important;
+    font-size: 0.72em !important;
+    font-weight: 400 !important;
+}
+
+/* ara-info-banner base (without modifier) */
+body.admin-active .ara-info-banner {
+    padding: 0.75rem 1rem !important;
+    border-left: 3px solid rgba(255,255,255,0.15) !important;
+    background: rgba(255,255,255,0.05) !important;
+    color: rgba(255,255,255,0.65) !important;
+    font-size: 0.84rem !important;
+    margin: 0.5rem 0 !important;
+}
+
+/* Disabled primary button */
+body.admin-active .btn-primary:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+}
+
+/* Topbar actions row (used in panels) */
+body.admin-active .admin-topbar__actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+}
+
+/* ----------------------------------------------------------------
+   DASHBOARD — hero tile body + admin-grid
+   ---------------------------------------------------------------- */
+body.admin-active .admin-hero-tile__body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.15rem !important;
+}
+
+/* Emoji icon variant (used in membership.html) */
+body.admin-active .admin-hero-tile__icon {
+    font-size: 1.6rem !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Generic admin grid for calendar upcoming events */
+body.admin-active .admin-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 0.85rem !important;
+    padding: 0.5rem 0 !important;
+}
+
+/* ----------------------------------------------------------------
+   EMAIL TAB — template grid + card subtitle
+   ---------------------------------------------------------------- */
+body.admin-active .admin-card__subtitle {
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    color: #e8eaed !important;
+    margin: 0 !important;
+    font-family: var(--font-heading) !important;
+}
+
+body.admin-active .email-template-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 0.65rem !important;
+    padding: 0.75rem 1.35rem !important;
+}
+
+body.admin-active .email-template-tile {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.85rem 0.5rem !important;
+    border-radius: 0.65rem !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+}
+
+body.admin-active .email-template-tile__icon {
+    font-size: 1.5rem !important;
+    line-height: 1 !important;
+}
+
+body.admin-active .email-template-tile__label {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: rgba(255,255,255,0.78) !important;
+}
+
+/* admin-card__header used as sub-section divider in email.html */
+body.admin-active .admin-card__header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    padding: 0.85rem 1.35rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    flex-wrap: wrap !important;
+    background: transparent !important;
+}
+
+/* ----------------------------------------------------------------
+   EMAIL COMPOSE PANEL — two-column layout + modal
+   ---------------------------------------------------------------- */
+body.admin-active .admin-email-columns {
+    display: grid !important;
+    grid-template-columns: 1fr 1.4fr !important;
+    gap: 1rem !important;
+    padding: 1rem 1.35rem !important;
+}
+
+body.admin-active .admin-email-left,
+body.admin-active .admin-email-right {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+}
+
+body.admin-active .admin-email-form label,
+body.admin-active .email-panel label {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    color: rgba(255,255,255,0.5) !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+}
+
+body.admin-active .email-inline {
+    display: flex !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+}
+
+body.admin-active .email-message {
+    min-height: 160px !important;
+    resize: vertical !important;
+}
+
+body.admin-active .admin-radio-grid,
+body.admin-active .email-recipient-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1.35rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+/* Radio-wrapped pill buttons */
+body.admin-active .email-recipient-row .pill-button,
+body.admin-active .admin-radio-grid .pill-button {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    cursor: pointer !important;
+}
+
+body.admin-active .email-recipient-row .pill-button input[type="radio"],
+body.admin-active .admin-radio-grid .pill-button input[type="radio"] {
+    width: auto !important;
+    margin: 0 !important;
+    accent-color: #d81f26 !important;
+}
+
+/* Email preview modal */
+body.admin-active .admin-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 11000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.admin-active .admin-modal__backdrop {
+    position: absolute !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.6) !important;
+}
+
+body.admin-active .admin-modal__dialog {
+    position: relative !important;
+    background: #1f2747 !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-radius: 0.85rem !important;
+    padding: 0 !important;
+    width: 90% !important;
+    max-width: 580px !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.5) !important;
+    z-index: 1 !important;
+}
+
+body.admin-active .admin-modal__header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 1rem 1.35rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-modal__header h4 {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: #e8eaed !important;
+    margin: 0 !important;
+}
+
+body.admin-active .admin-modal__body {
+    padding: 1rem 1.35rem !important;
+    color: rgba(255,255,255,0.75) !important;
+    font-size: 0.86rem !important;
+}
+
+body.admin-active .admin-modal__footer {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 1rem 1.35rem !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-active .preview-recipient-list {
+    background: #161c30 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0.45rem !important;
+    padding: 0.5rem 0.75rem !important;
+    margin: 0.5rem 0 !important;
+    font-size: 0.8rem !important;
+    color: rgba(255,255,255,0.6) !important;
+    max-height: 120px !important;
+    overflow-y: auto !important;
+}
+
+body.admin-active .preview-message {
+    background: #161c30 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0.45rem !important;
+    padding: 0.75rem !important;
+    margin-top: 0.75rem !important;
+    color: rgba(255,255,255,0.72) !important;
+    font-size: 0.84rem !important;
+    white-space: pre-wrap !important;
+}
+
+/* ----------------------------------------------------------------
+   MEMBERSHIP TAB — ara-tier-row + badge value
+   ---------------------------------------------------------------- */
+body.admin-active .ara-tier-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.65rem !important;
+    margin-top: 1rem !important;
+    padding-top: 0.85rem !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-tier-badge__value {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: #e8eaed !important;
+    font-family: var(--font-heading) !important;
+}
+
+/* ----------------------------------------------------------------
+   COMMUNICATIONS TAB — sidebar + thread + compose
+   ---------------------------------------------------------------- */
+body.admin-active .comm-layout {
+    display: flex !important;
+    min-height: 0 !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .comm-student-list {
+    width: 240px !important;
+    min-width: 200px !important;
+    flex-shrink: 0 !important;
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
+    background: #161c30 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+body.admin-active .comm-search {
+    width: 100% !important;
+    padding: 0.6rem 0.85rem !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0 !important;
+    background: rgba(255,255,255,0.04) !important;
+    color: #e8eaed !important;
+    font-size: 0.84rem !important;
+    box-sizing: border-box !important;
+}
+
+body.admin-active .comm-search::placeholder { color: rgba(255,255,255,0.25) !important; }
+body.admin-active .comm-search:focus { outline: none !important; border-bottom-color: #d81f26 !important; }
+
+body.admin-active .comm-roster-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+}
+
+body.admin-active .comm-roster-list li {
+    padding: 0.65rem 0.9rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.84rem !important;
+    color: rgba(255,255,255,0.65) !important;
+    cursor: pointer !important;
+    transition: background 0.1s !important;
+}
+
+body.admin-active .comm-roster-list li:hover { background: rgba(255,255,255,0.05) !important; color: #e8eaed !important; }
+body.admin-active .comm-roster-list li.is-selected { background: rgba(216,31,38,0.18) !important; color: #fff !important; border-left: 3px solid #d81f26 !important; }
+
+body.admin-active .comm-thread {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    background: #1f2747 !important;
+    overflow: hidden !important;
+}
+
+body.admin-active .comm-thread__header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    background: #1f2747 !important;
+    flex-wrap: wrap !important;
+    flex-shrink: 0 !important;
+}
+
+body.admin-active .comm-thread__name {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #e8eaed !important;
+}
+
+/* Notes/comm filter pill row */
+body.admin-active .student-notes-filter {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+    align-items: center !important;
+}
+
+body.admin-active .student-notes-filter button {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: rgba(255,255,255,0.55) !important;
+    border-radius: 0.35rem !important;
+    padding: 0.22rem 0.55rem !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: all 0.12s !important;
+}
+
+body.admin-active .student-notes-filter button.is-active,
+body.admin-active .student-notes-filter button:hover {
+    background: #d81f26 !important;
+    border-color: #d81f26 !important;
+    color: #fff !important;
+}
+
+/* Note compose form */
+body.admin-active .comm-compose-form {
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 0.85rem 1rem !important;
+    background: #161c30 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    flex-shrink: 0 !important;
+}
+
+body.admin-active .comm-compose-row {
+    display: flex !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+}
+
+/* ----------------------------------------------------------------
+   SETTINGS TAB — action buttons grid
+   ---------------------------------------------------------------- */
+body.admin-active .settings-actions-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    gap: 0.75rem !important;
+    padding: 1rem 1.35rem !important;
+}
+
+body.admin-active .settings-action-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.35rem !important;
+    padding: 1rem 1.1rem !important;
+    border-radius: 0.65rem !important;
+    background: #232d4b !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    color: rgba(255,255,255,0.78) !important;
+    font-family: inherit !important;
+    transition: all 0.15s !important;
+}
+
+body.admin-active .settings-action-btn:hover {
+    background: rgba(216,31,38,0.14) !important;
+    border-color: rgba(216,31,38,0.3) !important;
+}
+
+body.admin-active .settings-action-btn--danger {
+    border-color: rgba(248,113,113,0.2) !important;
+}
+
+body.admin-active .settings-action-btn--danger:hover {
+    background: rgba(248,113,113,0.1) !important;
+    border-color: rgba(248,113,113,0.35) !important;
+}
+
+body.admin-active .settings-action-btn--info {
+    cursor: default !important;
+}
+
+body.admin-active .settings-action-btn--info:hover {
+    background: #232d4b !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .settings-action-btn__icon {
+    font-size: 1.4rem !important;
+    line-height: 1 !important;
+}
+
+body.admin-active .settings-action-btn__label {
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    color: #e8eaed !important;
+}
+
+/* ----------------------------------------------------------------
+   CLASSES TAB — class info grid + ara-info-tile icon
+   ---------------------------------------------------------------- */
+body.admin-active .ara-class-info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    gap: 0.85rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+body.admin-active .ara-info-tile__icon {
+    font-size: 1.4rem !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+/* ----------------------------------------------------------------
+   BANNERS TAB — banner list + form grid
+   ---------------------------------------------------------------- */
+body.admin-active .admin-banner-form__grid,
+body.admin-active .ara-form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 0.8rem !important;
+    margin-bottom: 0.85rem !important;
+}
+
+body.admin-active .admin-banner-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 0 !important;
+}
+
+/* Individual banner list items injected by JS */
+body.admin-active .admin-banner-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.85rem !important;
+    background: #232d4b !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0.55rem !important;
+    padding: 0.65rem 0.9rem !important;
+    font-size: 0.84rem !important;
+    color: rgba(255,255,255,0.75) !important;
+}
+
+body.admin-active .admin-banner-item img {
+    width: 64px !important;
+    height: 40px !important;
+    object-fit: cover !important;
+    border-radius: 0.3rem !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    flex-shrink: 0 !important;
+}
+
+/* ----------------------------------------------------------------
+   STUDENT PANEL — profile metrics, tags, actions rows
+   ---------------------------------------------------------------- */
+body.admin-active .student-modal__meta {
+    font-size: 0.8rem !important;
+    color: rgba(255,255,255,0.45) !important;
+    margin: 0.1rem 0 0 !important;
+}
+
+body.admin-active .student-modal__last {
+    font-size: 0.74rem !important;
+    color: rgba(255,255,255,0.35) !important;
+    font-style: italic !important;
+}
+
+body.admin-active .student-modal__tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    align-items: center !important;
+    margin-top: 0.5rem !important;
+}
+
+body.admin-active .student-modal__actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.35rem !important;
+    align-items: flex-start !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+}
+
+body.admin-active .student-modal__actions-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+    margin-top: 0.65rem !important;
+}
+
+body.admin-active .profile-metric__value {
+    font-size: 1.2rem !important;
+    font-weight: 800 !important;
+    color: #e8eaed !important;
+    margin: 0 !important;
+    font-family: var(--font-heading) !important;
+}
+
+/* student-modal__grid labels (not inside .ara-label) */
+body.admin-active .student-modal__grid label > span,
+body.admin-active .student-modal__grid label > span:first-child {
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    color: rgba(255,255,255,0.45) !important;
+    display: block !important;
+    margin-bottom: 0.2rem !important;
+}
+
+/* Compact grid variant */
+body.admin-active .student-modal__grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+    gap: 0.75rem !important;
+    margin-bottom: 0.65rem !important;
+}
+
+body.admin-active .student-modal__grid--compact {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+}
+
+/* ----------------------------------------------------------------
+   REPORT CARD DIALOG
+   ---------------------------------------------------------------- */
+body.admin-active .report-card-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    padding: 1rem 1.35rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-active .report-card-actions h3 {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: #e8eaed !important;
+    margin: 0 !important;
+}
+
+body.admin-active #report-card-body {
+    padding: 1rem 1.35rem !important;
+    color: rgba(255,255,255,0.75) !important;
+    font-size: 0.86rem !important;
+    line-height: 1.6 !important;
+}
+
+body.admin-active .admin-report-card__close {
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+}
+
+/* ----------------------------------------------------------------
+   CLASS PANEL — pill + actions + body layout
+   ---------------------------------------------------------------- */
+body.admin-active .class-modal__pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.18rem 0.5rem !important;
+    border-radius: 0.3rem !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    background: rgba(255,255,255,0.08) !important;
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .class-modal__body {
+    display: flex !important;
+    gap: 0 !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .class-modal__body--drawer {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+}
+
+body.admin-active .class-modal__column {
+    flex: 1 !important;
+    min-width: 0 !important;
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+body.admin-active .class-modal__column:last-child { border-right: none !important; }
+
+body.admin-active .class-modal__list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 0.5rem !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+body.admin-active .class-modal__actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    align-items: center !important;
+    padding: 0.65rem 1rem !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+/* ----------------------------------------------------------------
+   ENROLL RESULT BOX
+   ---------------------------------------------------------------- */
+body.admin-active .admin-enroll__result {
+    margin-top: 0.85rem !important;
+    padding: 0.85rem 1rem !important;
+    border-radius: 0.55rem !important;
+}
+
+body.admin-active .admin-enroll__result-title {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 0.4rem !important;
+}
+
+body.admin-active .admin-enroll__result-details {
+    font-size: 0.82rem !important;
+    color: rgba(255,255,255,0.65) !important;
+    line-height: 1.5 !important;
+}
+
+/* ----------------------------------------------------------------
+   BELT PILLS — colored per rank
+   ---------------------------------------------------------------- */
+body.admin-active .belt-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.15rem 0.5rem !important;
+    border-radius: 0.3rem !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+}
+
+body.admin-active .belt-pill--white     { background: rgba(255,255,255,0.12) !important; color: #e8eaed !important; }
+body.admin-active .belt-pill--yellow    { background: rgba(234,179,8,0.18) !important;  color: #facc15 !important; }
+body.admin-active .belt-pill--green     { background: rgba(34,197,94,0.16) !important;  color: #4ade80 !important; }
+body.admin-active .belt-pill--blue      { background: rgba(59,130,246,0.16) !important; color: #60a5fa !important; }
+body.admin-active .belt-pill--red       { background: rgba(239,68,68,0.16) !important;  color: #f87171 !important; }
+body.admin-active .belt-pill--black     { background: rgba(255,255,255,0.08) !important; color: #94a3b8 !important; border: 1px solid rgba(255,255,255,0.18) !important; }
+
+/* ----------------------------------------------------------------
+   ADMIN ACCORDION — summary arrow indicator
+   ---------------------------------------------------------------- */
+body.admin-active details.admin-accordion > summary,
+body.admin-active details.ara-card > summary {
+    list-style: none !important;
+}
+
+body.admin-active details.admin-accordion > summary::-webkit-details-marker,
+body.admin-active details.ara-card > summary::-webkit-details-marker {
+    display: none !important;
+}
+
+/* ----------------------------------------------------------------
+   COMMUNICATIONS — student-panel modal timeline items
+   ---------------------------------------------------------------- */
+body.admin-active .student-modal__timeline {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+}
+
+body.admin-active .student-modal__timeline li {
+    padding: 0.6rem 1rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    font-size: 0.83rem !important;
+    color: rgba(255,255,255,0.65) !important;
+    line-height: 1.5 !important;
+}
+
+body.admin-active .student-modal__timeline li:last-child { border-bottom: none !important; }
+
+/* ----------------------------------------------------------------
+   RESPONSIVE — email panel columns collapse
+   ---------------------------------------------------------------- */
+@media (max-width: 700px) {
+    body.admin-active .admin-email-columns {
+        grid-template-columns: 1fr !important;
+    }
+    body.admin-active .comm-student-list {
+        width: 160px !important;
+        min-width: 120px !important;
+    }
+}
