@@ -39,6 +39,11 @@ const ARCHIVE_RETENTION_DAYS = 30;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
 
+function setAdminShellVisible(show) {
+    if (portalEls.adminDashboard) portalEls.adminDashboard.hidden = !show;
+    document.body.classList.toggle("admin-active", show);
+}
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -1056,9 +1061,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (HAS_REMOTE_API) {
         attemptRestoreAdminSession();
     } else {
-        if (portalEls.adminDashboard) {
-            portalEls.adminDashboard.hidden = true;
-        }
+        setAdminShellVisible(false);
         setAdminStatus(
             "Admin analytics will appear once the portal API is connected.",
             "progress"
@@ -1103,9 +1106,36 @@ document.body.addEventListener("admin:component:loaded", (event) => {
         showAdminTab(tabId);
         if (tabId === "tab-communications") {
             renderCommunicationsLog();
+            renderCommStudentRoster();
         }
     }
 });
+
+document.body.addEventListener("admin:load-student-notes", (e) => {
+    const studentId = e?.detail?.studentId;
+    if (studentId) openStudentModal(studentId);
+});
+
+function renderCommStudentRoster() {
+    const rosterEl = document.getElementById("comm-student-roster");
+    if (!rosterEl) return;
+    const roster = portalState.admin.roster || [];
+    if (!roster.length) {
+        rosterEl.innerHTML = "<li class='admin-card__meta'>No students loaded.</li>";
+        return;
+    }
+    rosterEl.innerHTML = "";
+    roster
+        .filter((s) => s.status !== "archived")
+        .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+        .forEach((student) => {
+            const li = document.createElement("li");
+            li.dataset.studentId = student.id || student.studentId || "";
+            li.dataset.studentName = student.name || "";
+            li.textContent = student.name || student.id || "Unknown";
+            rosterEl.appendChild(li);
+        });
+}
 
 function handlePortalRefresh() {
     if (!portalState.activeStudent) return;
@@ -1660,6 +1690,18 @@ function attachHandlers() {
     bindOnce(portalEls.adminEmailTemplate, "change", handleEmailTemplateSelect);
     bindOnce(document, "click", handleEmailActionClick);
     bindOnce(portalEls.adminEmailForm, "submit", handleEmailPanelSubmit);
+    bindOnce(document, "click", handleAdminActionDelegate);
+}
+
+function handleAdminActionDelegate(e) {
+    if (e.target.closest("[data-admin-action='logout']")) {
+        clearAdminSession();
+        setAdminShellVisible(false);
+        resetAdminModalState();
+    }
+    if (e.target.closest("[data-admin-action='toggle-theme']")) {
+        handleThemeToggleClick();
+    }
 }
 
 function bindAdminEvents() {
@@ -1802,9 +1844,7 @@ function resetAdminModalState() {
     if (portalEls.adminForm) {
         portalEls.adminForm.hidden = portalState.admin.isAuthorized;
     }
-    if (portalEls.adminDashboard) {
-        portalEls.adminDashboard.hidden = !portalState.admin.isAuthorized;
-    }
+    setAdminShellVisible(portalState.admin.isAuthorized);
     if (!portalState.admin.isAuthorized) {
         portalEls.adminUsername?.focus();
     }
@@ -2284,9 +2324,7 @@ function handleAdminLogin(event) {
             portalState.admin.token = data.token;
             persistAdminToken(data.token);
             setAdminStatus("Dashboard unlocked.", "success");
-            if (portalEls.adminDashboard) {
-                portalEls.adminDashboard.hidden = false;
-            }
+            setAdminShellVisible(true);
             renderAdminDashboard();
             resetAdminModalState();
             scheduleAdminAutoRefresh();
@@ -2545,9 +2583,7 @@ function attemptRestoreAdminSession() {
     portalState.admin.token = storedToken;
     portalState.admin.isAuthorized = true;
     scheduleAdminAutoRefresh();
-    if (portalEls.adminDashboard) {
-        portalEls.adminDashboard.hidden = false;
-    }
+    setAdminShellVisible(true);
     renderAdminDashboard();
     renderAdminEnrollSection();
     loadAdminActivity({ silent: true })
@@ -3419,16 +3455,16 @@ function renderAdminDashboard() {
     }
 
     if (!HAS_REMOTE_API) {
-        portalEls.adminDashboard.hidden = true;
+        setAdminShellVisible(false);
         return;
     }
 
     if (!portalState.admin.isAuthorized) {
-        portalEls.adminDashboard.hidden = true;
+        setAdminShellVisible(false);
         return;
     }
 
-    portalEls.adminDashboard.hidden = false;
+    setAdminShellVisible(true);
     portalEls.adminDashboard.classList.toggle("is-expanded", portalState.admin.isExpanded);
     if (portalEls.adminExpand) {
         portalEls.adminExpand.textContent = portalState.admin.isExpanded

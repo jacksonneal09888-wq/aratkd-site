@@ -62,13 +62,72 @@ function initPanels() {
   });
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("DOMContentLoaded", initPanels);
-  document.body.addEventListener("admin:component:loaded", () => {
-    // Rebind to newly injected buttons if present
-    initPanels();
+function initEmailTemplateTiles() {
+  document.querySelectorAll("[data-template]").forEach((tile) => {
+    if (tile.dataset.tileBound) return;
+    tile.dataset.tileBound = "true";
+    tile.addEventListener("click", () => {
+      const template = tile.dataset.template;
+      const drawer = document.getElementById("admin-email-drawer");
+      const select = document.getElementById("email-template");
+      if (select) select.value = template;
+      if (drawer) toggleDrawer(drawer, true);
+    });
   });
-  document.body.addEventListener("admin-components-loaded", () => initPanels());
+}
+
+function initCommRoster() {
+  const roster = document.getElementById("comm-student-roster");
+  const search = document.getElementById("comm-student-search");
+  const threadName = document.getElementById("comm-thread-name");
+  const compose = document.getElementById("comm-compose-form");
+  if (!roster) return;
+
+  if (!roster.dataset.rosterBound) {
+    roster.dataset.rosterBound = "true";
+    roster.addEventListener("click", (e) => {
+      const li = e.target.closest("li[data-student-id]");
+      if (!li) return;
+      roster.querySelectorAll("li").forEach((el) => el.classList.remove("is-selected"));
+      li.classList.add("is-selected");
+      if (threadName) threadName.textContent = li.dataset.studentName || li.textContent.trim();
+      if (compose) compose.hidden = false;
+      document.body.dispatchEvent(
+        new CustomEvent("admin:load-student-notes", {
+          detail: { studentId: li.dataset.studentId },
+          bubbles: true
+        })
+      );
+    });
+  }
+
+  if (search && !search.dataset.searchBound) {
+    search.dataset.searchBound = "true";
+    search.addEventListener("input", () => {
+      const q = search.value.toLowerCase();
+      roster.querySelectorAll("li[data-student-id]").forEach((li) => {
+        li.hidden = !li.textContent.toLowerCase().includes(q);
+      });
+    });
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    initPanels();
+    initEmailTemplateTiles();
+    initCommRoster();
+  });
+  document.body.addEventListener("admin:component:loaded", () => {
+    initPanels();
+    initEmailTemplateTiles();
+    initCommRoster();
+  });
+  document.body.addEventListener("admin-components-loaded", () => {
+    initPanels();
+    initEmailTemplateTiles();
+    initCommRoster();
+  });
 }
 
 export { toggleDrawer, initPanels, bindDrawerTriggers };

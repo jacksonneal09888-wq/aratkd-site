@@ -1,12 +1,62 @@
 <section class="admin-card email-parent-card" id="admin-email" data-admin-panel="tab-email">
-  <div class="admin-card__header">
+  <div class="admin-summary__header">
     <div>
-      <h3 class="admin-card__title">Email Parents</h3>
-      <p class="admin-card__meta">Send announcements, cancellations, billing updates.</p>
+      <h3>Email Parents</h3>
+      <p class="admin-card__meta">Send announcements, cancellations, and billing updates via the compose panel.</p>
     </div>
-    <div class="admin-topbar__actions">
-      <button type="button" class="btn-primary" id="admin-email-drawer-open">Open Email Panel</button>
+    <button type="button" class="btn-primary" id="admin-email-drawer-open">Open Compose Panel</button>
+  </div>
+
+  <!-- Messaging metrics -->
+  <div class="admin-kpi-grid" style="margin-top:0.75rem;">
+    <div class="admin-kpi-card">
+      <p class="card-label">Messages Today</p>
+      <p class="card-value" id="msg-metric-today">0</p>
+    </div>
+    <div class="admin-kpi-card">
+      <p class="card-label">This Week</p>
+      <p class="card-value" id="msg-metric-week">0</p>
+    </div>
+    <div class="admin-kpi-card">
+      <p class="card-label">Most Messaged Belt</p>
+      <p class="card-value" id="msg-metric-belt" style="font-size:1.1rem;">—</p>
     </div>
   </div>
-  <p class="admin-card__meta">Open the drawer to compose and send emails to parents.</p>
+
+  <!-- Template quick-pick -->
+  <div class="admin-card__header" style="margin-top:0.75rem;">
+    <h4 class="admin-card__subtitle">Message Templates</h4>
+    <p class="admin-card__meta">Click a tile to open the compose panel with that template pre-selected.</p>
+  </div>
+  <div class="email-template-grid">
+    <button type="button" class="email-template-tile" data-template="cancellation">
+      <span class="email-template-tile__icon">🚫</span>
+      <span class="email-template-tile__label">Cancellation</span>
+    </button>
+    <button type="button" class="email-template-tile" data-template="announcement">
+      <span class="email-template-tile__icon">📣</span>
+      <span class="email-template-tile__label">Announcement</span>
+    </button>
+    <button type="button" class="email-template-tile" data-template="billing">
+      <span class="email-template-tile__icon">💳</span>
+      <span class="email-template-tile__label">Billing Reminder</span>
+    </button>
+    <button type="button" class="email-template-tile" data-template="testing">
+      <span class="email-template-tile__icon">🥋</span>
+      <span class="email-template-tile__label">Belt Testing</span>
+    </button>
+    <button type="button" class="email-template-tile" data-template="holiday">
+      <span class="email-template-tile__icon">🎉</span>
+      <span class="email-template-tile__label">Holiday Notice</span>
+    </button>
+  </div>
+
+  <!-- Recent sends log -->
+  <div class="admin-card__header" style="margin-top:1rem;">
+    <h4 class="admin-card__subtitle">Recent Sends</h4>
+    <p class="admin-card__meta">This session only — not persisted across reloads.</p>
+  </div>
+  <ul class="admin-event-list" id="email-log-list">
+    <li class="admin-card__meta">No emails sent this session.</li>
+  </ul>
 </section>

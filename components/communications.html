@@ -1,22 +1,58 @@
 <section class="admin-card" id="admin-communications" data-admin-panel="tab-communications">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Communications</h3>
-    <p class="admin-card__meta">Notes &amp; messaging feed</p>
+  <div class="admin-summary__header">
+    <div>
+      <h3>Communications</h3>
+      <p class="admin-card__meta">Per-student notes, billing conversations, and behavior logs.</p>
+    </div>
+    <div class="admin-topbar__actions">
+      <button type="button" class="btn-primary" id="admin-student-drawer-open">Open Student Panel</button>
+    </div>
   </div>
-  <div class="admin-filter-row">
-    <button type="button" class="pill-button is-active" data-comm-filter="all">All</button>
-    <button type="button" class="pill-button" data-comm-filter="conversation">Conversation</button>
-    <button type="button" class="pill-button" data-comm-filter="billing">Billing</button>
-    <button type="button" class="pill-button" data-comm-filter="behavior">Behavior</button>
-    <button type="button" class="pill-button" data-comm-filter="message">Message</button>
-    <button type="button" class="pill-button" data-comm-filter="payment">Payment</button>
-  </div>
-  <div class="admin-card__meta" id="comm-activity-placeholder">
-    Select a student to view notes. Timeline entries will appear here.
-  </div>
-  <div class="admin-card__body">
-    <ul class="student-modal__timeline" id="comm-log-body">
-      <li>No messages yet.</li>
-    </ul>
+
+  <div class="comm-layout">
+    <!-- Left: student roster list -->
+    <div class="comm-student-list">
+      <input type="search" class="comm-search" id="comm-student-search" placeholder="Search student..." aria-label="Search students">
+      <ul id="comm-student-roster" class="comm-roster-list" aria-label="Student list">
+        <li class="admin-card__meta">Sign in to load roster.</li>
+      </ul>
+    </div>
+
+    <!-- Right: thread view -->
+    <div class="comm-thread">
+      <div class="comm-thread__header">
+        <div id="comm-thread-name" class="comm-thread__name">Select a student</div>
+        <div class="student-notes-filter" id="comm-notes-filter" aria-label="Filter notes by type">
+          <button type="button" data-comm-filter="all" class="is-active">All</button>
+          <button type="button" data-comm-filter="conversation">Conversation</button>
+          <button type="button" data-comm-filter="billing">Billing</button>
+          <button type="button" data-comm-filter="behavior">Behavior</button>
+          <button type="button" data-comm-filter="payment">Payment</button>
+        </div>
+      </div>
+
+      <ul class="student-modal__timeline" id="comm-log-body" aria-live="polite">
+        <li class="admin-card__meta">Select a student to view their communication history.</li>
+      </ul>
+
+      <!-- Quick note compose form -->
+      <form class="comm-compose-form" id="comm-compose-form" hidden>
+        <div class="comm-compose-row">
+          <select id="comm-note-type" aria-label="Note type">
+            <option value="conversation">Conversation</option>
+            <option value="billing">Billing</option>
+            <option value="behavior">Behavior</option>
+            <option value="payment">Payment</option>
+            <option value="note">Note</option>
+          </select>
+          <input type="text" id="comm-note-author" placeholder="Author (e.g. Miss Fatima)" aria-label="Author name">
+        </div>
+        <textarea id="comm-note-message" rows="3" placeholder="Add a note for this student..." aria-label="Note message"></textarea>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <button type="submit" class="secondary-btn">Add Note</button>
+          <p class="form-status" id="comm-compose-status" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
