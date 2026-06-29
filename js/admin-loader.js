@@ -111,10 +111,39 @@ function initTabs() {
   });
 }
 
+function initHamburger() {
+  const btn = document.getElementById("admin-sidebar-toggle");
+  const shell = document.querySelector(".admin-shell");
+  if (!btn || !shell) return;
+  btn.addEventListener("click", () => {
+    shell.classList.toggle("sidebar-collapsed");
+  });
+}
+
+function initGlobalSearch() {
+  const input = document.getElementById("admin-global-search");
+  if (!input) return;
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase().trim();
+    // Filter roster rows if students tab is active
+    document.querySelectorAll(".admin-roster-row").forEach((row) => {
+      row.style.display = !q || row.textContent.toLowerCase().includes(q) ? "" : "none";
+    });
+    // Also filter any admin-table rows that have a data-student-id
+    if (!document.querySelector(".admin-roster-row")) {
+      document.querySelectorAll(".admin-table tbody tr[data-student-id]").forEach((row) => {
+        row.style.display = !q || row.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    }
+  });
+}
+
 function initLoader() {
   initTheme();
   loadPanels();
   initTabs();
+  initHamburger();
+  initGlobalSearch();
   const initialTab = restoreTab();
   setActiveTab(initialTab);
   loadComponent(initialTab);

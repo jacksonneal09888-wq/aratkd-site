@@ -50,6 +50,18 @@ body.admin-active .admin-shell {
     min-height: 0 !important;
 }
 
+/* Sidebar collapsed state (toggled by hamburger) */
+body.admin-active .admin-shell.sidebar-collapsed .admin-sidebar {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: width 0.22s ease, min-width 0.22s ease !important;
+}
+
 body.admin-active .admin-main {
     flex: 1 !important;
     display: flex !important;
@@ -84,6 +96,8 @@ body.admin-active .admin-sidebar {
     flex-direction: column !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    transition: width 0.22s ease, min-width 0.22s ease !important;
+    flex-shrink: 0 !important;
 }
 
 /* Brand */
@@ -1169,6 +1183,27 @@ body.admin-active .admin-hero-tile--muted {
 }
 
 /* ================================================================
+   TABLE — CORE DARK BACKGROUND FIX
+   The .admin-table element has background: var(--surface-1) = #fff in
+   styles.css; transparent td cells inherit that white background,
+   making white text invisible. Override at the TABLE level.
+   ================================================================ */
+body.admin-active .admin-table,
+body.admin-active .ara-table {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* Make strong/em inside table cells explicitly inherit color */
+body.admin-active .admin-table strong,
+body.admin-active .ara-table strong,
+body.admin-active .admin-table em,
+body.admin-active .ara-table em {
+    color: inherit !important;
+}
+
+/* ================================================================
    TABLE SCROLLING + CELLS
    ================================================================ */
 body.admin-active .admin-table-wrap {
@@ -1179,28 +1214,36 @@ body.admin-active .admin-table-wrap {
 body.admin-active .admin-table td,
 body.admin-active .ara-table td {
     background: transparent !important;
-    color: rgba(255,255,255,0.78) !important;
+    color: rgba(255,255,255,0.82) !important;
     border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    padding: 0.72rem 0.9rem !important;
 }
 
 body.admin-active .admin-table th,
 body.admin-active .ara-table th {
-    background: #232d4b !important;
-    color: rgba(255,255,255,0.4) !important;
+    background: rgba(35,45,75,0.9) !important;
+    color: rgba(255,255,255,0.38) !important;
     position: static !important;
+    font-size: 0.72rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    padding: 0.6rem 0.9rem !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
 }
 
 body.admin-active .admin-table tbody tr:hover td,
 body.admin-active .ara-table tbody tr:hover td {
-    background: rgba(255,255,255,0.04) !important;
+    background: rgba(255,255,255,0.035) !important;
 }
 
-/* Selected row — dark red accent */
+/* Selected row — dark red left accent */
 body.admin-active .admin-roster-row.is-selected td {
-    background: rgba(216,31,38,0.1) !important;
+    background: rgba(216,31,38,0.08) !important;
+}
+body.admin-active .admin-roster-row.is-selected td:first-child {
     box-shadow: inset 3px 0 0 #d81f26 !important;
 }
-body.admin-active .admin-roster-row.is-selected:first-child td { box-shadow: none !important; }
 
 /* ================================================================
    ROW ACTION BUTTONS (text-link-btn) — styled as compact pills
