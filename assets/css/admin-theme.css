@@ -1119,9 +1119,10 @@ body.admin-active .admin-drawer__close:hover { color: #d81f26 !important; }
    STUDENT MODAL
    ================================================================ */
 body.admin-active .student-modal__header { border-bottom-color: rgba(255,255,255,0.07) !important; }
-body.admin-active .student-modal__stats { border-bottom-color: rgba(255,255,255,0.07) !important; }
-body.admin-active .profile-metric { border-right-color: rgba(255,255,255,0.07) !important; }
-body.admin-active .profile-metric__label { color: rgba(255,255,255,0.35) !important; }
+body.admin-active .student-modal__stats { border-bottom-color: rgba(255,255,255,0.07) !important; background: #161c30 !important; }
+body.admin-active .profile-metric { border-right-color: rgba(255,255,255,0.07) !important; background: #161c30 !important; }
+body.admin-active .profile-metric__label { color: rgba(255,255,255,0.45) !important; font-size: 0.68rem !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.08em !important; }
+body.admin-active .student-modal__card { background: #232d4b !important; border: 1px solid rgba(255,255,255,0.07) !important; border-radius: 0.65rem !important; }
 body.admin-active .student-modal__nav { border-bottom-color: rgba(255,255,255,0.07) !important; padding: 0 1.35rem !important; }
 body.admin-active .student-modal__nav button { color: rgba(255,255,255,0.42) !important; font-size: 0.82rem !important; font-weight: 700 !important; }
 body.admin-active .student-modal__nav button.is-active,
@@ -1177,7 +1178,11 @@ body.admin-active .class-modal__footer { border-top-color: rgba(255,255,255,0.07
    ================================================================ */
 body.admin-active .skeleton { background: rgba(255,255,255,0.07) !important; }
 body.admin-active .admin-component-loading { background: #1f2747 !important; padding: 1.5rem !important; border-radius: 0.85rem !important; }
-body.admin-active .admin-report-card__dialog { background: #1f2747 !important; border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-report-card {
+    z-index: 11000 !important;
+    background: rgba(0,0,0,0.72) !important;
+}
+body.admin-active .admin-report-card__dialog { background: #1f2747 !important; border-color: rgba(255,255,255,0.07) !important; border-radius: 0.85rem !important; }
 body.admin-active .form-status { font-size: 0.82rem !important; font-weight: 600 !important; }
 body.admin-active .ara-success-box { background: rgba(52,211,153,0.08) !important; border-color: rgba(52,211,153,0.22) !important; color: #34d399 !important; }
 body.admin-active .ara-required { color: #d81f26 !important; }
