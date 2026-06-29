@@ -6,204 +6,698 @@
     <title>Ara TKD | Attendance Kiosk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20241113">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --kiosk-bg: #050709;
-            --kiosk-panel: rgba(255,255,255,0.05);
-        }
-        .kiosk-header {
-            padding: 1.5rem 2rem;
-        }
-        .kiosk-header__grid {
-            display: block;
-            align-items: center;
-        }
-        .kiosk-brand {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        .kiosk-logo {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(255,255,255,0.4);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.5);
-        }
-        .kiosk-brand h1 {
-            margin: 0;
-            font-family: 'Rajdhani', sans-serif;
-            letter-spacing: 0.08em;
-        }
-        .kiosk-week-label {
-            margin: 0.25rem 0 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #f43f5e;
-        }
-        .kiosk-week-message {
-            display: block;
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.75);
-        }
-        body.kiosk-body {
-            background: linear-gradient(160deg, rgba(5, 7, 9, 0.9), rgba(5, 7, 9, 0.95)),
-                url('./assets/materials/AraLogo.jpg?v=1') center/cover no-repeat fixed;
-            color: #f9fafb;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        /* ── Reset ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        [hidden] { display: none !important; }
+
+        /* ── Base ── */
+        body {
+            background: #070c18;
+            color: #e8eaed;
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            user-select: none;
         }
-        .kiosk-wrap {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 2fr 3fr;
-            gap: 2rem;
-            padding: 2rem;
+
+        /* ════════════════════════════
+           TOPBAR
+        ════════════════════════════ */
+        .ki-topbar {
+            height: 70px;
+            background: #0b1020;
+            border-bottom: 2px solid #d81f26;
+            display: flex;
+            align-items: center;
+            padding: 0 1.75rem;
+            gap: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-        .kiosk-panel {
-            background: var(--kiosk-panel);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255,255,255,0.08);
-            padding: 2rem;
-            box-shadow: 0 2rem 3rem rgba(0,0,0,0.45);
+
+        .ki-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-shrink: 0;
         }
-        .kiosk-panel h1,
-        .kiosk-panel h2,
-        .kiosk-panel h3 {
-            margin-top: 0;
+
+        .ki-brand__logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(216,31,38,0.55);
+            box-shadow: 0 0 0 3px rgba(216,31,38,0.15);
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        .ki-brand__logo:hover { box-shadow: 0 0 0 4px rgba(216,31,38,0.3); }
+
+        .ki-brand__text {}
+        .ki-brand__name {
             font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #fff;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+        .ki-brand__sub {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.38);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .ki-focus {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+            padding: 0 1rem;
+        }
+        .ki-focus__label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.98rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #d81f26;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ki-focus__msg {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.42);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ki-clock {
+            flex-shrink: 0;
+            text-align: right;
+        }
+        .ki-clock__time {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.88);
+            letter-spacing: 0.04em;
+            line-height: 1.1;
+        }
+        .ki-clock__date {
+            display: block;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
             letter-spacing: 0.08em;
         }
-        .class-grid {
+
+        /* ════════════════════════════
+           MAIN SPLIT
+        ════════════════════════════ */
+        .ki-main {
+            flex: 1;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1rem;
+            grid-template-columns: 5fr 7fr;
+            overflow: hidden;
+            min-height: 0;
         }
-        .class-card {
-            border-radius: 1rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.07);
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: border 0.2s ease, transform 0.2s ease;
+
+        /* ── LEFT: Check-in ── */
+        .ki-checkin {
+            background: #0b1020;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1.5rem 1.25rem;
+            gap: 0.85rem;
+            overflow-y: auto;
         }
-        .class-card.active {
-            border-color: #f43f5e;
-            transform: translateY(-3px);
+
+        .ki-section-label {
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            margin-bottom: 0.15rem;
         }
-        .class-card h3 {
-            margin: 0 0 0.35rem;
-            color: #fff;
+
+        /* ID Display */
+        .ki-display {
+            background: #0f1830;
+            border: 2px solid rgba(216,31,38,0.25);
+            border-radius: 0.85rem;
+            padding: 1rem 1.25rem;
+            font-size: 2.2rem;
+            font-family: 'Rajdhani', sans-serif;
             font-weight: 700;
-        }
-        .class-card p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.85);
-            font-weight: 600;
-        }
-        .kiosk-keypad {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1rem;
-        }
-        .kiosk-keypad button {
-            font-size: 1.5rem;
-            padding: 1rem;
-            border-radius: 1rem;
-            border: none;
-            cursor: pointer;
-            background: rgba(255,255,255,0.1);
+            letter-spacing: 0.3em;
             color: #fff;
-            font-weight: 700;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-            transition: background 0.2s ease, transform 0.2s ease;
-        }
-        .kiosk-keypad button:hover {
-            background: rgba(244,63,94,0.85);
-            transform: translateY(-2px);
-        }
-        .kiosk-input {
-            font-size: 2rem;
             text-align: center;
-            padding: 0.75rem;
-            border-radius: 1rem;
-            border: none;
-            width: 100%;
-            background: rgba(255,255,255,0.08);
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .ki-display--active { border-color: rgba(216,31,38,0.6); }
+
+        /* Hidden real input (still receives keyboard/pasted text) */
+        .ki-input-hidden {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+
+        /* Keypad */
+        .ki-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.55rem;
+        }
+
+        .ki-key {
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 0.72rem;
+            background: rgba(255,255,255,0.06);
             color: #fff;
-            letter-spacing: 0.15em;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            padding: 0.88rem 0.5rem;
+            cursor: pointer;
+            transition: background 0.1s, transform 0.08s, border-color 0.1s;
+            line-height: 1;
+            letter-spacing: 0.02em;
         }
-        .kiosk-status {
-            min-height: 2rem;
-            margin-top: 1rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            white-space: pre-line;
+        .ki-key:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
+        .ki-key:active { transform: scale(0.93); background: rgba(255,255,255,0.18); }
+
+        .ki-key--confirm {
+            background: #d81f26;
+            border-color: #d81f26;
+            box-shadow: 0 4px 14px rgba(216,31,38,0.4);
         }
-        .kiosk-status.success {
-            color: #4ade80;
-        }
-        .kiosk-status.error {
+        .ki-key--confirm:hover { background: #c01919; }
+        .ki-key--confirm:active { background: #a61515; }
+
+        .ki-key--ara {
+            background: rgba(216,31,38,0.1);
+            border-color: rgba(216,31,38,0.25);
             color: #f87171;
+            font-size: 1rem;
+            letter-spacing: 0.08em;
         }
-        @media (max-width: 960px) {
-            .kiosk-wrap {
-                grid-template-columns: 1fr;
-            }
+        .ki-key--ara:hover { background: rgba(216,31,38,0.2); }
+
+        .ki-key--delete { font-size: 1.1rem; }
+
+        /* Status */
+        .ki-status {
+            border-radius: 0.72rem;
+            padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.04);
+            font-size: 0.85rem;
+            white-space: pre-line;
+            min-height: 2.5rem;
+            line-height: 1.55;
+            color: rgba(255,255,255,0.45);
+            flex-shrink: 0;
         }
-        @media (max-height: 820px) {
-            .kiosk-header__grid {
-                align-items: start;
-            }
+        .ki-status.success { color: #34d399; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.15); }
+        .ki-status.error { color: #f87171; background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.15); }
+        .ki-status.progress { color: rgba(255,255,255,0.5); }
+
+        /* ── RIGHT: Classes + Feed ── */
+        .ki-right {
+            background: #070c18;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 1.5rem 1.5rem 1.25rem;
+            gap: 1.25rem;
         }
+
+        /* Class cards */
+        .ki-classes { flex-shrink: 0; }
+
+        .ki-class-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+
+        .ki-class-card {
+            background: rgba(255,255,255,0.04);
+            border: 2px solid rgba(255,255,255,0.07);
+            border-radius: 0.85rem;
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            transition: all 0.14s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            text-align: left;
+        }
+        .ki-class-card:hover {
+            border-color: rgba(216,31,38,0.35);
+            background: rgba(216,31,38,0.05);
+        }
+        .ki-class-card.active {
+            border-color: #d81f26;
+            background: rgba(216,31,38,0.1);
+            box-shadow: 0 0 0 3px rgba(216,31,38,0.12), inset 0 1px 0 rgba(216,31,38,0.2);
+        }
+
+        .ki-class-card__type {
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+        }
+        .ki-class-card.active .ki-class-card__type { color: rgba(216,31,38,0.65); }
+
+        .ki-class-card__name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        .ki-class-card__time {
+            font-size: 0.73rem;
+            color: rgba(255,255,255,0.42);
+            font-weight: 500;
+        }
+
+        .ki-class-card__bar-wrap {
+            height: 5px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.15rem;
+        }
+        .ki-class-card__bar {
+            height: 100%;
+            background: #d81f26;
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .ki-class-card__count {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.3);
+            font-weight: 500;
+        }
+
+        /* Feed */
+        .ki-feed {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .ki-feed__list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .ki-feed__item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.5rem 0.8rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 0.6rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.4s, border-color 0.4s;
+        }
+        .ki-feed__item--new {
+            background: rgba(52,211,153,0.09);
+            border-color: rgba(52,211,153,0.18);
+        }
+
+        .ki-feed__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            flex-shrink: 0;
+        }
+
+        .ki-feed__name {
+            font-weight: 600;
+            font-size: 0.86rem;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ki-feed__meta {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.38);
+            white-space: nowrap;
+        }
+
+        .ki-feed__time {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.28);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+        }
+
+        .ki-feed__empty {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.2);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        /* ════════════════════════════
+           SUCCESS OVERLAY
+        ════════════════════════════ */
+        .ki-success-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(7,12,24,0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s;
+            backdrop-filter: blur(6px);
+        }
+        .ki-success-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ki-success-card {
+            background: #0d1428;
+            border: 2px solid #34d399;
+            border-radius: 1.5rem;
+            padding: 2.25rem 2.75rem 2.5rem;
+            text-align: center;
+            max-width: 440px;
+            width: 92%;
+            box-shadow: 0 0 60px rgba(52,211,153,0.2), 0 24px 48px rgba(0,0,0,0.6);
+        }
+
+        .ki-success-icon {
+            font-size: 2.8rem;
+            margin-bottom: 0.35rem;
+            line-height: 1;
+        }
+
+        .ki-success-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+
+        .ki-success-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.04em;
+            line-height: 1.1;
+        }
+
+        .ki-success-belt {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin: 0.3rem 0 1.25rem;
+        }
+
+        .ki-success-stats {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .ki-success-stat {
+            background: rgba(255,255,255,0.06);
+            border-radius: 0.75rem;
+            padding: 0.65rem 1.1rem;
+            min-width: 90px;
+        }
+        .ki-success-stat__label {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(255,255,255,0.32);
+            font-weight: 700;
+        }
+        .ki-success-stat__value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #34d399;
+            line-height: 1.1;
+        }
+
+        .ki-success-dismiss {
+            margin-top: 1.25rem;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* ════════════════════════════
+           SETUP PANEL
+        ════════════════════════════ */
+        .ki-setup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(7,12,24,0.95);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .ki-setup-card {
+            background: #0d1428;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 1.25rem;
+            padding: 2rem 2.25rem;
+            width: min(480px, 94vw);
+        }
+
+        .ki-setup-card h2 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #fff;
+            margin-bottom: 0.4rem;
+        }
+
+        .ki-setup-card p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 1.25rem;
+        }
+
+        .ki-setup-card label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 0.35rem;
+        }
+
+        .ki-setup-input {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 0.65rem;
+            color: #e8eaed;
+            font-size: 1rem;
+            padding: 0.65rem 0.9rem;
+            font-family: 'Roboto', sans-serif;
+            margin-bottom: 1rem;
+            outline: none;
+        }
+        .ki-setup-input:focus { border-color: #d81f26; }
+
+        .ki-setup-btns {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .ki-setup-btn {
+            background: #d81f26;
+            color: #fff;
+            border: none;
+            border-radius: 0.65rem;
+            padding: 0.65rem 1.4rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .ki-setup-btn:hover { background: #c01919; }
+
+        .ki-setup-btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.55);
+            border-radius: 0.65rem;
+            padding: 0.65rem 1.25rem;
+            font-size: 0.88rem;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            transition: background 0.15s;
+        }
+        .ki-setup-btn-ghost:hover { background: rgba(255,255,255,0.07); }
+
+        .ki-setup-status {
+            font-size: 0.82rem;
+            margin-top: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            min-height: 1.25rem;
+        }
+        .ki-setup-status.success { color: #34d399; }
+        .ki-setup-status.error { color: #f87171; }
     </style>
 </head>
-<body class="kiosk-body" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-id="front-desk">
-    <header class="kiosk-header">
-        <div class="kiosk-header__grid">
-            <div class="kiosk-brand">
-                <img src="assets/Images/Master Ara.jpg" alt="Master Ara" class="kiosk-logo" id="kiosk-logo">
-                <div>
-                    <h1>ARA TKD Attendance Kiosk</h1>
-                    <p id="kiosk-week-label" class="kiosk-week-label">Sparring Week</p>
-                    <span id="kiosk-week-message" class="kiosk-week-message">Sparring week: sharpen timing, control, and ring awareness.</span>
-                </div>
+<body data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-kiosk-id="front-desk">
+
+    <!-- TOP BAR -->
+    <header class="ki-topbar">
+        <div class="ki-brand">
+            <img src="assets/Images/Master Ara.jpg" alt="ARA TKD" class="ki-brand__logo" id="kiosk-logo">
+            <div class="ki-brand__text">
+                <p class="ki-brand__name">ARA TKD</p>
+                <p class="ki-brand__sub">Attendance Kiosk</p>
             </div>
         </div>
-    </header>
-    <section class="kiosk-panel" id="kiosk-setup-panel" hidden style="margin:0 2rem 2rem;">
-        <h2>Staff Kiosk Setup</h2>
-        <p style="margin-top:0;color:rgba(255,255,255,0.7);">This setup stores the access key on this device only. It is no longer embedded in the public website.</p>
-        <label for="kiosk-setup-id" style="display:block;margin-bottom:0.5rem;">Kiosk ID</label>
-        <input type="text" id="kiosk-setup-id" class="kiosk-input" value="front-desk" readonly style="margin-bottom:1rem;font-size:1.1rem;letter-spacing:0.06em;">
-        <label for="kiosk-setup-key" style="display:block;margin-bottom:0.5rem;">Kiosk Access Key</label>
-        <input type="password" id="kiosk-setup-key" class="kiosk-input" placeholder="Enter access key" autocomplete="new-password" style="margin-bottom:1rem;font-size:1.1rem;letter-spacing:0.08em;">
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
-            <button type="button" class="secondary-btn" id="kiosk-setup-save">Save on This Device</button>
-            <button type="button" class="text-link-btn" id="kiosk-setup-close">Close</button>
+        <div class="ki-focus">
+            <p class="ki-focus__label" id="kiosk-week-label">Focus Week</p>
+            <p class="ki-focus__msg" id="kiosk-week-message">Loading this week's theme…</p>
         </div>
-        <div class="kiosk-status" id="kiosk-setup-status">Tap the logo 5 times to reopen this setup later.</div>
-    </section>
-    <main class="kiosk-wrap">
-        <section class="kiosk-panel">
-            <h2>Select Class</h2>
-            <div class="class-grid" id="kiosk-class-grid"></div>
+        <div class="ki-clock" id="ki-clock">
+            <span class="ki-clock__time">—</span>
+            <span class="ki-clock__date">—</span>
+        </div>
+    </header>
+
+    <!-- SETUP PANEL (staff hidden, tap logo 5×) -->
+    <div class="ki-setup-overlay" id="kiosk-setup-panel" hidden>
+        <div class="ki-setup-card">
+            <h2>Staff Kiosk Setup</h2>
+            <p>This key is stored only on this device. Never share it.</p>
+            <label for="kiosk-setup-id">Kiosk ID</label>
+            <input type="text" id="kiosk-setup-id" class="ki-setup-input" value="front-desk" readonly>
+            <label for="kiosk-setup-key">Kiosk Access Key</label>
+            <input type="password" id="kiosk-setup-key" class="ki-setup-input" placeholder="Enter access key" autocomplete="new-password">
+            <div class="ki-setup-btns">
+                <button type="button" class="ki-setup-btn" id="kiosk-setup-save">Save on This Device</button>
+                <button type="button" class="ki-setup-btn-ghost" id="kiosk-setup-close">Close</button>
+            </div>
+            <div class="ki-setup-status" id="kiosk-setup-status">Tap the logo 5× to reopen setup.</div>
+        </div>
+    </div>
+
+    <!-- SUCCESS OVERLAY -->
+    <div class="ki-success-overlay" id="ki-success-overlay">
+        <div class="ki-success-card">
+            <div class="ki-success-icon">🥋</div>
+            <p class="ki-success-label">Checked In</p>
+            <p class="ki-success-name" id="ki-success-name">—</p>
+            <p class="ki-success-belt" id="ki-success-belt">—</p>
+            <div class="ki-success-stats">
+                <div class="ki-success-stat">
+                    <p class="ki-success-stat__label">Lessons</p>
+                    <p class="ki-success-stat__value" id="ki-success-completed">—</p>
+                </div>
+                <div class="ki-success-stat">
+                    <p class="ki-success-stat__label">Required</p>
+                    <p class="ki-success-stat__value" id="ki-success-required">—</p>
+                </div>
+                <div class="ki-success-stat">
+                    <p class="ki-success-stat__label">Remaining</p>
+                    <p class="ki-success-stat__value" id="ki-success-remaining">—</p>
+                </div>
+            </div>
+            <p class="ki-success-dismiss">Dismisses automatically…</p>
+        </div>
+    </div>
+
+    <!-- MAIN SPLIT LAYOUT -->
+    <main class="ki-main">
+
+        <!-- LEFT: Check-in panel -->
+        <section class="ki-checkin">
+            <div>
+                <p class="ki-section-label">Enter Your Student ID</p>
+                <div class="ki-display" id="ki-display">—</div>
+                <!-- Preserved ID for JS compatibility -->
+                <input type="text" id="kiosk-student-id" class="ki-input-hidden"
+                    inputmode="text" autocapitalize="characters" maxlength="12" autocomplete="off">
+            </div>
+            <div class="ki-keypad" id="kiosk-keypad"></div>
+            <div class="ki-status" id="kiosk-status">Select your class, enter your ID, then press ✓</div>
         </section>
-        <section class="kiosk-panel">
-            <h2>Enter Student ID</h2>
-            <p style="margin-top:0;color:rgba(255,255,255,0.7);">Type the full ID (letters + numbers). Tap “ARA” to auto-fill the prefix if needed.</p>
-            <input type="text" id="kiosk-student-id" class="kiosk-input" placeholder="ARA001" inputmode="text" autocapitalize="characters" maxlength="12">
-            <div class="kiosk-keypad" id="kiosk-keypad"></div>
-            <div class="kiosk-status" id="kiosk-status">Tap your class, enter ID, then press ✓</div>
+
+        <!-- RIGHT: Classes + recent feed -->
+        <section class="ki-right">
+            <div class="ki-classes">
+                <p class="ki-section-label">Select Your Class</p>
+                <div class="ki-class-grid" id="kiosk-class-grid"></div>
+            </div>
+
+            <div class="ki-feed">
+                <p class="ki-section-label">Recent Check-ins</p>
+                <ul class="ki-feed__list" id="ki-feed-list">
+                    <li class="ki-feed__empty">No check-ins yet — be the first on the mat!</li>
+                </ul>
+            </div>
         </section>
+
     </main>
-    <script type="module" src="assets/js/kiosk.js?v=20260106" defer></script>
+
+    <script type="module" src="assets/js/kiosk.js?v=20260629" defer></script>
 </body>
 </html>
