@@ -7,6 +7,9 @@
 /* Ensure [hidden] attribute always wins, even when CSS sets display */
 [hidden] { display: none !important; }
 
+/* Base text color for all admin content */
+body.admin-active { color: #e8eaed; }
+
 /* ================================================================
    LAYOUT — full-screen shell
    ================================================================ */
@@ -491,6 +494,13 @@ body.admin-active .ara-card {
     box-shadow: 0 4px 20px rgba(0,0,0,0.22) !important;
     overflow: hidden !important;
     margin-bottom: 0 !important;
+    color: #e8eaed !important;
+}
+
+/* Details/accordion cards must not clip open content */
+body.admin-active details.ara-card,
+body.admin-active details.admin-accordion {
+    overflow: visible !important;
 }
 
 body.admin-active .ara-card__header,
@@ -1159,12 +1169,288 @@ body.admin-active .admin-hero-tile--muted {
 }
 
 /* ================================================================
-   TABLE SCROLLING
+   TABLE SCROLLING + CELLS
    ================================================================ */
 body.admin-active .admin-table-wrap {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
 }
+
+body.admin-active .admin-table td,
+body.admin-active .ara-table td {
+    background: transparent !important;
+    color: rgba(255,255,255,0.78) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+body.admin-active .admin-table th,
+body.admin-active .ara-table th {
+    background: #232d4b !important;
+    color: rgba(255,255,255,0.4) !important;
+    position: static !important;
+}
+
+body.admin-active .admin-table tbody tr:hover td,
+body.admin-active .ara-table tbody tr:hover td {
+    background: rgba(255,255,255,0.04) !important;
+}
+
+/* Selected row — dark red accent */
+body.admin-active .admin-roster-row.is-selected td {
+    background: rgba(216,31,38,0.1) !important;
+    box-shadow: inset 3px 0 0 #d81f26 !important;
+}
+body.admin-active .admin-roster-row.is-selected:first-child td { box-shadow: none !important; }
+
+/* ================================================================
+   ROW ACTION BUTTONS (text-link-btn) — styled as compact pills
+   ================================================================ */
+body.admin-active .admin-row-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+    align-items: center !important;
+}
+
+body.admin-active .text-link-btn {
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.78) !important;
+    text-decoration: none !important;
+    border-radius: 0.35rem !important;
+    padding: 0.25rem 0.6rem !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    line-height: 1.4 !important;
+    transition: background 0.12s, color 0.12s !important;
+    font-family: inherit !important;
+}
+
+body.admin-active .text-link-btn:hover,
+body.admin-active .text-link-btn:focus {
+    background: rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    text-decoration: none !important;
+}
+
+body.admin-active .text-link-btn.is-danger {
+    color: #f87171 !important;
+    border-color: rgba(248,113,113,0.25) !important;
+    background: rgba(248,113,113,0.06) !important;
+}
+
+body.admin-active .text-link-btn.is-danger:hover {
+    background: rgba(216,31,38,0.2) !important;
+    color: #fca5a5 !important;
+}
+
+body.admin-active .text-link-btn:disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+}
+
+/* Secondary button */
+body.admin-active .secondary-btn {
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.75) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: background 0.12s !important;
+}
+
+body.admin-active .secondary-btn:hover {
+    background: rgba(255,255,255,0.14) !important;
+    color: #fff !important;
+}
+
+/* Danger ghost variant */
+body.admin-active .ara-btn--danger {
+    color: #f87171 !important;
+    border-color: rgba(248,113,113,0.25) !important;
+    background: rgba(248,113,113,0.06) !important;
+}
+
+body.admin-active .ara-btn--danger:hover {
+    background: rgba(216,31,38,0.2) !important;
+    color: #fca5a5 !important;
+}
+
+/* ================================================================
+   STUDENT DETAIL PANEL — colors
+   ================================================================ */
+body.admin-active .ara-detail-panel,
+body.admin-active .admin-roster-detail {
+    background: #161c30 !important;
+    border-top: 2px solid #d81f26 !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-detail-panel__head {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    padding: 1rem 1.35rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    flex-wrap: wrap !important;
+}
+
+body.admin-active .ara-detail-panel__name {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    color: #e8eaed !important;
+    margin: 0.15rem 0 0 !important;
+    font-family: var(--font-heading) !important;
+}
+
+body.admin-active .ara-actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+    align-items: center !important;
+}
+
+body.admin-active .ara-stat-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0.55rem !important;
+    overflow: hidden !important;
+    margin: 0.85rem 1.35rem !important;
+}
+
+body.admin-active .ara-stat {
+    flex: 1 !important;
+    min-width: 100px !important;
+    padding: 0.75rem 1rem !important;
+    background: #232d4b !important;
+    border-right: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-stat:last-child { border-right: none !important; }
+
+body.admin-active .ara-stat__label {
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: rgba(255,255,255,0.35) !important;
+    margin: 0 0 0.2rem !important;
+}
+
+body.admin-active .ara-stat__value {
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+    color: #e8eaed !important;
+    font-family: var(--font-heading) !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+body.admin-active .ara-section-label {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    color: #d81f26 !important;
+    padding: 0.6rem 1.35rem 0.4rem !important;
+    border-bottom: 1px solid rgba(216,31,38,0.2) !important;
+    margin: 0 !important;
+}
+
+body.admin-active .ara-form,
+body.admin-active .ara-form__body {
+    padding: 1rem 1.35rem !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-form__actions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+    margin-top: 0.75rem !important;
+}
+
+body.admin-active .ara-inset-form {
+    background: #0f1524 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0.55rem !important;
+    padding: 1rem 1.1rem !important;
+    margin-top: 0.75rem !important;
+}
+
+/* ================================================================
+   FORM STATUS MESSAGES
+   ================================================================ */
+body.admin-active .form-status {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: rgba(255,255,255,0.45) !important;
+    margin-top: 0.4rem !important;
+}
+
+body.admin-active .form-status.is-success,
+body.admin-active .form-status.is-ok { color: #34d399 !important; }
+
+body.admin-active .form-status.is-error,
+body.admin-active .form-status.is-fail { color: #f87171 !important; }
+
+body.admin-active .form-status.is-progress,
+body.admin-active .form-status.is-loading { color: rgba(255,255,255,0.45) !important; }
+
+/* ================================================================
+   SKELETON — suppress pulse to reduce blinking perception
+   ================================================================ */
+body.admin-active .skeleton {
+    background: rgba(255,255,255,0.07) !important;
+    animation: none !important;
+}
+
+body.admin-active .skeleton-line { height: 0.85rem !important; }
+
+/* ================================================================
+   ARA BADGES (enroll accordion header)
+   ================================================================ */
+body.admin-active .ara-badge,
+body.admin-active .ara-badge--outline {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.2rem 0.55rem !important;
+    border-radius: 999px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    color: rgba(255,255,255,0.75) !important;
+}
+
+/* ================================================================
+   STATUS PILLS IN TABLES
+   ================================================================ */
+body.admin-active .admin-status-pill,
+body.admin-active .status-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0.18rem 0.5rem !important;
+    border-radius: 0.3rem !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+}
+
+body.admin-active .status-pill--active { background: rgba(52,211,153,0.14) !important; color: #34d399 !important; }
+body.admin-active .status-pill--inactive { background: rgba(255,255,255,0.08) !important; color: rgba(255,255,255,0.45) !important; }
+body.admin-active .status-pill--suspended,
+body.admin-active .status-pill--deactivated { background: rgba(248,113,113,0.12) !important; color: #f87171 !important; }
+body.admin-active .status-pill--frozen { background: rgba(96,165,250,0.12) !important; color: #93c5fd !important; }
 
 /* ================================================================
    ADMIN LOGIN PAGE — branded dark login before admin-active
