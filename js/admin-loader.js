@@ -90,12 +90,11 @@ async function loadPanels() {
       console.warn("Panel load failed", url, err);
     }
   }
-  // Panels are appended after the initial component may have already loaded.
-  // Re-bind so panel elements (student drawer, report card, event form, email
-  // panel) are found by refreshAdminEls and get their handlers attached.
-  if (typeof window.bindAdminEvents === "function") {
-    window.bindAdminEvents();
-  }
+  // Panels finish async after the initial tab admin:component:loaded fires.
+  // Re-dispatch so student-portal.js re-runs refreshAdminEls and binds
+  // handlers for panel elements like #student-drawer that weren't in DOM yet.
+  document.body.dispatchEvent(new CustomEvent("admin:component:loaded", { detail: { tabId: null } }));
+  document.body.dispatchEvent(new CustomEvent("admin-components-loaded", { detail: { tabId: null } }));
 }
 
 function initTabs() {
