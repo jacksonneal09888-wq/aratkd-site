@@ -8035,3 +8035,659 @@ body.admin-active .admin-card--highlight {
     .comm-student-list { border-right: none; border-bottom: 1px solid #e5e7ee; padding-right: 0; padding-bottom: 1rem; }
     .comm-compose-row { grid-template-columns: 1fr; }
 }
+    padding: 0.85rem 1rem;
+    border-right: 1px solid #e5e7ee;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+[data-theme="dark"] body.admin-active .admin-roster-card {
+    background: #0f1829;
+    border-right-color: #182235;
+}
+
+body.admin-active .admin-roster-card:last-child { border-right: none; }
+
+body.admin-active .card-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #999;
+    margin: 0;
+}
+
+body.admin-active .card-value {
+    font-size: 1.4rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    color: #13131f;
+    margin: 0;
+    line-height: 1;
+}
+
+[data-theme="dark"] body.admin-active .card-value {
+    color: #f0f4ff;
+}
+
+/* ── admin-enroll__grid style boost ── */
+body.admin-active .admin-enroll__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.85rem;
+}
+
+body.admin-active .admin-enroll__grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.04em;
+}
+
+[data-theme="dark"] body.admin-active .admin-enroll__grid label {
+    color: rgba(255,255,255,0.6);
+}
+
+body.admin-active .admin-enroll__grid input,
+body.admin-active .admin-enroll__grid select,
+body.admin-active .admin-enroll__grid textarea {
+    padding: 0.52rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dde1ec;
+    background: #fff;
+    font-size: 0.87rem;
+    color: #13131f;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+[data-theme="dark"] body.admin-active .admin-enroll__grid input,
+[data-theme="dark"] body.admin-active .admin-enroll__grid select {
+    background: #0b1220;
+    border-color: #182235;
+    color: #f0f4ff;
+}
+
+body.admin-active .admin-enroll__grid input:focus,
+body.admin-active .admin-enroll__grid select:focus {
+    outline: none;
+    border-color: #d81f26;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.1);
+}
+
+body.admin-active .admin-enroll__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    padding: 0 1.5rem 1.25rem;
+}
+
+/* ── Accordion style ── */
+body.admin-active .admin-accordion {
+    background: #fff;
+    border: 1px solid #e5e7ee;
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+
+[data-theme="dark"] body.admin-active .admin-accordion {
+    background: #0f1829;
+    border-color: #182235;
+}
+
+body.admin-active .admin-accordion__trigger {
+    padding: 1.1rem 1.5rem;
+    background: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: none;
+    color: #13131f;
+    transition: background 0.15s;
+}
+
+[data-theme="dark"] body.admin-active .admin-accordion__trigger {
+    background: #0f1829;
+    color: #f0f4ff;
+}
+
+body.admin-active .admin-accordion__trigger:hover {
+    background: #fafbfe;
+}
+
+body.admin-active .admin-accordion[open] .admin-accordion__trigger {
+    border-bottom: 1px solid #e5e7ee;
+}
+
+body.admin-active .admin-accordion > div {
+    padding: 1.25rem 1.5rem;
+}
+
+/* ── Form status messages ── */
+body.admin-active .form-status {
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.45rem;
+    min-height: 1rem;
+}
+
+body.admin-active .form-status.is-success {
+    background: rgba(16,185,129,0.1);
+    color: #0f9d74;
+}
+
+body.admin-active .form-status.is-error {
+    background: rgba(216,31,38,0.08);
+    color: #c01414;
+}
+
+/* ── btn-ghost upgrade ── */
+body.admin-active .btn-ghost {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.83rem;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    border: 1.5px solid #e5e7ee;
+    background: #fff;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+body.admin-active .btn-ghost:hover {
+    border-color: #d81f26;
+    color: #d81f26;
+    background: rgba(216,31,38,0.04);
+}
+
+[data-theme="dark"] body.admin-active .btn-ghost {
+    background: #0f1829;
+    border-color: #182235;
+    color: rgba(255,255,255,0.7);
+}
+
+/* ── admin-topbar__actions spacing ── */
+body.admin-active .admin-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* ── admin-event-list upgrade ── */
+body.admin-active .admin-event-list {
+    list-style: none;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+body.admin-active .admin-event-list li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f4f5f8;
+    font-size: 0.86rem;
+    color: #444;
+}
+
+[data-theme="dark"] body.admin-active .admin-event-list li {
+    border-bottom-color: #182235;
+    color: rgba(255,255,255,0.7);
+}
+
+body.admin-active .admin-event-list li:last-child {
+    border-bottom: none;
+}
+
+/* ── admin-pill upgrade ── */
+body.admin-active .admin-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+body.admin-active .admin-pill--warning {
+    background: rgba(245,158,11,0.14);
+    color: #92600a;
+}
+
+body.admin-active .admin-pill--success {
+    background: rgba(16,185,129,0.12);
+    color: #0f9d74;
+}
+
+body.admin-active .admin-pill--danger {
+    background: rgba(216,31,38,0.1);
+    color: #b91c1c;
+}
+
+/* ── Banner form grid ── */
+body.admin-active .admin-banner-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+body.admin-active .admin-banner-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #555;
+}
+
+body.admin-active .admin-banner-form input,
+body.admin-active .admin-banner-form select {
+    padding: 0.52rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dde1ec;
+    background: #fff;
+    font-size: 0.87rem;
+    color: #13131f;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.admin-active .admin-banner-form input:focus {
+    outline: none;
+    border-color: #d81f26;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.1);
+}
+
+body.admin-active .admin-banner-list {
+    padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ── class-modal broadcast/filter row ── */
+body.admin-active .class-filter-row,
+body.admin-active .class-broadcast-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #f0f1f5;
+}
+
+/* ── Drawer (slide panel) styling ── */
+body.admin-active .admin-drawer__panel {
+    background: #fff;
+    box-shadow: -4px 0 40px rgba(0,0,0,0.14);
+}
+
+[data-theme="dark"] body.admin-active .admin-drawer__panel {
+    background: #0f1829;
+}
+
+body.admin-active .admin-drawer__header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f1f5;
+}
+
+[data-theme="dark"] body.admin-active .admin-drawer__header {
+    border-bottom-color: #182235;
+}
+
+body.admin-active .admin-drawer__header h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    margin: 0.25rem 0 0;
+    color: #13131f;
+}
+
+[data-theme="dark"] body.admin-active .admin-drawer__header h3 {
+    color: #f0f4ff;
+}
+
+body.admin-active .admin-drawer__close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    font-size: 0.82rem;
+    color: #888;
+    font-weight: 700;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0.3rem 0.5rem;
+}
+
+body.admin-active .admin-drawer__close:hover {
+    color: #d81f26;
+}
+
+body.admin-active .admin-email-form,
+body.admin-active .admin-email-columns {
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    gap: 1rem;
+}
+
+body.admin-active .admin-email-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+}
+
+body.admin-active .admin-email-left,
+body.admin-active .admin-email-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+body.admin-active .admin-email-form label,
+body.admin-active .email-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #555;
+}
+
+body.admin-active .admin-email-form input,
+body.admin-active .admin-email-form select,
+body.admin-active .admin-email-form textarea,
+body.admin-active .email-panel input,
+body.admin-active .email-panel select,
+body.admin-active .email-panel textarea {
+    padding: 0.52rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dde1ec;
+    background: #fff;
+    font-size: 0.87rem;
+    color: #13131f;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.admin-active .admin-email-form input:focus,
+body.admin-active .email-panel input:focus,
+body.admin-active .email-panel select:focus,
+body.admin-active .email-panel textarea:focus {
+    outline: none;
+    border-color: #d81f26;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.1);
+}
+
+body.admin-active .email-recipient-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f1f5;
+}
+
+/* ── Student drawer ── */
+body.admin-active .student-modal__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f1f5;
+    flex-wrap: wrap;
+}
+
+body.admin-active .student-modal__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #d81f26;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    flex-shrink: 0;
+}
+
+body.admin-active .student-modal__stats {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #f0f1f5;
+}
+
+body.admin-active .profile-metric {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    border-right: 1px solid #f0f1f5;
+    text-align: center;
+}
+
+body.admin-active .profile-metric:last-child { border-right: none; }
+
+body.admin-active .profile-metric__label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #999;
+    margin: 0 0 0.2rem;
+}
+
+body.admin-active .profile-metric__value {
+    font-size: 1.4rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    color: #d81f26;
+    margin: 0;
+}
+
+body.admin-active .student-modal__nav {
+    display: flex;
+    border-bottom: 1px solid #f0f1f5;
+    overflow-x: auto;
+    padding: 0 1.5rem;
+    gap: 0;
+}
+
+body.admin-active .student-modal__nav button {
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #888;
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+body.admin-active .student-modal__nav button.is-active,
+body.admin-active .student-modal__nav button:hover {
+    color: #d81f26;
+    border-bottom-color: #d81f26;
+}
+
+body.admin-active .student-modal__content {
+    overflow-y: auto;
+}
+
+body.admin-active .student-modal__card {
+    padding: 1.25rem 1.5rem;
+}
+
+body.admin-active .student-modal__card-head {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f0f1f5;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+body.admin-active .student-modal__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+body.admin-active .student-modal__grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #555;
+}
+
+body.admin-active .student-modal__grid input,
+body.admin-active .student-modal__grid select,
+body.admin-active .student-modal__grid textarea {
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dde1ec;
+    background: #fff;
+    font-size: 0.86rem;
+    color: #13131f;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body.admin-active .student-modal__grid input:focus,
+body.admin-active .student-modal__grid select:focus {
+    outline: none;
+    border-color: #d81f26;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.1);
+}
+
+body.admin-active .student-modal__actions-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+body.admin-active .student-modal__timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+body.admin-active .student-modal__timeline li {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #f4f5f8;
+    font-size: 0.85rem;
+    color: #444;
+}
+
+[data-theme="dark"] body.admin-active .student-modal__timeline li {
+    border-bottom-color: #182235;
+    color: rgba(255,255,255,0.7);
+}
+
+/* ── class-panel drawer columns ── */
+body.admin-active .class-modal__body--drawer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+}
+
+body.admin-active .class-modal__column h4 {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+    margin: 0 0 0.5rem;
+}
+
+body.admin-active .class-modal__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+body.admin-active .class-modal__list li {
+    padding: 0.5rem 0.65rem;
+    background: #f8f9fc;
+    border-radius: 0.5rem;
+    font-size: 0.84rem;
+    border: 1px solid #e5e7ee;
+}
+
+body.admin-active .class-modal__footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f0f1f5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+body.admin-active .class-modal__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+body.admin-active .class-modal__fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #555;
+}
+
+body.admin-active .class-modal__fields input,
+body.admin-active .class-modal__fields select {
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dde1ec;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #13131f;
+    width: 100%;
+}
+
+body.admin-active .class-modal__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}

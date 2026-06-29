@@ -1,11 +1,38 @@
-<section class="admin-card" id="class-session-card" data-admin-panel="tab-classes">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Class Session Controls</h3>
-    <p class="admin-card__meta">Manage live class queues and attendance from one panel.</p>
+<section class="ara-card" id="class-session-card" data-admin-panel="tab-classes">
+  <div class="ara-card__header">
+    <div>
+      <p class="ara-eyebrow">Live Session</p>
+      <h3 class="ara-card__title">Class Session Controls</h3>
+    </div>
+    <div class="ara-actions">
+      <button type="button" class="btn-primary" id="admin-class-drawer-open" data-class-action="open-modal">Open Class Panel</button>
+      <button type="button" class="btn-ghost" data-class-action="open-modal">Edit Class</button>
+    </div>
   </div>
-  <div class="admin-class-actions">
-    <button type="button" class="secondary-btn" id="admin-class-drawer-open" data-class-action="open-modal">Open Class Panel</button>
-    <button type="button" class="text-link-btn" data-class-action="open-modal">Edit Class</button>
+  <div class="ara-card__body">
+    <div class="ara-class-info-grid">
+      <div class="ara-info-tile">
+        <span class="ara-info-tile__icon">⏰</span>
+        <div>
+          <p class="ara-info-tile__label">Today's Classes</p>
+          <p class="ara-info-tile__value">Mon / Wed / Fri</p>
+        </div>
+      </div>
+      <div class="ara-info-tile">
+        <span class="ara-info-tile__icon">🥋</span>
+        <div>
+          <p class="ara-info-tile__label">Tracks</p>
+          <p class="ara-info-tile__value">Basic · Advanced · Little Ninjas</p>
+        </div>
+      </div>
+      <div class="ara-info-tile">
+        <span class="ara-info-tile__icon">👤</span>
+        <div>
+          <p class="ara-info-tile__label">Instructor</p>
+          <p class="ara-info-tile__value">Master Ara · Miss Fatima</p>
+        </div>
+      </div>
+    </div>
+    <p class="ara-meta" style="margin-top:1rem;">Use the Class Panel to manage Waiting, Reserved, and Attended columns. Sign-in and drop-in are handled from the panel.</p>
   </div>
-  <p class="admin-card__meta">Use the modal to manage Waiting, Reserved, and Attended columns.</p>
 </section>

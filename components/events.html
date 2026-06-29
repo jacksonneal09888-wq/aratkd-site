@@ -1,14 +1,16 @@
-<section class="admin-card" id="admin-events" data-admin-panel="tab-events tab-calendar">
-  <div class="admin-summary__header">
-    <h3>Special Events</h3>
-    <div class="admin-topbar__actions">
-      <span class="badge badge--gold">Special Class &amp; Tournament types</span>
-      <button type="button" class="text-link-btn" id="admin-events-refresh">Refresh</button>
-      <button type="button" class="btn-primary" id="admin-event-drawer-open">+ Add Special Event</button>
+<section class="ara-card" id="admin-events" data-admin-panel="tab-events tab-calendar">
+  <div class="ara-card__header">
+    <div>
+      <p class="ara-eyebrow">Special Events</p>
+      <h3 class="ara-card__title">Tournaments &amp; Make-Up Classes</h3>
+    </div>
+    <div class="ara-actions">
+      <button type="button" class="btn-ghost" id="admin-events-refresh">↻ Refresh</button>
+      <button type="button" class="btn-primary" id="admin-event-drawer-open">+ Add Event</button>
     </div>
   </div>
   <div class="admin-table-wrap">
-    <table class="admin-table" aria-label="Special events">
+    <table class="admin-table ara-table" aria-label="Special events">
       <thead>
         <tr>
           <th scope="col">Event</th>
@@ -20,9 +22,7 @@
         </tr>
       </thead>
       <tbody id="admin-events-body">
-        <tr>
-          <td colspan="6">No events yet.</td>
-        </tr>
+        <tr><td colspan="6" class="ara-table__empty">No events yet. Click + Add Event to create one.</td></tr>
       </tbody>
     </table>
   </div>

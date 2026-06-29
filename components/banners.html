@@ -1,37 +1,45 @@
-<section class="admin-card" id="admin-banners" data-admin-panel="tab-banners">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Homepage Banners</h3>
-    <p class="admin-card__meta">Control the rotating flyers on the homepage hero.</p>
+<section class="ara-card" id="admin-banners" data-admin-panel="tab-banners">
+  <div class="ara-card__header">
+    <div>
+      <p class="ara-eyebrow">Website Content</p>
+      <h3 class="ara-card__title">Homepage Banners</h3>
+    </div>
+    <p class="ara-meta">Control the rotating flyers displayed on the homepage hero section.</p>
   </div>
-  <form class="admin-banner-form" id="admin-banner-form" autocomplete="off">
-    <div class="admin-banner-form__grid">
-      <label>
-        <span>Banner title</span>
-        <input type="text" id="admin-banner-title" placeholder="Little Ninjas Promo">
+  <div class="ara-card__body">
+    <div class="ara-section-label">Add New Banner</div>
+    <form class="admin-banner-form ara-form" id="admin-banner-form" autocomplete="off">
+      <div class="admin-banner-form__grid ara-form-grid">
+        <label class="ara-label">
+          <span>Banner Title</span>
+          <input type="text" id="admin-banner-title" placeholder="Little Ninjas Promo">
+        </label>
+        <label class="ara-label">
+          <span>Image URL <span class="ara-required">*</span></span>
+          <input type="url" id="admin-banner-image" placeholder="https://.../banner.jpg" required>
+        </label>
+        <label class="ara-label">
+          <span>Link URL <span class="ara-optional">(optional)</span></span>
+          <input type="url" id="admin-banner-link" placeholder="https://aratkd.com/programs">
+        </label>
+        <label class="ara-label">
+          <span>Alt Text</span>
+          <input type="text" id="admin-banner-alt" placeholder="Kids class flyer">
+        </label>
+      </div>
+      <label class="ara-checkbox-label">
+        <input type="checkbox" id="admin-banner-active" checked>
+        <span>Activate immediately on homepage</span>
       </label>
-      <label>
-        <span>Image URL</span>
-        <input type="url" id="admin-banner-image" placeholder="https://.../banner.jpg" required>
-      </label>
-      <label>
-        <span>Link URL (optional)</span>
-        <input type="url" id="admin-banner-link" placeholder="https://aratkd.com/programs">
-      </label>
-      <label>
-        <span>Alt text</span>
-        <input type="text" id="admin-banner-alt" placeholder="Kids class flyer">
-      </label>
+      <div class="ara-form__actions">
+        <button type="submit" class="btn-primary">Add Banner</button>
+        <p class="form-status" id="admin-banner-status" aria-live="polite"></p>
+      </div>
+    </form>
+
+    <div class="ara-section-label" style="margin-top:1.5rem;">Live Banners</div>
+    <div class="admin-banner-list" id="admin-banner-list">
+      <p class="ara-meta">Sign in to load banners.</p>
     </div>
-    <label class="checkbox-row">
-      <input type="checkbox" id="admin-banner-active" checked>
-      <span>Active on homepage</span>
-    </label>
-    <div class="admin-banner-form__actions">
-      <button type="submit" class="cta-btn">Add Banner</button>
-      <p class="form-status" id="admin-banner-status" aria-live="polite"></p>
-    </div>
-  </form>
-  <div class="admin-banner-list" id="admin-banner-list">
-    <p class="admin-card__meta">Sign in to load banners.</p>
   </div>
 </section>

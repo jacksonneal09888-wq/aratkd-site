@@ -1,23 +1,31 @@
-<section class="admin-card admin-card--gold" id="admin-calendar-card" data-admin-panel="tab-calendar">
-  <div class="admin-card__header">
-    <h3 class="admin-card__title">Calendar & Special Occasions</h3>
-    <p class="admin-card__meta">Active events appear on kiosk sign-in</p>
+<section class="ara-card" id="admin-calendar-card" data-admin-panel="tab-calendar">
+  <div class="ara-card__header">
+    <div>
+      <p class="ara-eyebrow">Schedule</p>
+      <h3 class="ara-card__title">Calendar &amp; Special Events</h3>
+    </div>
+    <p class="ara-meta">Active events appear on kiosk sign-in screen.</p>
   </div>
-  <div class="admin-grid" id="admin-calendar-upcoming">
-    <p>Refresh events to see Special Classes and Tournaments.</p>
+  <div class="ara-card__body">
+    <div class="admin-grid" id="admin-calendar-upcoming">
+      <p class="ara-meta">Refresh events to see Special Classes and Tournaments.</p>
+    </div>
   </div>
 </section>
 
-<section class="admin-card" id="admin-attendance" data-admin-panel="tab-classes tab-calendar">
-  <div class="admin-summary__header">
-    <h3>Latest Attendance Check-ins</h3>
-    <div class="admin-topbar__actions">
-      <button type="button" class="secondary-btn" id="class-modal-open">Open Class Modal</button>
-      <button type="button" class="text-link-btn" id="admin-attendance-refresh">Refresh</button>
+<section class="ara-card" id="admin-attendance" data-admin-panel="tab-classes tab-calendar">
+  <div class="ara-card__header">
+    <div>
+      <p class="ara-eyebrow">Attendance Log</p>
+      <h3 class="ara-card__title">Latest Check-ins</h3>
+    </div>
+    <div class="ara-actions">
+      <button type="button" class="btn-primary" id="class-modal-open">Open Class Panel</button>
+      <button type="button" class="btn-ghost" id="admin-attendance-refresh">↻ Refresh</button>
     </div>
   </div>
   <div class="admin-table-wrap">
-    <table class="admin-table" aria-label="Recent attendance">
+    <table class="admin-table ara-table" aria-label="Recent attendance">
       <thead>
         <tr>
           <th scope="col">Student ID</th>
@@ -28,9 +36,7 @@
         </tr>
       </thead>
       <tbody id="admin-attendance-body">
-        <tr>
-          <td colspan="5">No attendance logs yet.</td>
-        </tr>
+        <tr><td colspan="5" class="ara-table__empty">No attendance logs yet.</td></tr>
       </tbody>
     </table>
   </div>

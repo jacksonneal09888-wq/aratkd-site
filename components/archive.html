@@ -1,16 +1,18 @@
-<section class="admin-card" id="admin-archive" data-admin-panel="tab-archive">
-  <div class="admin-summary__header">
+<section class="ara-card" id="admin-archive" data-admin-panel="tab-archive">
+  <div class="ara-card__header">
     <div>
-      <p class="admin-card__meta">30-day hold before permanent deletion</p>
-      <h3>Archived Students</h3>
+      <p class="ara-eyebrow">Archived Records</p>
+      <h3 class="ara-card__title">Archived Students</h3>
     </div>
-    <div class="admin-topbar__actions">
-      <button type="button" class="text-link-btn" id="admin-archive-refresh">Refresh</button>
+    <div class="ara-actions">
+      <button type="button" class="btn-ghost" id="admin-archive-refresh">↻ Refresh</button>
     </div>
   </div>
-  <p class="admin-card__meta">Archived students are removed from the active roster. Records are permanently deleted after 30 days.</p>
+  <div class="ara-info-banner ara-info-banner--warning">
+    ⚠️  Archived students are removed from the active roster. Records are <strong>permanently deleted after 30 days</strong>.
+  </div>
   <div class="admin-table-wrap">
-    <table class="admin-table" aria-label="Archived students">
+    <table class="admin-table ara-table" aria-label="Archived students">
       <thead>
         <tr>
           <th scope="col">ARA ID</th>
@@ -22,9 +24,7 @@
         </tr>
       </thead>
       <tbody id="admin-archive-body">
-        <tr>
-          <td colspan="6">Sign in and click Refresh to load archived students.</td>
-        </tr>
+        <tr><td colspan="6" class="ara-table__empty">Sign in and click Refresh to load archived students.</td></tr>
       </tbody>
     </table>
   </div>

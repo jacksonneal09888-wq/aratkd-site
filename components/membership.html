@@ -1,56 +1,74 @@
-<section class="admin-card" id="admin-membership" data-admin-panel="tab-membership">
-  <div class="admin-summary__header">
+<!-- Membership Overview -->
+<section class="ara-card" id="admin-membership" data-admin-panel="tab-membership">
+  <div class="ara-card__header">
     <div>
-      <p class="admin-card__meta">Active enrollment by tier</p>
-      <h3>Membership Overview</h3>
+      <p class="ara-eyebrow">Enrollment Overview</p>
+      <h3 class="ara-card__title">Membership Breakdown</h3>
     </div>
   </div>
-  <div class="admin-roster-cards" id="admin-membership-summary">
-    <div class="admin-roster-card">
-      <p class="card-label">Active</p>
-      <p class="card-value" id="admin-membership-count-active">—</p>
+  <div class="ara-card__body">
+    <div class="admin-hero-tiles" style="grid-template-columns:repeat(4,1fr);margin-bottom:0;">
+      <div class="admin-hero-tile">
+        <div class="admin-hero-tile__icon">👥</div>
+        <div class="admin-hero-tile__body">
+          <p class="admin-hero-tile__label">Active</p>
+          <p class="admin-hero-tile__value" id="admin-membership-count-active">—</p>
+        </div>
+      </div>
+      <div class="admin-hero-tile admin-hero-tile--muted">
+        <div class="admin-hero-tile__icon">🔄</div>
+        <div class="admin-hero-tile__body">
+          <p class="admin-hero-tile__label">Month-to-Month</p>
+          <p class="admin-hero-tile__value" id="admin-membership-count-mtm">—</p>
+        </div>
+      </div>
+      <div class="admin-hero-tile admin-hero-tile--muted">
+        <div class="admin-hero-tile__icon">📅</div>
+        <div class="admin-hero-tile__body">
+          <p class="admin-hero-tile__label">Annual</p>
+          <p class="admin-hero-tile__value" id="admin-membership-count-annual">—</p>
+        </div>
+      </div>
+      <div class="admin-hero-tile admin-hero-tile--muted">
+        <div class="admin-hero-tile__icon">❓</div>
+        <div class="admin-hero-tile__body">
+          <p class="admin-hero-tile__label">Not Set</p>
+          <p class="admin-hero-tile__value" id="admin-membership-count-none">—</p>
+        </div>
+      </div>
     </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Month-to-Month</p>
-      <p class="card-value" id="admin-membership-count-mtm">—</p>
-    </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Tier 1</p>
-      <p class="card-value" id="admin-membership-count-t1">—</p>
-    </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Tier 2</p>
-      <p class="card-value" id="admin-membership-count-t2">—</p>
-    </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Tier 3</p>
-      <p class="card-value" id="admin-membership-count-t3">—</p>
-    </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Annual</p>
-      <p class="card-value" id="admin-membership-count-annual">—</p>
-    </div>
-    <div class="admin-roster-card">
-      <p class="card-label">Not Set</p>
-      <p class="card-value" id="admin-membership-count-none">—</p>
+    <div class="ara-tier-row">
+      <div class="ara-tier-badge">
+        <span class="ara-tier-badge__label">Tier 1</span>
+        <span class="ara-tier-badge__value" id="admin-membership-count-t1">—</span>
+      </div>
+      <div class="ara-tier-badge">
+        <span class="ara-tier-badge__label">Tier 2</span>
+        <span class="ara-tier-badge__value" id="admin-membership-count-t2">—</span>
+      </div>
+      <div class="ara-tier-badge">
+        <span class="ara-tier-badge__label">Tier 3</span>
+        <span class="ara-tier-badge__value" id="admin-membership-count-t3">—</span>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="admin-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
-  <div class="admin-summary__header">
+<!-- Roster (shared with students tab) -->
+<section class="ara-card" id="admin-roster" data-admin-panel="tab-students tab-membership">
+  <div class="ara-card__header">
     <div>
-      <p class="admin-card__meta">Live roster · tap a row to select</p>
-      <h3>Student Roster</h3>
+      <p class="ara-eyebrow">Live Roster</p>
+      <h3 class="ara-card__title">Students</h3>
     </div>
-    <div class="admin-topbar__actions">
-      <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
+    <div class="ara-actions">
+      <button type="button" class="btn-ghost" id="admin-roster-refresh">↻ Refresh</button>
     </div>
   </div>
 
-  <div class="admin-filter-row">
-    <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
-    <select id="admin-roster-sort" aria-label="Sort roster">
+  <div class="ara-filter-bar">
+    <input type="search" class="ara-search" id="admin-roster-search" placeholder="🔍  Search by name, belt, or status…">
+    <select class="ara-select" id="admin-roster-sort" aria-label="Sort roster">
       <option value="name">Name A–Z</option>
       <option value="belt">Belt Order</option>
       <option value="status">Status</option>
@@ -58,7 +76,7 @@
   </div>
 
   <div class="admin-table-wrap admin-table-wrap--wide">
-    <table class="admin-table admin-table--wide" aria-label="Student roster">
+    <table class="admin-table ara-table" aria-label="Student roster">
       <thead>
         <tr>
           <th scope="col">ID</th>
@@ -70,69 +88,42 @@
         </tr>
       </thead>
       <tbody id="admin-roster-body">
-        <tr><td colspan="6">Sign in to load the roster.</td></tr>
+        <tr><td colspan="6" class="ara-table__empty">Sign in to load the roster.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="admin-roster-detail" id="admin-roster-detail" hidden>
-
-    <div class="admin-roster-detail__head">
+  <div class="admin-roster-detail ara-detail-panel" id="admin-roster-detail" hidden>
+    <div class="ara-detail-panel__head">
       <div>
-        <p class="admin-roster-detail__label">Selected Student</p>
-        <p class="admin-roster-detail__name" id="admin-roster-student-name">—</p>
-        <p class="admin-roster-detail__meta" id="admin-roster-student-meta">—</p>
+        <p class="ara-eyebrow">Selected Student</p>
+        <p class="ara-detail-panel__name" id="admin-roster-student-name">—</p>
+        <p class="ara-meta" id="admin-roster-student-meta">—</p>
       </div>
-      <div class="admin-roster-actions">
+      <div class="ara-actions ara-actions--wrap">
         <button type="button" class="btn-primary" id="admin-student-drawer-open">Open Full Profile</button>
         <button type="button" class="btn-ghost" id="admin-roster-newtab">↗ New Tab</button>
         <button type="button" class="btn-ghost" data-roster-action="report">Report Card</button>
         <button type="button" class="btn-ghost" data-roster-action="note">Add Note</button>
         <button type="button" class="btn-ghost" data-roster-action="deactivate">Deactivate</button>
         <button type="button" class="btn-ghost" data-roster-action="activate">Reactivate</button>
-        <button type="button" class="text-link-btn is-danger" data-roster-action="archive">Archive</button>
+        <button type="button" class="btn-ghost ara-btn--danger" data-roster-action="archive">Archive</button>
       </div>
     </div>
-
-    <div class="admin-roster-cards">
-      <div class="admin-roster-card">
-        <p class="card-label">Membership</p>
-        <p class="card-value" id="admin-roster-card-membership">—</p>
-      </div>
-      <div class="admin-roster-card">
-        <p class="card-label">Status</p>
-        <p class="card-value" id="admin-roster-card-status">—</p>
-      </div>
-      <div class="admin-roster-card">
-        <p class="card-label">Last 30 Days</p>
-        <p class="card-value" id="admin-roster-card-30">—</p>
-      </div>
-      <div class="admin-roster-card">
-        <p class="card-label">Lessons</p>
-        <p class="card-value" id="admin-roster-card-60">—</p>
-      </div>
-      <div class="admin-roster-card">
-        <p class="card-label">Last Attended</p>
-        <p class="card-value" id="admin-roster-last-attended">—</p>
-      </div>
+    <div class="ara-stat-row">
+      <div class="ara-stat"><p class="ara-stat__label">Membership</p><p class="ara-stat__value" id="admin-roster-card-membership">—</p></div>
+      <div class="ara-stat"><p class="ara-stat__label">Status</p><p class="ara-stat__value" id="admin-roster-card-status">—</p></div>
+      <div class="ara-stat"><p class="ara-stat__label">Last 30 Days</p><p class="ara-stat__value" id="admin-roster-card-30">—</p></div>
+      <div class="ara-stat"><p class="ara-stat__label">Lessons</p><p class="ara-stat__value" id="admin-roster-card-60">—</p></div>
+      <div class="ara-stat"><p class="ara-stat__label">Last Attended</p><p class="ara-stat__value" id="admin-roster-last-attended">—</p></div>
     </div>
-
-    <form id="admin-roster-edit-form" autocomplete="off">
+    <div class="ara-section-label">Edit Student Record</div>
+    <form id="admin-roster-edit-form" autocomplete="off" class="ara-form">
       <div class="admin-roster-detail__form admin-enroll__grid">
-        <label>
-          <span>Name</span>
-          <input type="text" id="admin-roster-name" placeholder="Full name">
-        </label>
-        <label>
-          <span>Email</span>
-          <input type="email" id="admin-roster-email" placeholder="name@example.com">
-        </label>
-        <label>
-          <span>Phone</span>
-          <input type="tel" id="admin-roster-phone" placeholder="9195551234">
-        </label>
-        <label>
-          <span>Membership</span>
+        <label class="ara-label"><span>Name</span><input type="text" id="admin-roster-name" placeholder="Full name"></label>
+        <label class="ara-label"><span>Email</span><input type="email" id="admin-roster-email" placeholder="name@example.com"></label>
+        <label class="ara-label"><span>Phone</span><input type="tel" id="admin-roster-phone" placeholder="(919) 555-1234" pattern="[\d\s\-\+\(\)]*"></label>
+        <label class="ara-label"><span>Membership</span>
           <select id="admin-roster-membership">
             <option value="">Not set</option>
             <option value="Month-to-Month">Month-to-Month</option>
@@ -142,8 +133,7 @@
             <option value="Annual">Annual</option>
           </select>
         </label>
-        <label>
-          <span>Belt</span>
+        <label class="ara-label"><span>Belt</span>
           <select id="admin-roster-belt">
             <option value="">Keep current</option>
             <option value="White Belt">White Belt</option>
@@ -159,8 +149,7 @@
             <option value="Black Belt">Black Belt</option>
           </select>
         </label>
-        <label>
-          <span>Status</span>
+        <label class="ara-label"><span>Status</span>
           <select id="admin-roster-status">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -170,80 +159,44 @@
           </select>
         </label>
       </div>
-      <div class="admin-roster-actions" style="margin-top:0.75rem;">
+      <div class="ara-form__actions">
         <button type="submit" class="btn-primary" id="admin-roster-save">Save Changes</button>
         <button type="button" class="btn-ghost" id="admin-attendance-adjust-open">Adjust Attendance</button>
       </div>
       <p class="form-status" id="admin-roster-edit-status" aria-live="polite"></p>
     </form>
-
-    <form id="admin-attendance-adjust-form" class="admin-enroll__grid" hidden>
-      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0 0 0.5rem;">
-        <strong>Attendance Correction</strong> — Use Add/Remove for small fixes. Set Exact Lessons forces the total to a specific number.
-      </p>
-      <label>
-        <span>Lesson Count</span>
-        <input type="number" id="admin-attendance-adjust-value" min="0" placeholder="e.g. 3">
-      </label>
-      <label>
-        <span>Class Type</span>
-        <input type="text" id="admin-attendance-adjust-class" placeholder="basic">
-      </label>
-      <label>
-        <span>Level</span>
-        <input type="text" id="admin-attendance-adjust-level" placeholder="Advanced">
-      </label>
-      <label>
-        <span>Note</span>
-        <input type="text" id="admin-attendance-adjust-note" placeholder="Reason for adjustment">
-      </label>
-      <div class="admin-roster-actions" style="grid-column:1 / -1;">
+    <form id="admin-attendance-adjust-form" class="admin-enroll__grid ara-form ara-inset-form" hidden>
+      <p class="ara-meta" style="grid-column:1/-1;"><strong>Attendance Correction</strong> — Add/Remove for small fixes; Set Exact forces the total.</p>
+      <label class="ara-label"><span>Lesson Count</span><input type="number" id="admin-attendance-adjust-value" min="0" placeholder="e.g. 3"></label>
+      <label class="ara-label"><span>Class Type</span><input type="text" id="admin-attendance-adjust-class" placeholder="basic"></label>
+      <label class="ara-label"><span>Level</span><input type="text" id="admin-attendance-adjust-level" placeholder="Advanced"></label>
+      <label class="ara-label"><span>Note</span><input type="text" id="admin-attendance-adjust-note" placeholder="Reason for adjustment"></label>
+      <div class="ara-form__actions" style="grid-column:1/-1;">
         <button type="submit" class="btn-ghost" data-adjust="add">+ Add Lessons</button>
         <button type="submit" class="btn-ghost" data-adjust="remove">− Remove Lessons</button>
         <button type="submit" class="btn-primary" data-adjust="set">Set Exact Total</button>
       </div>
       <p class="form-status" id="admin-attendance-adjust-status" aria-live="polite"></p>
     </form>
-
-    <form id="admin-bulk-attendance-form" class="admin-enroll__grid" hidden>
-      <p class="admin-card__meta" style="grid-column:1 / -1; margin:0 0 0.5rem;">
-        <strong>Bulk Lesson Fix</strong> — Set the same lesson count for all students at selected belt ranks.
-      </p>
-      <label style="grid-column:1 / -1;">
-        <span>Belt Ranks (hold Ctrl/Cmd to select multiple)</span>
+    <form id="admin-bulk-attendance-form" class="admin-enroll__grid ara-form ara-inset-form" hidden>
+      <p class="ara-meta" style="grid-column:1/-1;"><strong>Bulk Lesson Fix</strong></p>
+      <label class="ara-label" style="grid-column:1/-1;"><span>Belt Ranks (Ctrl/Cmd = multi-select)</span>
         <select id="admin-bulk-attendance-belts" multiple size="5">
-          <option value="Yellow Belt">Yellow Belt</option>
-          <option value="High Yellow Belt">High Yellow Belt</option>
-          <option value="Green Belt">Green Belt</option>
-          <option value="High Green Belt">High Green Belt</option>
-          <option value="Blue Belt">Blue Belt</option>
-          <option value="High Blue Belt">High Blue Belt</option>
-          <option value="Red Belt">Red Belt</option>
-          <option value="High Red Belt">High Red Belt</option>
+          <option value="Yellow Belt">Yellow Belt</option><option value="High Yellow Belt">High Yellow Belt</option>
+          <option value="Green Belt">Green Belt</option><option value="High Green Belt">High Green Belt</option>
+          <option value="Blue Belt">Blue Belt</option><option value="High Blue Belt">High Blue Belt</option>
+          <option value="Red Belt">Red Belt</option><option value="High Red Belt">High Red Belt</option>
         </select>
       </label>
-      <label>
-        <span>Set Lessons To</span>
-        <input type="number" id="admin-bulk-attendance-value" min="0" value="12">
-      </label>
-      <label>
-        <span>Class Type</span>
-        <input type="text" id="admin-bulk-attendance-class" placeholder="basic">
-      </label>
-      <label>
-        <span>Level</span>
-        <input type="text" id="admin-bulk-attendance-level" placeholder="Advanced">
-      </label>
-      <label>
-        <span>Note</span>
-        <input type="text" id="admin-bulk-attendance-note" placeholder="Bulk attendance correction">
-      </label>
-      <div class="admin-roster-actions" style="grid-column:1 / -1;">
-        <button type="button" class="btn-ghost" id="admin-bulk-attendance-preset">Quick-fill Yellow / Green / High Green = 12</button>
+      <label class="ara-label"><span>Set Lessons To</span><input type="number" id="admin-bulk-attendance-value" min="0" value="12"></label>
+      <label class="ara-label"><span>Class Type</span><input type="text" id="admin-bulk-attendance-class" placeholder="basic"></label>
+      <label class="ara-label"><span>Level</span><input type="text" id="admin-bulk-attendance-level" placeholder="Advanced"></label>
+      <label class="ara-label"><span>Note</span><input type="text" id="admin-bulk-attendance-note" placeholder="Bulk attendance correction"></label>
+      <div class="ara-form__actions" style="grid-column:1/-1;">
+        <button type="button" class="btn-ghost" id="admin-bulk-attendance-preset">Quick-fill Yellow/Green/High Green = 12</button>
         <button type="submit" class="btn-primary">Apply Bulk Fix</button>
       </div>
       <p class="form-status" id="admin-bulk-attendance-status" aria-live="polite"></p>
     </form>
-
   </div>
 </section>
