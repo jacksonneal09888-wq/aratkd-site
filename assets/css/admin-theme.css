@@ -199,13 +199,26 @@ body.admin-active .admin-nav__item.is-active {
 }
 
 body.admin-active .admin-nav__icon {
-    font-size: 1rem !important;
-    width: 20px !important;
-    text-align: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
     flex-shrink: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: block !important;
+    background: none !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+}
+
+body.admin-active .admin-nav__icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: currentColor !important;
+    fill: none !important;
+    display: block !important;
 }
 
 body.admin-active .admin-nav__badge {
@@ -1120,4 +1133,167 @@ body.admin-active .admin-hero-tile--muted {
 @media (max-width: 640px) {
     body.admin-active .admin-sidebar { width: 200px !important; min-width: 200px !important; }
     body.admin-active .admin-hero-tiles { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* ================================================================
+   TABLE SCROLLING — ensure roster tables scroll inside cards
+   ================================================================ */
+body.admin-active .admin-table-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+body.admin-active .admin-card {
+    overflow: visible !important;
+}
+
+body.admin-active .ara-card {
+    overflow: visible !important;
+}
+
+/* ================================================================
+   ADMIN LOGIN PAGE — branded dark login before admin-active
+   ================================================================ */
+body[data-portal-mode="admin"]:not(.admin-active) .site-header {
+    display: none !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .site-footer {
+    display: none !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) {
+    background: #1a2035 !important;
+    min-height: 100vh !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) #main-content {
+    min-height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 2rem 1rem !important;
+    background: #1a2035 !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .section {
+    width: 100% !important;
+    padding: 0 !important;
+    background: none !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .container {
+    max-width: 420px !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .section-heading {
+    display: none !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-access {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth {
+    background: #1f2747 !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-radius: 1rem !important;
+    padding: 2rem !important;
+    width: 100% !important;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.5) !important;
+    box-sizing: border-box !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth::before {
+    content: "ARA" !important;
+    display: block !important;
+    width: 56px !important;
+    height: 56px !important;
+    background: #d81f26 !important;
+    border-radius: 0.75rem !important;
+    font-size: 1rem !important;
+    font-weight: 900 !important;
+    color: #fff !important;
+    font-family: var(--font-heading) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto 1.25rem !important;
+    box-shadow: 0 8px 24px rgba(216,31,38,0.4) !important;
+    letter-spacing: 0.05em !important;
+    line-height: 56px !important;
+    text-align: center !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth h3 {
+    color: #e8eaed !important;
+    text-align: center !important;
+    margin-bottom: 0.25rem !important;
+    font-size: 1.2rem !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-card__meta {
+    color: rgba(255,255,255,0.35) !important;
+    text-align: center !important;
+    margin-bottom: 1.5rem !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth label {
+    color: rgba(255,255,255,0.5) !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    display: block !important;
+    margin-bottom: 0.3rem !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth input {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 0.5rem !important;
+    color: #e8eaed !important;
+    padding: 0.6rem 0.85rem !important;
+    font-size: 0.9rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 1rem !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth input:focus {
+    outline: none !important;
+    border-color: #d81f26 !important;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.2) !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth .cta-btn,
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth button[type="submit"] {
+    width: 100% !important;
+    padding: 0.7rem 1rem !important;
+    background: #d81f26 !important;
+    border: none !important;
+    border-radius: 0.55rem !important;
+    color: #fff !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    margin-top: 0.5rem !important;
+    box-shadow: 0 4px 16px rgba(216,31,38,0.4) !important;
+    transition: background 0.15s !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth .cta-btn:hover,
+body[data-portal-mode="admin"]:not(.admin-active) .admin-auth button[type="submit"]:hover {
+    background: #c01919 !important;
+}
+
+body[data-portal-mode="admin"]:not(.admin-active) .form-status {
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
+    margin-top: 0.75rem !important;
 }
