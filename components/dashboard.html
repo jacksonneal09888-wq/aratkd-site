@@ -1,26 +1,52 @@
+<!-- Hero KPI tiles — 4 bold red tiles spanning full width -->
+<div class="admin-hero-tiles">
+  <div class="admin-hero-tile">
+    <div class="admin-hero-tile__icon" aria-hidden="true">👥</div>
+    <div class="admin-hero-tile__body">
+      <p class="admin-hero-tile__label">Active Students</p>
+      <p class="admin-hero-tile__value" id="admin-membership-count-active">—</p>
+    </div>
+  </div>
+  <div class="admin-hero-tile">
+    <div class="admin-hero-tile__icon" aria-hidden="true">🎟️</div>
+    <div class="admin-hero-tile__body">
+      <p class="admin-hero-tile__label">Month-to-Month</p>
+      <p class="admin-hero-tile__value" id="admin-membership-count-mtm">—</p>
+    </div>
+  </div>
+  <div class="admin-hero-tile">
+    <div class="admin-hero-tile__icon" aria-hidden="true">📅</div>
+    <div class="admin-hero-tile__body">
+      <p class="admin-hero-tile__label">Annual Members</p>
+      <p class="admin-hero-tile__value" id="admin-membership-count-annual">—</p>
+    </div>
+  </div>
+  <div class="admin-hero-tile admin-hero-tile--muted">
+    <div class="admin-hero-tile__icon" aria-hidden="true">📨</div>
+    <div class="admin-hero-tile__body">
+      <p class="admin-hero-tile__label">Messages Today</p>
+      <p class="admin-hero-tile__value" id="msg-metric-today">0</p>
+    </div>
+  </div>
+</div>
+
+<!-- Two-column content grid -->
 <div class="admin-dashboard-grid">
 
-  <!-- Left column: KPI stats + activity table -->
+  <!-- Left: main activity table -->
   <div class="admin-dashboard-col admin-dashboard-col--main">
 
-    <section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard">
-      <div class="admin-summary__header">
+    <section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard" style="padding:1.5rem;">
+      <div class="admin-summary__header" style="margin-bottom:1rem;">
         <div>
-          <p class="admin-card__meta">Live membership snapshot</p>
-          <h3>Roster at a Glance</h3>
+          <p class="admin-card__meta">Live roster · refreshed automatically</p>
+          <h3 style="margin:0;">Portal Activity</h3>
         </div>
-        <p class="admin-generated admin-card__meta">Refreshed <span id="admin-generated-at">—</span></p>
+        <p class="admin-generated admin-card__meta">Updated <span id="admin-generated-at">—</span></p>
       </div>
 
-      <div class="admin-kpi-grid">
-        <div class="admin-kpi-card admin-kpi-card--primary">
-          <p class="card-label">Active Students</p>
-          <p class="card-value" id="admin-membership-count-active">—</p>
-        </div>
-        <div class="admin-kpi-card">
-          <p class="card-label">Month-to-Month</p>
-          <p class="card-value" id="admin-membership-count-mtm">—</p>
-        </div>
+      <!-- Secondary membership breakdown -->
+      <div class="admin-kpi-grid" style="margin-bottom:1.25rem;">
         <div class="admin-kpi-card">
           <p class="card-label">Tier 1</p>
           <p class="card-value" id="admin-membership-count-t1">—</p>
@@ -34,19 +60,11 @@
           <p class="card-value" id="admin-membership-count-t3">—</p>
         </div>
         <div class="admin-kpi-card">
-          <p class="card-label">Annual</p>
-          <p class="card-value" id="admin-membership-count-annual">—</p>
-        </div>
-        <div class="admin-kpi-card">
           <p class="card-label">Not Set</p>
           <p class="card-value" id="admin-membership-count-none">—</p>
         </div>
       </div>
 
-      <div class="admin-card__header" style="margin:0.5rem 0;">
-        <h4 class="admin-card__subtitle">Portal Activity</h4>
-        <p class="admin-card__meta">Student logins, belt updates, check-ins</p>
-      </div>
       <div class="admin-table-wrap">
         <table class="admin-table" aria-label="Portal usage summary">
           <thead>
@@ -69,14 +87,14 @@
 
   </div>
 
-  <!-- Right column: Recent events + messaging insights -->
+  <!-- Right: events + messaging -->
   <div class="admin-dashboard-col admin-dashboard-col--side">
 
-    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
-      <div class="admin-summary__header">
+    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard" style="padding:1.25rem;">
+      <div class="admin-summary__header" style="margin-bottom:0.75rem;">
         <div>
           <p class="admin-card__meta">Kiosk check-ins and portal events</p>
-          <h3>Recent Events</h3>
+          <h3 style="margin:0;font-size:1rem;">Recent Events</h3>
         </div>
         <span class="admin-pill admin-pill--warning">Live</span>
       </div>
@@ -85,16 +103,12 @@
       </ul>
     </section>
 
-    <section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard">
-      <div class="admin-card__header">
-        <h3 class="admin-card__title">Messaging Insights</h3>
+    <section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard" style="padding:1.25rem;">
+      <div class="admin-card__header" style="margin-bottom:0.75rem;">
+        <h3 class="admin-card__title" style="font-size:1rem;">Messaging Insights</h3>
         <p class="admin-card__meta">Local communication log</p>
       </div>
-      <div class="admin-kpi-grid" style="grid-template-columns: 1fr;">
-        <div class="admin-kpi-card">
-          <p class="card-label">Messages Today</p>
-          <p class="card-value" id="msg-metric-today">0</p>
-        </div>
+      <div class="admin-kpi-grid" style="grid-template-columns:1fr;gap:0.6rem;margin:0;">
         <div class="admin-kpi-card">
           <p class="card-label">This Week</p>
           <p class="card-value" id="msg-metric-week">0</p>
