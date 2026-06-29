@@ -9633,3 +9633,643 @@ body.admin-active .admin-kpi-card {
     background: #1a2035 !important;
     border-color: rgba(255,255,255,0.07) !important;
 }
+
+/* ================================================================
+   APEX EXACT MATCH — ARA TKD Blue-Navy Edition (FINAL)
+   Overrides all previous dark blocks with correct Apex palette
+   ================================================================ */
+
+/* ── Apex palette: blue-navy, not near-black ── */
+body.admin-active > #admin-dashboard { background: #1a2035 !important; }
+body.admin-active .admin-main        { background: #1a2035 !important; }
+
+/* Sidebar: slightly darker blue than main */
+body.admin-active .admin-sidebar {
+    background: #161c30 !important;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.3) !important;
+}
+
+/* ── Topbar — full Apex layout ── */
+body.admin-active #admin-topbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 1.5rem !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    background: #161c30 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    gap: 1rem !important;
+}
+
+body.admin-active .admin-topbar__left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+body.admin-active .admin-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Hamburger — red square, exact Apex */
+body.admin-active .admin-hamburger {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.55rem;
+    background: #d81f26;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(216,31,38,0.4);
+}
+
+body.admin-active .admin-hamburger span {
+    width: 16px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    display: block;
+}
+
+/* Search bar */
+body.admin-active .admin-topbar__search-wrap {
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+}
+
+body.admin-active .admin-topbar__search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    stroke: rgba(255,255,255,0.35) !important;
+    pointer-events: none;
+}
+
+body.admin-active .admin-topbar__search {
+    width: 100%;
+    padding: 0.55rem 0.9rem 0.55rem 2.25rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    background: rgba(255,255,255,0.06) !important;
+    font-size: 0.87rem;
+    color: #e8eaed !important;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.admin-active .admin-topbar__search::placeholder {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+body.admin-active .admin-topbar__search:focus {
+    outline: none !important;
+    border-color: #d81f26 !important;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.2) !important;
+}
+
+/* Icon buttons (refresh, download, theme) */
+body.admin-active .admin-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+body.admin-active .admin-icon-btn svg {
+    width: 17px;
+    height: 17px;
+    stroke: rgba(255,255,255,0.6);
+    transition: stroke 0.15s;
+}
+
+body.admin-active .admin-icon-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.2);
+}
+
+body.admin-active .admin-icon-btn:hover svg {
+    stroke: #fff;
+}
+
+/* Topbar divider + user info */
+body.admin-active .admin-topbar__divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 0.25rem;
+    flex-shrink: 0;
+}
+
+body.admin-active .admin-topbar__user {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    cursor: default;
+}
+
+body.admin-active .admin-topbar__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #d81f26;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(216,31,38,0.4);
+}
+
+body.admin-active .admin-topbar__user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+body.admin-active .admin-topbar__user-name {
+    font-size: 0.87rem;
+    font-weight: 700;
+    color: #e8eaed;
+    margin: 0;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+body.admin-active .admin-topbar__user-role {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.38);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+}
+
+/* ── Navigation — Apex exact ── */
+body.admin-active .admin-nav {
+    padding: 0.5rem 0;
+}
+
+body.admin-active .admin-nav__section-label {
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    color: rgba(255,255,255,0.28) !important;
+    padding: 1rem 1.25rem 0.35rem !important;
+    margin: 0 !important;
+}
+
+body.admin-active .admin-nav__item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.65rem 1rem !important;
+    margin: 0.1rem 0.75rem !important;
+    border-radius: 0.6rem !important;
+    border: none !important;
+    background: transparent !important;
+    color: rgba(255,255,255,0.55) !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    width: calc(100% - 1.5rem) !important;
+    transition: background 0.15s, color 0.15s !important;
+    box-shadow: none !important;
+}
+
+body.admin-active .admin-nav__item:hover {
+    background: rgba(255,255,255,0.07) !important;
+    color: #fff !important;
+}
+
+body.admin-active .admin-nav__item.is-active {
+    background: #d81f26 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(216,31,38,0.4) !important;
+}
+
+body.admin-active .admin-nav__icon {
+    font-size: 1.1rem !important;
+    width: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+body.admin-active .admin-nav__badge {
+    margin-left: auto !important;
+    background: rgba(255,255,255,0.2) !important;
+    color: #fff !important;
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    padding: 0.15rem 0.45rem !important;
+    border-radius: 999px !important;
+}
+
+body.admin-active .admin-nav__item.is-active .admin-nav__badge {
+    background: rgba(255,255,255,0.25) !important;
+}
+
+/* ── Sidebar brand ── */
+body.admin-active .admin-sidebar__brand {
+    padding: 1.1rem 1.25rem 1rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+body.admin-active .admin-sidebar__mark {
+    width: 38px;
+    height: 38px;
+    background: #d81f26;
+    border-radius: 0.55rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: #fff;
+    font-family: var(--font-heading);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(216,31,38,0.4);
+}
+
+body.admin-active .admin-sidebar__title {
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+    margin: 0 !important;
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
+}
+
+body.admin-active .admin-sidebar__sub {
+    font-size: 0.68rem !important;
+    color: rgba(255,255,255,0.38) !important;
+    margin: 0 !important;
+    letter-spacing: 0.04em;
+}
+
+/* ── Quick links ── */
+body.admin-active .admin-sidebar__quicklinks {
+    padding: 0.75rem 1.25rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-sidebar__quicklinks-label {
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    color: rgba(255,255,255,0.28) !important;
+    margin: 0 0 0.5rem !important;
+}
+
+body.admin-active .admin-sidebar__quicklinks-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+body.admin-active .admin-quicklink {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 0.6rem !important;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+body.admin-active .admin-quicklink svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: rgba(255,255,255,0.5) !important;
+}
+
+body.admin-active .admin-quicklink:hover {
+    background: rgba(255,255,255,0.13) !important;
+}
+
+body.admin-active .admin-quicklink:hover svg { stroke: #fff !important; }
+
+body.admin-active .admin-quicklink--active {
+    background: #d81f26 !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(216,31,38,0.45) !important;
+}
+
+body.admin-active .admin-quicklink--active svg { stroke: #fff !important; }
+
+/* ── Sidebar footer ── */
+body.admin-active .admin-sidebar__footer {
+    padding: 1rem 1.25rem !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.35) !important;
+    font-size: 0.78rem !important;
+}
+
+body.admin-active .admin-logout-btn {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 0.6rem !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    background: rgba(216,31,38,0.12) !important;
+    border: 1px solid rgba(216,31,38,0.3) !important;
+    color: #f87171 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    transition: background 0.15s !important;
+}
+
+body.admin-active .admin-logout-btn:hover {
+    background: rgba(216,31,38,0.25) !important;
+}
+
+/* ── Content cards — Apex slightly lighter than bg ── */
+body.admin-active .admin-card,
+body.admin-active .ara-card {
+    background: #1f2747 !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
+    border-radius: 0.85rem !important;
+}
+
+body.admin-active .ara-card__header,
+body.admin-active .admin-card__header,
+body.admin-active .admin-summary__header {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-card__title,
+body.admin-active .admin-card__title,
+body.admin-active .admin-summary__header h3 {
+    color: #e8eaed !important;
+    margin: 0 !important;
+}
+
+body.admin-active .ara-meta,
+body.admin-active .admin-card__meta {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .ara-eyebrow { color: #d81f26 !important; }
+
+/* ── Tables — Apex exact ── */
+body.admin-active .admin-table thead th,
+body.admin-active .ara-table thead th {
+    background: #232d4b !important;
+    color: rgba(255,255,255,0.4) !important;
+    border-bottom: 2px solid rgba(255,255,255,0.08) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+}
+
+body.admin-active .admin-table tbody tr,
+body.admin-active .ara-table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+body.admin-active .admin-table tbody tr:hover,
+body.admin-active .ara-table tbody tr:hover {
+    background: rgba(255,255,255,0.04) !important;
+}
+
+body.admin-active .admin-table td,
+body.admin-active .ara-table td {
+    color: rgba(255,255,255,0.78) !important;
+    padding: 0.75rem 1rem !important;
+}
+
+body.admin-active .ara-table__empty {
+    color: rgba(255,255,255,0.28) !important;
+    padding: 3rem 1rem !important;
+}
+
+/* ── Filter bar & search ── */
+body.admin-active .ara-filter-bar {
+    background: #1f2747 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 0.75rem 1.25rem !important;
+}
+
+body.admin-active .ara-search,
+body.admin-active .ara-select {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-search::placeholder { color: rgba(255,255,255,0.3) !important; }
+
+/* ── Pill buttons ── */
+body.admin-active .pill-button {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: rgba(255,255,255,0.6) !important;
+    border-radius: 0.45rem !important;
+    padding: 0.35rem 0.75rem !important;
+    font-weight: 700 !important;
+}
+
+body.admin-active .pill-button.is-active,
+body.admin-active .pill-button:hover {
+    background: #d81f26 !important;
+    border-color: #d81f26 !important;
+    color: #fff !important;
+}
+
+/* ── Buttons ── */
+body.admin-active .btn-ghost {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: rgba(255,255,255,0.7) !important;
+    border-radius: 0.5rem !important;
+}
+
+body.admin-active .btn-ghost:hover {
+    background: rgba(255,255,255,0.12) !important;
+    color: #fff !important;
+}
+
+/* ── Status pills ── */
+body.admin-active .admin-pill { border-radius: 0.35rem !important; font-size: 0.7rem !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.07em !important; padding: 0.22rem 0.6rem !important; }
+body.admin-active .admin-pill--success  { background: rgba(52,211,153,0.15) !important; color: #34d399 !important; }
+body.admin-active .admin-pill--warning  { background: rgba(251,191,36,0.15) !important; color: #fbbf24 !important; }
+body.admin-active .admin-pill--danger   { background: rgba(248,113,113,0.15) !important; color: #f87171 !important; }
+
+/* ── Stat rows (detail panel) ── */
+body.admin-active .ara-stat-row { border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .ara-stat { background: #232d4b !important; border-right-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .ara-stat__label { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .ara-stat__value { color: #e8eaed !important; }
+body.admin-active .ara-detail-panel { background: #161c30 !important; }
+body.admin-active .ara-section-label { color: #d81f26 !important; border-bottom-color: rgba(216,31,38,0.2) !important; }
+
+/* Admin roster stat cards */
+body.admin-active .admin-roster-cards { border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-roster-card  { background: #232d4b !important; border-right-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .card-label { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .card-value { color: #e8eaed !important; }
+body.admin-active .admin-roster-detail { background: #161c30 !important; border-top-color: #d81f26 !important; }
+
+/* ── Form inputs ── */
+body.admin-active .ara-label > span,
+body.admin-active .admin-enroll__grid label,
+body.admin-active .admin-banner-form label,
+body.admin-active .admin-email-form label,
+body.admin-active .email-panel label,
+body.admin-active .student-modal__grid label,
+body.admin-active .class-modal__fields label {
+    color: rgba(255,255,255,0.5) !important;
+}
+
+body.admin-active .ara-label input,
+body.admin-active .ara-label select,
+body.admin-active .ara-label textarea,
+body.admin-active .ara-form input:not([type="checkbox"]):not([type="radio"]),
+body.admin-active .ara-form select,
+body.admin-active .ara-form textarea,
+body.admin-active .admin-enroll__grid input,
+body.admin-active .admin-enroll__grid select,
+body.admin-active .admin-banner-form input,
+body.admin-active .admin-email-form input,
+body.admin-active .admin-email-form select,
+body.admin-active .admin-email-form textarea,
+body.admin-active .email-panel input,
+body.admin-active .email-panel select,
+body.admin-active .email-panel textarea,
+body.admin-active .student-modal__grid input,
+body.admin-active .student-modal__grid select,
+body.admin-active .student-modal__grid textarea,
+body.admin-active .class-modal__fields input,
+body.admin-active .class-modal__fields select {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-inset-form { background: #161c30 !important; border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .ara-checkbox-label { color: rgba(255,255,255,0.7) !important; }
+
+/* ── Info tiles ── */
+body.admin-active .ara-info-tile { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .ara-info-tile__label { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .ara-info-tile__value { color: #e8eaed !important; }
+
+/* Tier badges */
+body.admin-active .ara-tier-badge { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .ara-tier-badge__label { color: rgba(255,255,255,0.38) !important; }
+
+/* ── Accordion ── */
+body.admin-active details.ara-card,
+body.admin-active details.admin-accordion {
+    background: #1f2747 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+body.admin-active .ara-accordion__trigger {
+    background: #1f2747 !important;
+    color: #e8eaed !important;
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+/* ── Ruby stat row ── */
+body.admin-active .admin-ruby-stat-row { border-top-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-ruby-stat { border-right-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-ruby-stat__label { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .admin-ruby-stat__value { color: #e8eaed !important; }
+
+/* ── Event list ── */
+body.admin-active .admin-event-list li { border-bottom-color: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.65) !important; }
+
+/* KPI tiles — keep bold red against dark bg */
+body.admin-active .admin-kpi-card { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; }
+
+/* ── Drawers — Apex dark ── */
+body.admin-active .admin-drawer__panel {
+    background: #1f2747 !important;
+    box-shadow: -6px 0 48px rgba(0,0,0,0.5) !important;
+}
+body.admin-active .admin-drawer__header { border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-drawer__header h3 { color: #e8eaed !important; }
+body.admin-active .admin-drawer__close { color: rgba(255,255,255,0.4) !important; }
+body.admin-active .admin-drawer__close:hover { color: #d81f26 !important; }
+
+/* ── Student modal ── */
+body.admin-active .student-modal__header { border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .student-modal__stats { border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .profile-metric { border-right-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .profile-metric__label { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .student-modal__nav { border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .student-modal__nav button { color: rgba(255,255,255,0.45) !important; }
+body.admin-active .student-modal__nav button.is-active,
+body.admin-active .student-modal__nav button:hover { color: #d81f26 !important; border-bottom-color: #d81f26 !important; }
+body.admin-active .student-modal__card-head { border-bottom-color: rgba(255,255,255,0.07) !important; }
+body.admin-active .student-modal__timeline li { border-bottom-color: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.65) !important; }
+
+/* ── Comms ── */
+body.admin-active .comm-sidebar,
+body.admin-active .comm-thread,
+body.admin-active .comm-layout { background: #1f2747 !important; border-color: rgba(255,255,255,0.07) !important; }
+body.admin-active #comm-student-roster li { border-bottom-color: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.75) !important; }
+body.admin-active #comm-student-roster li.is-selected { background: rgba(216,31,38,0.2) !important; color: #fff !important; }
+
+/* ── Settings + Email tiles ── */
+body.admin-active .settings-action-tile { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.8) !important; }
+body.admin-active .settings-action-tile:hover { background: rgba(216,31,38,0.14) !important; border-color: rgba(216,31,38,0.3) !important; }
+body.admin-active .email-template-tile { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.8) !important; }
+body.admin-active .email-template-tile:hover { background: rgba(216,31,38,0.14) !important; border-color: rgba(216,31,38,0.3) !important; }
+
+/* ── Class panel ── */
+body.admin-active .class-filter-row,
+body.admin-active .class-broadcast-row { border-bottom-color: rgba(255,255,255,0.07) !important; background: #1f2747 !important; }
+body.admin-active .class-modal__column h4 { color: rgba(255,255,255,0.38) !important; }
+body.admin-active .class-modal__list li { background: #232d4b !important; border-color: rgba(255,255,255,0.07) !important; color: rgba(255,255,255,0.75) !important; }
+body.admin-active .class-modal__footer { border-top-color: rgba(255,255,255,0.07) !important; }
+
+/* ── Info banner ── */
+body.admin-active .ara-info-banner--warning { background: rgba(245,158,11,0.1) !important; color: #fbbf24 !important; }
+
+/* ── Skeleton loader ── */
+body.admin-active .skeleton { background: rgba(255,255,255,0.07) !important; }
+body.admin-active .admin-component-loading { background: #1f2747 !important; padding: 1.5rem !important; }
+
+/* ── Admin enroll result box ── */
+body.admin-active .ara-success-box { background: rgba(52,211,153,0.08) !important; border-color: rgba(52,211,153,0.25) !important; }
