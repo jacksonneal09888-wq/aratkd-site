@@ -5,3 +5,10 @@ backend/data/
 backend/*.db
 *.log
 logs/
+
+# Sensitive school documents — never commit these
+assets/materials/student-information*.jpg
+assets/materials/student-information*.pdf
+assets/materials/*roster*
+docs/*.csv
+docs/*.xlsx
