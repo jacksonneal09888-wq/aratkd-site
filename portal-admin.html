@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260629-ruby">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260629-ruby2">
 </head>
 <body data-portal-mode="admin" data-api-base="https://portal-api.jacksonneal09888.workers.dev" data-google-group="aratkd-parents@googlegroups.com">
     <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -76,8 +76,22 @@
                                 <div class="admin-sidebar__brand">
                                     <div class="admin-sidebar__mark">ARA</div>
                                     <div>
-                                        <p class="admin-sidebar__title">Staff Console</p>
-                                        <p class="admin-sidebar__sub">Always-on navigation</p>
+                                        <p class="admin-sidebar__title">ARA TKD</p>
+                                        <p class="admin-sidebar__sub">Staff Console</p>
+                                    </div>
+                                </div>
+                                <div class="admin-sidebar__quicklinks">
+                                    <p class="admin-sidebar__quicklinks-label">Quick Links</p>
+                                    <div class="admin-sidebar__quicklinks-row">
+                                        <button type="button" class="admin-quicklink" data-admin-tab="tab-classes" title="Classes">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+                                        </button>
+                                        <button type="button" class="admin-quicklink" data-admin-tab="tab-students" title="Students">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        </button>
+                                        <button type="button" class="admin-quicklink admin-quicklink--active" data-admin-tab="tab-dashboard" title="Dashboard">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                                        </button>
                                     </div>
                                 </div>
                                 <nav class="admin-nav" id="admin-tabs" aria-label="Admin sections">
@@ -138,15 +152,21 @@
                             </aside>
                             <div class="admin-main">
                                 <div class="admin-topbar" id="admin-topbar">
-                                    <div>
-                                        <p class="admin-topbar__meta">ARA TKD · Staff Console</p>
+                                    <div class="admin-topbar__welcome">
+                                        <div class="admin-topbar__home-pill">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                        </div>
                                         <h3 class="admin-topbar__title">Welcome back, Admin</h3>
+                                    </div>
+                                    <div class="admin-topbar__search-wrap">
+                                        <svg class="admin-topbar__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        <input type="search" class="admin-topbar__search" placeholder="Search students, events…" id="admin-global-search" autocomplete="off">
                                     </div>
                                     <div class="admin-topbar__actions">
                                         <button type="button" class="btn-ghost" id="admin-refresh">Refresh</button>
                                         <button type="button" class="btn-ghost" id="admin-summary-download">Export CSV</button>
-                                        <a class="btn-primary" href="admin-new-student.html" target="_blank" rel="noopener">+ Add Student</a>
-                                        <button type="button" class="theme-toggle" id="admin-theme-toggle" aria-label="Toggle theme">🌞 / 🌙</button>
+                                        <button type="button" class="theme-toggle" id="admin-theme-toggle" aria-label="Toggle theme">🌞</button>
+                                        <div class="admin-topbar__avatar" title="Master Ara">MA</div>
                                     </div>
                                 </div>
 

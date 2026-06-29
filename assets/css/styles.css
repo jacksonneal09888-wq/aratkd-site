@@ -8691,3 +8691,343 @@ body.admin-active .class-modal__actions {
     flex-wrap: wrap;
     align-items: center;
 }
+
+/* ================================================================
+   RUBY DASHBOARD MATCH — ARA TKD Style
+   ================================================================ */
+
+/* ── KPI Hero Tiles — Ruby style: white circle icon + label/value ── */
+body.admin-active .admin-hero-tile {
+    background: #d81f26;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    color: #fff;
+    box-shadow: 0 8px 28px rgba(216,31,38,0.38);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+body.admin-active .admin-hero-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(216,31,38,0.45);
+}
+
+body.admin-active .admin-hero-tile__circle {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+body.admin-active .admin-hero-tile__circle svg {
+    width: 28px;
+    height: 28px;
+    stroke: #fff;
+}
+
+body.admin-active .admin-hero-tile__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+body.admin-active .admin-hero-tile__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.82;
+    margin: 0;
+}
+
+body.admin-active .admin-hero-tile__value {
+    font-size: 2.2rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0;
+}
+
+/* ── Sidebar quick-links — Ruby style ── */
+body.admin-active .admin-sidebar__quicklinks {
+    padding: 0.5rem 1rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    margin-bottom: 0.25rem;
+}
+
+body.admin-active .admin-sidebar__quicklinks-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin: 0 0 0.5rem;
+}
+
+body.admin-active .admin-sidebar__quicklinks-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+body.admin-active .admin-quicklink {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.65rem;
+    background: rgba(255,255,255,0.07);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+body.admin-active .admin-quicklink svg {
+    width: 20px;
+    height: 20px;
+    stroke: rgba(255,255,255,0.55);
+    transition: stroke 0.15s;
+}
+
+body.admin-active .admin-quicklink:hover {
+    background: rgba(255,255,255,0.14);
+}
+
+body.admin-active .admin-quicklink:hover svg {
+    stroke: #fff;
+}
+
+body.admin-active .admin-quicklink--active {
+    background: #d81f26;
+    box-shadow: 0 4px 14px rgba(216,31,38,0.5);
+}
+
+body.admin-active .admin-quicklink--active svg {
+    stroke: #fff;
+}
+
+/* ── Topbar — Ruby 3-part layout ── */
+body.admin-active #admin-topbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.85rem 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e7ee;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+[data-theme="dark"] body.admin-active #admin-topbar {
+    background: #0f1829;
+    border-bottom-color: #182235;
+}
+
+body.admin-active .admin-topbar__welcome {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+body.admin-active .admin-topbar__home-pill {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.65rem;
+    border: 1.5px solid #d81f26;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+body.admin-active .admin-topbar__home-pill svg {
+    width: 18px;
+    height: 18px;
+    stroke: #d81f26;
+}
+
+body.admin-active .admin-topbar__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    letter-spacing: 0.04em;
+    color: #13131f;
+    margin: 0;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] body.admin-active .admin-topbar__title {
+    color: #f0f4ff;
+}
+
+/* ── Topbar search ── */
+body.admin-active .admin-topbar__search-wrap {
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+    justify-self: center;
+}
+
+body.admin-active .admin-topbar__search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: #aaa;
+    pointer-events: none;
+}
+
+body.admin-active .admin-topbar__search {
+    width: 100%;
+    padding: 0.55rem 0.9rem 0.55rem 2.4rem;
+    border-radius: 0.65rem;
+    border: 1px solid #e5e7ee;
+    background: #f8f9fc;
+    font-size: 0.88rem;
+    color: #13131f;
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.admin-active .admin-topbar__search:focus {
+    outline: none;
+    border-color: #d81f26;
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.1);
+    background: #fff;
+}
+
+[data-theme="dark"] body.admin-active .admin-topbar__search {
+    background: #0b1220;
+    border-color: #182235;
+    color: #f0f4ff;
+}
+
+/* ── Topbar avatar — Ruby user circle ── */
+body.admin-active .admin-topbar__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #d81f26;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(216,31,38,0.4);
+    border: 2px solid rgba(255,255,255,0.9);
+    cursor: default;
+}
+
+/* ── Ruby secondary stat row ── */
+body.admin-active .admin-ruby-stat-row {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid #f0f1f5;
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] body.admin-active .admin-ruby-stat-row {
+    border-top-color: #182235;
+}
+
+body.admin-active .admin-ruby-stat-row--stacked {
+    flex-direction: column;
+    border-top: none;
+    padding: 0.5rem 1.5rem 1rem;
+    gap: 0.75rem;
+}
+
+body.admin-active .admin-ruby-stat {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.25rem;
+    border-right: 1px solid #f0f1f5;
+}
+
+[data-theme="dark"] body.admin-active .admin-ruby-stat {
+    border-right-color: #182235;
+}
+
+body.admin-active .admin-ruby-stat:last-child {
+    border-right: none;
+}
+
+body.admin-active .admin-ruby-stat-row--stacked .admin-ruby-stat {
+    border-right: none;
+    padding: 0;
+}
+
+body.admin-active .admin-ruby-stat__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 0.65rem;
+    background: #d81f26;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(216,31,38,0.3);
+}
+
+body.admin-active .admin-ruby-stat__icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: #fff;
+}
+
+body.admin-active .admin-ruby-stat__label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    margin: 0 0 0.2rem;
+}
+
+body.admin-active .admin-ruby-stat__value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-family: var(--font-heading);
+    color: #13131f;
+    margin: 0;
+    line-height: 1;
+}
+
+[data-theme="dark"] body.admin-active .admin-ruby-stat__value {
+    color: #f0f4ff;
+}
+
+/* ── Tighten admin card padding ── */
+body.admin-active .admin-card {
+    margin-bottom: 1.25rem;
+}
+
+/* ── Sidebar brand tighten ── */
+body.admin-active .admin-sidebar__brand {
+    padding: 1.25rem 1rem 0.85rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── Admin topbar meta hidden (replaced by welcome layout) ── */
+body.admin-active .admin-topbar__meta {
+    display: none;
+}

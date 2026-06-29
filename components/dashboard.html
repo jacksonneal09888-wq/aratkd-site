@@ -1,28 +1,36 @@
-<!-- Hero KPI tiles — 4 bold red tiles spanning full width -->
+<!-- Hero KPI tiles — Ruby style: white circle icon left, label + bold number right -->
 <div class="admin-hero-tiles">
   <div class="admin-hero-tile">
-    <div class="admin-hero-tile__icon" aria-hidden="true">👥</div>
+    <div class="admin-hero-tile__circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
     <div class="admin-hero-tile__body">
       <p class="admin-hero-tile__label">Active Students</p>
       <p class="admin-hero-tile__value" id="admin-membership-count-active">—</p>
     </div>
   </div>
   <div class="admin-hero-tile">
-    <div class="admin-hero-tile__icon" aria-hidden="true">🎟️</div>
+    <div class="admin-hero-tile__circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    </div>
     <div class="admin-hero-tile__body">
       <p class="admin-hero-tile__label">Month-to-Month</p>
       <p class="admin-hero-tile__value" id="admin-membership-count-mtm">—</p>
     </div>
   </div>
   <div class="admin-hero-tile">
-    <div class="admin-hero-tile__icon" aria-hidden="true">📅</div>
+    <div class="admin-hero-tile__circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
     <div class="admin-hero-tile__body">
       <p class="admin-hero-tile__label">Annual Members</p>
       <p class="admin-hero-tile__value" id="admin-membership-count-annual">—</p>
     </div>
   </div>
-  <div class="admin-hero-tile admin-hero-tile--muted">
-    <div class="admin-hero-tile__icon" aria-hidden="true">📨</div>
+  <div class="admin-hero-tile">
+    <div class="admin-hero-tile__circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
     <div class="admin-hero-tile__body">
       <p class="admin-hero-tile__label">Messages Today</p>
       <p class="admin-hero-tile__value" id="msg-metric-today">0</p>
@@ -36,37 +44,17 @@
   <!-- Left: main activity table -->
   <div class="admin-dashboard-col admin-dashboard-col--main">
 
-    <section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard" style="padding:1.5rem;">
-      <div class="admin-summary__header" style="margin-bottom:1rem;">
+    <section class="admin-card" id="admin-summary" data-admin-panel="tab-dashboard">
+      <div class="ara-card__header">
         <div>
-          <p class="admin-card__meta">Live roster · refreshed automatically</p>
-          <h3 style="margin:0;">Portal Activity</h3>
+          <p class="ara-eyebrow">Live Roster</p>
+          <h3 class="ara-card__title">Portal Activity</h3>
         </div>
-        <p class="admin-generated admin-card__meta">Updated <span id="admin-generated-at">—</span></p>
-      </div>
-
-      <!-- Secondary membership breakdown -->
-      <div class="admin-kpi-grid" style="margin-bottom:1.25rem;">
-        <div class="admin-kpi-card">
-          <p class="card-label">Tier 1</p>
-          <p class="card-value" id="admin-membership-count-t1">—</p>
-        </div>
-        <div class="admin-kpi-card">
-          <p class="card-label">Tier 2</p>
-          <p class="card-value" id="admin-membership-count-t2">—</p>
-        </div>
-        <div class="admin-kpi-card">
-          <p class="card-label">Tier 3</p>
-          <p class="card-value" id="admin-membership-count-t3">—</p>
-        </div>
-        <div class="admin-kpi-card">
-          <p class="card-label">Not Set</p>
-          <p class="card-value" id="admin-membership-count-none">—</p>
-        </div>
+        <p class="ara-meta">Updated <span id="admin-generated-at">—</span></p>
       </div>
 
       <div class="admin-table-wrap">
-        <table class="admin-table" aria-label="Portal usage summary">
+        <table class="admin-table ara-table" aria-label="Portal usage summary">
           <thead>
             <tr>
               <th scope="col">Student</th>
@@ -79,9 +67,49 @@
             </tr>
           </thead>
           <tbody id="admin-summary-body">
-            <tr><td colspan="7">Sign in to load analytics.</td></tr>
+            <tr><td colspan="7" class="ara-table__empty">Sign in to load analytics.</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Ruby-style secondary stat row -->
+      <div class="admin-ruby-stat-row">
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">Tier 1</p>
+            <p class="admin-ruby-stat__value" id="admin-membership-count-t1">—</p>
+          </div>
+        </div>
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">Tier 2</p>
+            <p class="admin-ruby-stat__value" id="admin-membership-count-t2">—</p>
+          </div>
+        </div>
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">Tier 3</p>
+            <p class="admin-ruby-stat__value" id="admin-membership-count-t3">—</p>
+          </div>
+        </div>
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">Not Set</p>
+            <p class="admin-ruby-stat__value" id="admin-membership-count-none">—</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -90,11 +118,11 @@
   <!-- Right: events + messaging -->
   <div class="admin-dashboard-col admin-dashboard-col--side">
 
-    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard" style="padding:1.25rem;">
-      <div class="admin-summary__header" style="margin-bottom:0.75rem;">
+    <section class="admin-card" id="admin-activity-card" data-admin-panel="tab-dashboard">
+      <div class="ara-card__header">
         <div>
-          <p class="admin-card__meta">Kiosk check-ins and portal events</p>
-          <h3 style="margin:0;font-size:1rem;">Recent Events</h3>
+          <p class="ara-eyebrow">Kiosk &amp; Portal</p>
+          <h3 class="ara-card__title">Recent Events</h3>
         </div>
         <span class="admin-pill admin-pill--warning">Live</span>
       </div>
@@ -103,19 +131,31 @@
       </ul>
     </section>
 
-    <section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard" style="padding:1.25rem;">
-      <div class="admin-card__header" style="margin-bottom:0.75rem;">
-        <h3 class="admin-card__title" style="font-size:1rem;">Messaging Insights</h3>
-        <p class="admin-card__meta">Local communication log</p>
-      </div>
-      <div class="admin-kpi-grid" style="grid-template-columns:1fr;gap:0.6rem;margin:0;">
-        <div class="admin-kpi-card">
-          <p class="card-label">This Week</p>
-          <p class="card-value" id="msg-metric-week">0</p>
+    <section class="admin-card" id="admin-messaging-metrics" data-admin-panel="tab-dashboard">
+      <div class="ara-card__header">
+        <div>
+          <p class="ara-eyebrow">Communications</p>
+          <h3 class="ara-card__title">Messaging Insights</h3>
         </div>
-        <div class="admin-kpi-card">
-          <p class="card-label">Most Messaged Belt</p>
-          <p class="card-value" id="msg-metric-belt" style="font-size:1.1rem;">—</p>
+      </div>
+      <div class="admin-ruby-stat-row admin-ruby-stat-row--stacked">
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">This Week</p>
+            <p class="admin-ruby-stat__value" id="msg-metric-week">0</p>
+          </div>
+        </div>
+        <div class="admin-ruby-stat">
+          <div class="admin-ruby-stat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div>
+            <p class="admin-ruby-stat__label">Top Belt</p>
+            <p class="admin-ruby-stat__value" id="msg-metric-belt" style="font-size:1rem;">—</p>
+          </div>
         </div>
       </div>
     </section>
