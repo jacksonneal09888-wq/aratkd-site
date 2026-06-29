@@ -7297,52 +7297,49 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
    ================================================================ */
 
 /* ── Full-screen shell: body.admin-active ── */
-body.admin-active .site-header,
-body.admin-active .site-footer,
-body.admin-active .portal-admin > .container > .section-heading,
-body.admin-active .admin-auth {
-    display: none !important;
-}
-
+/* #admin-dashboard is hoisted to <body> by JS on login, so position:fixed
+   is guaranteed to cover the true viewport with no ancestor interference.  */
 body.admin-active {
     overflow: hidden;
 }
 
-body.admin-active #admin-dashboard {
+body.admin-active > .site-header,
+body.admin-active > main,
+body.admin-active > .site-footer {
+    display: none !important;
+}
+
+body.admin-active > #admin-dashboard {
     position: fixed;
     inset: 0;
     z-index: 9990;
     background: var(--surface-0);
     overflow: hidden;
-    display: block !important;
-}
-
-body.admin-active .portal-admin,
-body.admin-active .portal-admin > .container,
-body.admin-active .admin-access {
-    display: contents;
+    display: flex !important;
+    flex-direction: column;
 }
 
 body.admin-active .admin-shell {
-    height: 100vh;
+    flex: 1;
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
     grid-template-rows: 1fr;
     gap: 0;
+    overflow: hidden;
 }
 
 body.admin-active .admin-sidebar {
     position: static;
-    height: 100vh;
+    height: 100%;
     border-radius: 0;
-    max-height: 100vh;
+    max-height: 100%;
     overflow-y: auto;
     top: auto;
     border-right: 1px solid var(--border-soft);
 }
 
 body.admin-active .admin-main {
-    height: 100vh;
+    height: 100%;
     overflow-y: auto;
     display: flex;
     flex-direction: column;

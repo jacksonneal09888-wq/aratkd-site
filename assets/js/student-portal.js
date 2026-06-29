@@ -39,9 +39,28 @@ const ARCHIVE_RETENTION_DAYS = 30;
 let hiddenKeyStreak = 0;
 let hiddenKeyLastTime = 0;
 
+// Tracks where #admin-dashboard lived before we hoisted it to <body>
+let _adminDashboardOriginalParent = null;
+
 function setAdminShellVisible(show) {
-    if (portalEls.adminDashboard) portalEls.adminDashboard.hidden = !show;
-    document.body.classList.toggle("admin-active", show);
+    const dashboard = portalEls.adminDashboard;
+    if (!dashboard) return;
+    if (show) {
+        // Hoist to <body> so position:fixed covers the true viewport
+        if (dashboard.parentElement !== document.body) {
+            _adminDashboardOriginalParent = dashboard.parentElement;
+            document.body.appendChild(dashboard);
+        }
+        dashboard.hidden = false;
+        document.body.classList.add("admin-active");
+    } else {
+        document.body.classList.remove("admin-active");
+        dashboard.hidden = true;
+        // Restore to original DOM location
+        if (_adminDashboardOriginalParent && _adminDashboardOriginalParent !== document.body) {
+            _adminDashboardOriginalParent.appendChild(dashboard);
+        }
+    }
 }
 
 function escapeHtml(value) {
