@@ -9031,3 +9031,605 @@ body.admin-active .admin-sidebar__brand {
 body.admin-active .admin-topbar__meta {
     display: none;
 }
+
+/* ================================================================
+   APEX DARK SHELL — ARA TKD Edition
+   Full dark navy theme across the entire admin panel
+   ================================================================ */
+
+/* ── Base dark shell ── */
+body.admin-active > #admin-dashboard {
+    background: #0d1117 !important;
+}
+
+body.admin-active .admin-main {
+    background: #0d1117 !important;
+}
+
+body.admin-active #admin-topbar {
+    background: #161b27 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-topbar__title {
+    color: #e8eaed !important;
+}
+
+body.admin-active .admin-topbar__search {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .admin-topbar__search::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+
+body.admin-active .admin-topbar__search-icon {
+    stroke: rgba(255,255,255,0.3) !important;
+}
+
+body.admin-active .admin-topbar__home-pill {
+    border-color: rgba(216,31,38,0.55) !important;
+    background: rgba(216,31,38,0.1) !important;
+}
+
+body.admin-active .admin-topbar__home-pill svg {
+    stroke: #d81f26 !important;
+}
+
+/* ── Dark cards ── */
+body.admin-active .admin-card,
+body.admin-active .ara-card {
+    background: #161b27 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.35) !important;
+}
+
+body.admin-active .ara-card__header,
+body.admin-active .admin-card__header,
+body.admin-active .admin-summary__header {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-card__title,
+body.admin-active .admin-card__title {
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-meta,
+body.admin-active .admin-card__meta {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .ara-eyebrow {
+    color: #d81f26 !important;
+}
+
+/* ── Dark tables — Apex style ── */
+body.admin-active .admin-table thead th,
+body.admin-active .ara-table thead th {
+    background: #1a2035 !important;
+    color: rgba(255,255,255,0.38) !important;
+    border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+
+body.admin-active .admin-table tbody tr,
+body.admin-active .ara-table tbody tr {
+    border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+
+body.admin-active .admin-table tbody tr:hover,
+body.admin-active .ara-table tbody tr:hover {
+    background: rgba(255,255,255,0.03) !important;
+}
+
+body.admin-active .admin-table td,
+body.admin-active .ara-table td {
+    color: rgba(255,255,255,0.78) !important;
+}
+
+body.admin-active .ara-table__empty {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+body.admin-active .admin-table-wrap {
+    background: transparent;
+}
+
+/* ── Nav — Apex full-width red pill for active ── */
+body.admin-active .admin-nav__item {
+    color: rgba(255,255,255,0.6) !important;
+    border-radius: 0.65rem !important;
+    margin: 0 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
+
+body.admin-active .admin-nav__item:hover {
+    background: rgba(255,255,255,0.06) !important;
+    color: #fff !important;
+}
+
+body.admin-active .admin-nav__item.is-active {
+    background: #d81f26 !important;
+    color: #fff !important;
+    border-radius: 0.65rem !important;
+    box-shadow: 0 4px 16px rgba(216,31,38,0.4) !important;
+}
+
+body.admin-active .admin-nav__item.is-active .admin-nav__badge {
+    background: rgba(255,255,255,0.25) !important;
+    color: #fff !important;
+}
+
+/* ── Filter bar — dark ── */
+body.admin-active .ara-filter-bar {
+    background: #161b27 !important;
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-search,
+body.admin-active .ara-select {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-search::placeholder {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+/* ── Pill buttons — Apex filter style ── */
+body.admin-active .pill-button {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: rgba(255,255,255,0.65) !important;
+}
+
+body.admin-active .pill-button.is-active,
+body.admin-active .pill-button:hover {
+    background: #d81f26 !important;
+    border-color: #d81f26 !important;
+    color: #fff !important;
+}
+
+/* ── btn-ghost in dark ── */
+body.admin-active .btn-ghost {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+
+body.admin-active .btn-ghost:hover {
+    background: rgba(255,255,255,0.12) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: #fff !important;
+}
+
+/* ── Status pills — Apex colorful ── */
+body.admin-active .admin-pill {
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 0.22rem 0.65rem !important;
+    border-radius: 999px !important;
+}
+
+body.admin-active .admin-pill--warning {
+    background: rgba(245,158,11,0.18) !important;
+    color: #fbbf24 !important;
+}
+
+body.admin-active .admin-pill--success {
+    background: rgba(52,211,153,0.15) !important;
+    color: #34d399 !important;
+}
+
+body.admin-active .admin-pill--danger {
+    background: rgba(248,113,113,0.15) !important;
+    color: #f87171 !important;
+}
+
+/* ── Admin status badges in table rows ── */
+body.admin-active .status-active,
+body.admin-active [data-status="active"] {
+    background: rgba(52,211,153,0.14);
+    color: #34d399;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.admin-active .status-inactive,
+body.admin-active [data-status="inactive"] {
+    background: rgba(156,163,175,0.14);
+    color: #9ca3af;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.admin-active .status-frozen,
+body.admin-active [data-status="frozen"] {
+    background: rgba(96,165,250,0.14);
+    color: #60a5fa;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ── Stat row / detail panel ── */
+body.admin-active .ara-stat {
+    background: #1a2035 !important;
+    border-right-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-stat-row {
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-stat__label {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .ara-stat__value {
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-detail-panel {
+    background: #0d1117 !important;
+}
+
+body.admin-active .ara-section-label {
+    color: #d81f26 !important;
+    border-bottom-color: rgba(216,31,38,0.2) !important;
+}
+
+/* ── Admin roster cards ── */
+body.admin-active .admin-roster-cards {
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-roster-card {
+    background: #1a2035 !important;
+    border-right-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .card-label {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .card-value {
+    color: #e8eaed !important;
+}
+
+body.admin-active .admin-roster-detail {
+    background: #0d1117 !important;
+}
+
+/* ── Form inputs — dark ── */
+body.admin-active .ara-label > span,
+body.admin-active .admin-enroll__grid label {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .ara-label input,
+body.admin-active .ara-label select,
+body.admin-active .ara-label textarea,
+body.admin-active .ara-form input:not([type="checkbox"]):not([type="radio"]),
+body.admin-active .ara-form select,
+body.admin-active .ara-form textarea,
+body.admin-active .admin-enroll__grid input,
+body.admin-active .admin-enroll__grid select,
+body.admin-active .admin-enroll__grid textarea {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .ara-inset-form {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-checkbox-label {
+    color: rgba(255,255,255,0.75) !important;
+}
+
+/* ── Info tiles (classes tab) ── */
+body.admin-active .ara-info-tile {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-info-tile__label {
+    color: rgba(255,255,255,0.38) !important;
+}
+
+body.admin-active .ara-info-tile__value {
+    color: #e8eaed !important;
+}
+
+/* ── Tier badges ── */
+body.admin-active .ara-tier-badge {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-tier-badge__label {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+/* ── Accordion ── */
+body.admin-active details.ara-card,
+body.admin-active details.admin-accordion {
+    background: #161b27 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-accordion__trigger {
+    background: #161b27 !important;
+    color: #e8eaed !important;
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .ara-badge--outline {
+    color: #d81f26 !important;
+    border-color: rgba(216,31,38,0.4) !important;
+}
+
+/* ── Event list ── */
+body.admin-active .admin-event-list li {
+    border-bottom-color: rgba(255,255,255,0.06) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+
+/* ── Ruby stat row dark ── */
+body.admin-active .admin-ruby-stat-row {
+    border-top-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-ruby-stat {
+    border-right-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-ruby-stat__label {
+    color: rgba(255,255,255,0.38) !important;
+}
+
+body.admin-active .admin-ruby-stat__value {
+    color: #e8eaed !important;
+}
+
+/* ── Drawers — Apex dark ── */
+body.admin-active .admin-drawer__panel {
+    background: #161b27 !important;
+    box-shadow: -6px 0 48px rgba(0,0,0,0.55) !important;
+}
+
+body.admin-active .admin-drawer__header {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .admin-drawer__header h3 {
+    color: #e8eaed !important;
+}
+
+body.admin-active .admin-drawer__close {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .admin-drawer__close:hover {
+    color: #d81f26 !important;
+}
+
+/* ── Student modal ── */
+body.admin-active .student-modal__header {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .student-modal__stats {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .profile-metric {
+    border-right-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .profile-metric__label {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+body.admin-active .student-modal__nav {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .student-modal__nav button {
+    color: rgba(255,255,255,0.45) !important;
+}
+
+body.admin-active .student-modal__nav button.is-active,
+body.admin-active .student-modal__nav button:hover {
+    color: #d81f26 !important;
+    border-bottom-color: #d81f26 !important;
+}
+
+body.admin-active .student-modal__card-head {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .student-modal__grid label {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .student-modal__grid input,
+body.admin-active .student-modal__grid select,
+body.admin-active .student-modal__grid textarea {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+body.admin-active .student-modal__timeline li {
+    border-bottom-color: rgba(255,255,255,0.06) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+
+/* ── Communications ── */
+body.admin-active .comm-sidebar,
+body.admin-active .comm-thread,
+body.admin-active .comm-layout {
+    background: #161b27 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active #comm-student-roster li {
+    border-bottom-color: rgba(255,255,255,0.06) !important;
+    color: rgba(255,255,255,0.75) !important;
+}
+
+body.admin-active #comm-student-roster li.is-selected {
+    background: rgba(216,31,38,0.18) !important;
+    color: #fff !important;
+}
+
+/* ── Settings grid ── */
+body.admin-active .settings-action-tile {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.8) !important;
+}
+
+body.admin-active .settings-action-tile:hover {
+    background: rgba(216,31,38,0.12) !important;
+    border-color: rgba(216,31,38,0.3) !important;
+}
+
+/* ── Email template tiles ── */
+body.admin-active .email-template-tile {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.8) !important;
+}
+
+body.admin-active .email-template-tile:hover {
+    background: rgba(216,31,38,0.12) !important;
+    border-color: rgba(216,31,38,0.3) !important;
+}
+
+/* ── Email form in drawer ── */
+body.admin-active .admin-email-form label,
+body.admin-active .email-panel label {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .admin-email-form input,
+body.admin-active .admin-email-form select,
+body.admin-active .admin-email-form textarea,
+body.admin-active .email-panel input,
+body.admin-active .email-panel select,
+body.admin-active .email-panel textarea {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+/* ── Banner form ── */
+body.admin-active .admin-banner-form label {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .admin-banner-form input,
+body.admin-active .admin-banner-form select {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+/* ── Class panel ── */
+body.admin-active .class-filter-row,
+body.admin-active .class-broadcast-row {
+    border-bottom-color: rgba(255,255,255,0.07) !important;
+    background: #161b27;
+}
+
+body.admin-active .class-modal__column h4 {
+    color: rgba(255,255,255,0.38) !important;
+}
+
+body.admin-active .class-modal__list li {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    color: rgba(255,255,255,0.75) !important;
+}
+
+body.admin-active .class-modal__footer {
+    border-top-color: rgba(255,255,255,0.07) !important;
+}
+
+body.admin-active .class-modal__fields label {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+body.admin-active .class-modal__fields input,
+body.admin-active .class-modal__fields select {
+    background: #0d1117 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e8eaed !important;
+}
+
+/* ── Warning banner ── */
+body.admin-active .ara-info-banner--warning {
+    background: rgba(245,158,11,0.1) !important;
+    color: #fbbf24 !important;
+}
+
+/* ── Sidebar footer ── */
+body.admin-active .admin-sidebar__footer {
+    color: rgba(255,255,255,0.4) !important;
+    border-top-color: rgba(255,255,255,0.07) !important;
+}
+
+/* ── Apex summary header text ── */
+body.admin-active .admin-summary__header h3 {
+    color: #e8eaed !important;
+}
+
+/* ── Nav section labels ── */
+body.admin-active .admin-nav__section-label {
+    color: rgba(255,255,255,0.28) !important;
+    letter-spacing: 0.12em !important;
+}
+
+/* ── Skeleton loader dark ── */
+body.admin-active .skeleton {
+    background: rgba(255,255,255,0.08) !important;
+}
+
+body.admin-active .admin-component-loading {
+    background: #161b27 !important;
+}
+
+/* ── Report card dialog ── */
+body.admin-active .admin-report-card__dialog {
+    background: #161b27 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+    color: #e8eaed !important;
+}
+
+/* ── KPI cards on dashboard ── */
+body.admin-active .admin-kpi-card {
+    background: #1a2035 !important;
+    border-color: rgba(255,255,255,0.07) !important;
+}
