@@ -523,6 +523,7 @@ body.admin-active .ara-card {
     overflow: hidden !important;
     margin-bottom: 0 !important;
     color: #e8eaed !important;
+    flex-shrink: 0 !important;
 }
 
 /* Details/accordion cards must not clip open content */
