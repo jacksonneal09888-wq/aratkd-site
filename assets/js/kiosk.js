@@ -201,14 +201,13 @@ function getThemeKey(label = "") {
   return "poomsae";
 }
 
-// Class list — ordered: Little Ninjas, Beginning, Intermediate, Black Belt
+// Class list — Little Ninjas, Beginning, Intermediate only
 function buildFallbackClasses(theme) {
   const focus = FALLBACK_FOCUS[getThemeKey(theme?.label || "")] || FALLBACK_FOCUS.poomsae;
   return [
-    { id: "little-ninjas", name: "Little Ninjas",  focus: focus.littleNinjas, schedule: FALLBACK_SCHEDULES.littleNinjas },
-    { id: "beginning",     name: "Beginning",       focus: focus.allRanks,    schedule: FALLBACK_SCHEDULES.allRanks },
-    { id: "intermediate",  name: "Intermediate",    focus: focus.colorBelts,  schedule: FALLBACK_SCHEDULES.colorBelts },
-    { id: "black-belt",    name: "Black Belt",      focus: focus.blackBelt,   schedule: FALLBACK_SCHEDULES.blackBelt }
+    { id: "little-ninjas", name: "Little Ninjas", focus: focus.littleNinjas, schedule: FALLBACK_SCHEDULES.littleNinjas },
+    { id: "beginning",     name: "Beginning",      focus: focus.allRanks,    schedule: FALLBACK_SCHEDULES.allRanks },
+    { id: "intermediate",  name: "Intermediate",   focus: focus.colorBelts,  schedule: FALLBACK_SCHEDULES.colorBelts }
   ];
 }
 
