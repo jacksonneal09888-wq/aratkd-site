@@ -4,6 +4,9 @@
  * This file is authoritative for all admin panel styles
  */
 
+/* Ensure [hidden] attribute always wins, even when CSS sets display */
+[hidden] { display: none !important; }
+
 /* ================================================================
    LAYOUT — full-screen shell
    ================================================================ */
@@ -17,8 +20,24 @@ body.admin-active > #admin-dashboard {
     display: flex !important;
     flex-direction: column !important;
     background: #1a2035 !important;
-    z-index: 9999 !important;
+    z-index: 9000 !important;
     overflow: hidden !important;
+}
+
+/* Drawers/panels sit above the dashboard shell */
+body.admin-active .admin-drawer {
+    z-index: 10000 !important;
+}
+
+body.admin-active .admin-drawer__panel {
+    z-index: 10001 !important;
+}
+
+body.admin-active .student-modal,
+body.admin-active #student-modal,
+body.admin-active .admin-report-card__dialog,
+body.admin-active dialog {
+    z-index: 10000 !important;
 }
 
 body.admin-active .admin-shell {
@@ -33,13 +52,16 @@ body.admin-active .admin-main {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+    min-height: 0 !important;
     background: #1a2035 !important;
     min-width: 0 !important;
 }
 
 body.admin-active #admin-main-content {
     flex: 1 !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     padding: 1.5rem !important;
     display: flex !important;
     flex-direction: column !important;
@@ -281,12 +303,13 @@ body.admin-active #admin-topbar {
     max-height: 64px !important;
     background: #161c30 !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 500 !important;
+    position: relative !important;
+    z-index: 50 !important;
     flex-shrink: 0 !important;
     gap: 1rem !important;
     box-shadow: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 body.admin-active .admin-topbar__left {
@@ -1136,20 +1159,11 @@ body.admin-active .admin-hero-tile--muted {
 }
 
 /* ================================================================
-   TABLE SCROLLING — ensure roster tables scroll inside cards
+   TABLE SCROLLING
    ================================================================ */
 body.admin-active .admin-table-wrap {
     overflow-x: auto !important;
-    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch !important;
-}
-
-body.admin-active .admin-card {
-    overflow: visible !important;
-}
-
-body.admin-active .ara-card {
-    overflow: visible !important;
 }
 
 /* ================================================================
