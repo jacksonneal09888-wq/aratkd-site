@@ -209,21 +209,25 @@ body.admin-active .admin-nav__section-label {
 }
 
 body.admin-active .admin-nav__item {
-    all: unset !important;
     display: flex !important;
     align-items: center !important;
     gap: 0.7rem !important;
     padding: 0.6rem 0.9rem !important;
     margin: 0.08rem 0.6rem !important;
     border-radius: 0.55rem !important;
+    background: transparent !important;
+    border: none !important;
     color: rgba(255,255,255,0.52) !important;
     font-size: 0.86rem !important;
     font-weight: 600 !important;
+    font-family: inherit !important;
     cursor: pointer !important;
     width: calc(100% - 1.2rem) !important;
     box-sizing: border-box !important;
     transition: background 0.12s, color 0.12s !important;
     white-space: nowrap !important;
+    text-align: left !important;
+    text-decoration: none !important;
 }
 
 body.admin-active .admin-nav__item:hover {
@@ -314,19 +318,22 @@ body.admin-active #admin-topbar {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 1.5rem !important;
-    height: 64px !important;
-    min-height: 64px !important;
-    max-height: 64px !important;
+    padding: 0 1.25rem !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
     background: #161c30 !important;
+    border: none !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    border-radius: 0 !important;
     position: relative !important;
     z-index: 50 !important;
     flex-shrink: 0 !important;
-    gap: 1rem !important;
+    gap: 0.75rem !important;
     box-shadow: none !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    margin: 0 !important;
 }
 
 body.admin-active .admin-topbar__left {
@@ -391,16 +398,20 @@ body.admin-active .admin-topbar__search-icon {
 }
 
 body.admin-active .admin-topbar__search {
-    all: unset !important;
     display: block !important;
     width: 100% !important;
-    padding: 0.52rem 0.9rem 0.52rem 2.2rem !important;
+    padding: 0.5rem 0.9rem 0.5rem 2.25rem !important;
     border-radius: 0.5rem !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     background: rgba(255,255,255,0.06) !important;
-    font-size: 0.86rem !important;
+    font-size: 0.85rem !important;
     color: #e8eaed !important;
     box-sizing: border-box !important;
+    font-family: inherit !important;
+    line-height: 1.4 !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    outline: none !important;
     transition: border-color 0.15s !important;
 }
 
@@ -413,9 +424,9 @@ body.admin-active .admin-topbar__search:focus {
 
 /* Icon buttons */
 body.admin-active .admin-icon-btn {
-    all: unset !important;
     width: 36px !important;
     height: 36px !important;
+    min-width: 36px !important;
     border-radius: 0.5rem !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     background: rgba(255,255,255,0.05) !important;
@@ -425,6 +436,9 @@ body.admin-active .admin-icon-btn {
     justify-content: center !important;
     transition: background 0.15s !important;
     flex-shrink: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
 }
 
 body.admin-active .admin-icon-btn svg {
