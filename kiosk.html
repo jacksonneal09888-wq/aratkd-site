@@ -475,6 +475,13 @@
             padding: 0.65rem 1.1rem;
             min-width: 90px;
         }
+        .ki-success-stat--hero {
+            background: rgba(52,211,153,0.12);
+            border: 1px solid rgba(52,211,153,0.25);
+            padding: 0.75rem 1.4rem;
+        }
+        .ki-success-stat--hero .ki-success-stat__label { color: rgba(52,211,153,0.7); }
+        .ki-success-stat--hero .ki-success-stat__value { font-size: 2.2rem; }
         .ki-success-stat__label {
             font-size: 0.58rem;
             text-transform: uppercase;
@@ -648,16 +655,16 @@
             <p class="ki-success-name" id="ki-success-name">—</p>
             <p class="ki-success-belt" id="ki-success-belt">—</p>
             <div class="ki-success-stats">
-                <div class="ki-success-stat">
-                    <p class="ki-success-stat__label">Lessons</p>
+                <div class="ki-success-stat ki-success-stat--hero">
+                    <p class="ki-success-stat__label">Classes Attended</p>
                     <p class="ki-success-stat__value" id="ki-success-completed">—</p>
                 </div>
                 <div class="ki-success-stat">
-                    <p class="ki-success-stat__label">Required</p>
+                    <p class="ki-success-stat__label">Needed</p>
                     <p class="ki-success-stat__value" id="ki-success-required">—</p>
                 </div>
                 <div class="ki-success-stat">
-                    <p class="ki-success-stat__label">Remaining</p>
+                    <p class="ki-success-stat__label">To Go</p>
                     <p class="ki-success-stat__value" id="ki-success-remaining">—</p>
                 </div>
             </div>

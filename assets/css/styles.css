@@ -583,6 +583,10 @@ body {
     grid-template-columns: repeat(2, minmax(220px, 1fr));
 }
 
+.hero-flyer-grid--single {
+    grid-template-columns: 1fr;
+}
+
 @media (max-width: 900px) {
     .hero-flyer-grid {
         grid-template-columns: 1fr;
