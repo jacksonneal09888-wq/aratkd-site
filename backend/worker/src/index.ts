@@ -793,32 +793,28 @@ const buildAttendanceSummary = async (
   currentBelt: string,
   options?: { sinceIso?: string }
 ) => {
-  const sinceIso =
-    options?.sinceIso ||
-    new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+  // Count all sessions — resetStudentAttendance deletes them on belt promotion,
+  // so counting from the epoch equals "since last promotion" with no rolling window.
+  const sinceIso = options?.sinceIso || null;
 
   const totals = await db
     .prepare(
-      `SELECT
-         COUNT(*) AS total_sessions,
-         MIN(created_at) AS first_session,
-         MAX(created_at) AS last_session
-       FROM attendance_sessions
-       WHERE student_id = ?1
-         AND datetime(created_at) >= datetime(?2)`
+      sinceIso
+        ? `SELECT COUNT(*) AS total_sessions, MIN(created_at) AS first_session, MAX(created_at) AS last_session
+           FROM attendance_sessions WHERE student_id = ?1 AND datetime(created_at) >= datetime(?2)`
+        : `SELECT COUNT(*) AS total_sessions, MIN(created_at) AS first_session, MAX(created_at) AS last_session
+           FROM attendance_sessions WHERE student_id = ?1`
     )
-    .bind(studentId, sinceIso)
+    .bind(...(sinceIso ? [studentId, sinceIso] : [studentId]))
     .first<any>();
 
   const breakdownQuery = await db
     .prepare(
-      `SELECT class_type, COUNT(*) AS count
-       FROM attendance_sessions
-       WHERE student_id = ?1
-         AND datetime(created_at) >= datetime(?2)
-       GROUP BY class_type`
+      sinceIso
+        ? `SELECT class_type, COUNT(*) AS count FROM attendance_sessions WHERE student_id = ?1 AND datetime(created_at) >= datetime(?2) GROUP BY class_type`
+        : `SELECT class_type, COUNT(*) AS count FROM attendance_sessions WHERE student_id = ?1 GROUP BY class_type`
     )
-    .bind(studentId, sinceIso)
+    .bind(...(sinceIso ? [studentId, sinceIso] : [studentId]))
     .all();
 
   const recentQuery = await db
