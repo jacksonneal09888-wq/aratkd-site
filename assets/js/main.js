@@ -18,14 +18,35 @@ const SITE_API_BASE = (() => {
 })();
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
-const GOOGLE_CALENDAR_GID = "1157707621";
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
-const GOOGLE_CALENDAR_CSV_URL = `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${GOOGLE_CALENDAR_GID}`;
-const GOOGLE_CALENDAR_DOWNLOAD_URL = `${GOOGLE_CALENDAR_BASE}?format=pdf&gid=${GOOGLE_CALENDAR_GID}`;
+
+// Add a new entry here whenever a new monthly tab is created in the spreadsheet.
+const GOOGLE_CALENDAR_GID_MAP = {
+    "2026-01": "1930105653",
+    "2026-02": "2000494508",
+    "2026-03": "299259377",
+    "2026-04": "1307375074",
+    "2026-05": "1924086127",
+    "2026-06": "1157707621",
+    "2026-07": "1428272169"
+};
+
+function getCurrentCalendarGid() {
+    const now = new Date();
+    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const gids = Object.entries(GOOGLE_CALENDAR_GID_MAP);
+    return GOOGLE_CALENDAR_GID_MAP[key] || gids[gids.length - 1]?.[1] || "1428272169";
+}
 
 function getCalendarCsvUrl() {
-    return `${GOOGLE_CALENDAR_CSV_URL}&t=${Date.now()}`;
+    const gid = getCurrentCalendarGid();
+    return `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${gid}&t=${Date.now()}`;
+}
+
+function getCalendarDownloadUrl() {
+    const gid = getCurrentCalendarGid();
+    return `${GOOGLE_CALENDAR_BASE}?format=pdf&gid=${gid}`;
 }
 const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
 const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
@@ -790,7 +811,7 @@ function initSheetCalendar() {
 
     roots.forEach((root) => {
         root.querySelectorAll("[data-calendar-download]").forEach((link) => {
-            link.href = GOOGLE_CALENDAR_DOWNLOAD_URL;
+            link.href = getCalendarDownloadUrl();
             link.setAttribute("download", "");
         });
     });
