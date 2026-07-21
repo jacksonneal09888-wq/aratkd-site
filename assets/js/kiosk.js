@@ -4,8 +4,22 @@ const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
 const themeState = { override: null, rotation: null };
 const CALENDAR_SPREADSHEET_ID = "14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4";
-const CALENDAR_GID = "1157707621";
-let kioskCalendarCsvUrl = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${CALENDAR_GID}`;
+const CALENDAR_GID_MAP = {
+  "2026-01": "1930105653",
+  "2026-02": "2000494508",
+  "2026-03": "299259377",
+  "2026-04": "1307375074",
+  "2026-05": "1924086127",
+  "2026-06": "1157707621",
+  "2026-07": "1428272169"
+};
+function getCurrentCalendarGid() {
+  const n = new Date();
+  const key = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  const entries = Object.entries(CALENDAR_GID_MAP);
+  return CALENDAR_GID_MAP[key] || entries[entries.length-1]?.[1] || "1428272169";
+}
+let kioskCalendarCsvUrl = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${getCurrentCalendarGid()}`;
 
 const state = {
   selectedClass: null,
