@@ -570,6 +570,14 @@ function getFocusForDate(date) {
   return null;
 }
 
+function scheduleNightlyReload() {
+  const now = new Date();
+  const next3am = new Date(now);
+  next3am.setHours(3, 0, 0, 0);
+  if (next3am <= now) next3am.setDate(next3am.getDate() + 1);
+  setTimeout(() => window.location.reload(), next3am - now);
+}
+
 async function initKiosk() {
   // Live clock
   updateClock();
@@ -580,6 +588,12 @@ async function initKiosk() {
   await fetchWeekTheme();
   updateWeekTheme();
   await loadClasses();
+
+  // Refresh week theme every 30 minutes in case the sheet changes mid-day
+  setInterval(async () => { await fetchWeekTheme(); updateWeekTheme(); }, 30 * 60 * 1000);
+
+  // Reload the page nightly at 3 AM to pick up any new code deployments
+  scheduleNightlyReload();
 
   if (!getKioskRuntimeKey()) {
     setStatus("Kiosk not configured on this device. Tap the logo 5× for staff setup.", "error");
