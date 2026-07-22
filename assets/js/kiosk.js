@@ -522,11 +522,16 @@ function parseWeekFocusFromCsv(csvText) {
 
 function themeFromCalendarFocus(focus) {
   const lower = (focus || "").toLowerCase();
-  const label = focus.replace(/^week\s*\d+\s*/i, "").trim() || focus;
-  if (lower.includes("sparring") || lower.includes("gear")) return { label, message: `${label}: sharpen timing, control, and ring awareness. Bring sparring gear.` };
-  if (lower.includes("poomsae") || lower.includes("form")) return { label, message: `${label}: sharpen forms, stances, and precision.` };
-  if (lower.includes("break")) return { label, message: `${label}: power, focus, and technique. Bring your boards!` };
-  return { label, message: `${label}: train hard and stay focused this week.` };
+  // Strip "WEEK FOCUS: " or "★WEEK FOCUS: " prefixes for a clean label
+  const label = focus.replace(/^★?\s*week\s*(?:focus[:\s-]*)?\d*\s*[:\s-]*/i, "").trim() || focus.trim();
+  const noGear = lower.includes("no gear") || lower.includes("no sparring");
+  const bringGear = !noGear && (lower.includes("sparring") || lower.includes("gear"));
+  if (bringGear) return { label, message: `${label}: Bring sparring gear — footwork, timing, and ring awareness.` };
+  if (lower.includes("technique") || noGear) return { label, message: `${label}: Focus on clean technique, stances, and form details. No gear needed.` };
+  if (lower.includes("poomsae") || lower.includes("form")) return { label, message: `${label}: Sharpen forms, stances, and precision.` };
+  if (lower.includes("break")) return { label, message: `${label}: Power, focus, and technique. Bring your boards!` };
+  if (lower.includes("performance") || lower.includes("accuracy") || lower.includes("power")) return { label, message: `${label}: Push your performance — precision and power this week.` };
+  return { label, message: `${label}: Train hard and stay focused this week.` };
 }
 
 async function fetchWeekTheme() {
