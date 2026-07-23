@@ -1,61 +1,61 @@
 const PRODUCTS = [
   {
-    id: "sg-full", cat: "sparring", name: "Complete Sparring Set", price: 89.99,
+    id: "sg-full", cat: "sparring", name: "Complete Sparring Set", price: null,
     desc: "Head guard, chest protector, forearm & shin guards — everything you need for the mat.",
     badge: "Best Value", icon: "🛡️"
   },
   {
-    id: "sg-head", cat: "sparring", name: "Head Guard", price: 29.99,
+    id: "sg-head", cat: "sparring", name: "Head Guard", price: null,
     desc: "WT-style padded helmet with face shield and adjustable hook-and-loop strap.",
     icon: "⛑️"
   },
   {
-    id: "sg-chest", cat: "sparring", name: "Chest Protector (Hogu)", price: 34.99,
+    id: "sg-chest", cat: "sparring", name: "Chest Protector (Hogu)", price: null,
     desc: "Lightweight reversible hogu available in white and blue. Electronic scoring compatible.",
     icon: "🏋️"
   },
   {
-    id: "sg-limbs", cat: "sparring", name: "Forearm & Shin Guards", price: 24.99,
+    id: "sg-limbs", cat: "sparring", name: "Forearm & Shin Guards", price: null,
     desc: "Foam-padded arm and leg guards for competition-style sparring. Sold as a set.",
     icon: "🦾"
   },
   {
-    id: "ap-tee", cat: "apparel", name: "AraTKD T-Shirt", price: 24.99,
+    id: "ap-tee", cat: "apparel", name: "AraTKD T-Shirt", price: null,
     desc: "Classic AraTKD logo tee in 100% cotton. Available in sizes S – XXL.",
     icon: "👕"
   },
   {
-    id: "ap-hoodie", cat: "apparel", name: "AraTKD Hoodie", price: 44.99,
+    id: "ap-hoodie", cat: "apparel", name: "AraTKD Hoodie", price: null,
     desc: "Pullover hoodie with embroidered ARA logo. Perfect for cool dojang mornings.",
     badge: "New", icon: "🧥"
   },
   {
-    id: "ap-hat", cat: "apparel", name: "AraTKD Snapback", price: 19.99,
+    id: "ap-hat", cat: "apparel", name: "AraTKD Snapback", price: null,
     desc: "Embroidered snapback cap with the ARA TKD crest. One size fits most.",
     icon: "🧢"
   },
   {
-    id: "un-student", cat: "uniforms", name: "Student Dobok (White)", price: 39.99,
+    id: "un-student", cat: "uniforms", name: "Student Dobok (White)", price: null,
     desc: "Traditional white TKD uniform, cotton-poly blend. All sizes from 00 to 7.",
     badge: "Most Popular", icon: "🥋"
   },
   {
-    id: "un-comp", cat: "uniforms", name: "Competition Dobok", price: 64.99,
+    id: "un-comp", cat: "uniforms", name: "Competition Dobok", price: null,
     desc: "Lightweight WT-cut performance uniform for testing and tournaments.",
     icon: "🎖️"
   },
   {
-    id: "eq-pad", cat: "equipment", name: "Kicking Target Pad", price: 19.99,
+    id: "eq-pad", cat: "equipment", name: "Kicking Target Pad", price: null,
     desc: "Foam striking pad with hand grip. Ideal for partner drills and power training.",
     icon: "🎯"
   },
   {
-    id: "eq-boards", cat: "equipment", name: "Breaking Boards (5-pack)", price: 12.99,
+    id: "eq-boards", cat: "equipment", name: "Breaking Boards (5-pack)", price: null,
     desc: "Rebreakable plastic boards — white for beginners, colored for intermediate students.",
     icon: "🪵"
   },
   {
-    id: "eq-belt", cat: "equipment", name: "Replacement Belt", price: 9.99,
+    id: "eq-belt", cat: "equipment", name: "Replacement Belt", price: null,
     desc: "Replacement belt for your current rank. Specify your color and size in the order notes.",
     icon: "🏅"
   }
@@ -79,10 +79,11 @@ const CAT_COLORS = {
 let cart = [];
 let activeFilter = "all";
 
-function fmt(n) { return "$" + n.toFixed(2); }
+function fmt(n) { return n == null ? "TBD" : "$" + n.toFixed(2); }
 
 function cartTotal() {
-  return cart.reduce((s, e) => s + e.product.price * e.qty, 0);
+  const known = cart.filter(e => e.product.price != null);
+  return known.length === 0 ? null : known.reduce((s, e) => s + e.product.price * e.qty, 0);
 }
 
 function cartCount() {
@@ -131,11 +132,16 @@ function renderProducts(filter) {
 
   grid.innerHTML = visible.map(p => {
     const color = CAT_COLORS[p.cat] || "#d81f26";
+    const hex = color.replace("#", "");
+    const imgSrc = p.img || `https://placehold.co/400x220/${hex.slice(0,6)}/ffffff?text=${encodeURIComponent(p.name)}`;
     const badgeHtml = p.badge ? `<span class="product-badge">${p.badge}</span>` : "";
+    const priceHtml = p.price == null
+      ? `<span class="product-price product-price--tbd">TBD</span>`
+      : `<span class="product-price">${fmt(p.price)}</span>`;
     return `
     <article class="product-card" data-cat="${p.cat}">
-      <div class="product-thumb" style="--cat-color:${color}">
-        <span class="product-icon">${p.icon}</span>
+      <div class="product-thumb product-thumb--img">
+        <img src="${imgSrc}" alt="${p.name}" loading="lazy">
         ${badgeHtml}
         <span class="product-cat-tag">${CAT_LABELS[p.cat]}</span>
       </div>
@@ -143,7 +149,7 @@ function renderProducts(filter) {
         <h3 class="product-name">${p.name}</h3>
         <p class="product-desc">${p.desc}</p>
         <div class="product-footer">
-          <span class="product-price">${fmt(p.price)}</span>
+          ${priceHtml}
           <button class="add-btn" data-add-id="${p.id}" onclick="addToCart('${p.id}')">Add to Order</button>
         </div>
       </div>
@@ -163,7 +169,8 @@ function renderCartTray() {
   const countEl = tray.querySelector(".tray-count");
   const totalEl = tray.querySelector(".tray-total");
   if (countEl) countEl.textContent = count + " item" + (count !== 1 ? "s" : "");
-  if (totalEl) totalEl.textContent = fmt(cartTotal());
+  const total = cartTotal();
+  if (totalEl) totalEl.textContent = total == null ? "Price TBD" : fmt(total);
 }
 
 function renderOrderItems() {
@@ -180,25 +187,28 @@ function renderOrderItems() {
       <span class="oi-icon">${p.icon}</span>
       <div class="oi-info">
         <span class="oi-name">${p.name}</span>
-        <span class="oi-price">${fmt(p.price)} each</span>
+        <span class="oi-price">${p.price == null ? "Price TBD" : fmt(p.price) + " each"}</span>
       </div>
       <div class="oi-qty">
         <button class="qty-btn" onclick="setQty('${p.id}', ${qty - 1})">−</button>
         <span>${qty}</span>
         <button class="qty-btn" onclick="setQty('${p.id}', ${qty + 1})">+</button>
       </div>
-      <span class="oi-sub">${fmt(p.price * qty)}</span>
+      <span class="oi-sub">${p.price == null ? "TBD" : fmt(p.price * qty)}</span>
       <button class="oi-remove" onclick="removeFromCart('${p.id}')" aria-label="Remove">✕</button>
     </div>
   `).join("");
-  if (totalEl) totalEl.innerHTML = `<strong>Total: ${fmt(cartTotal())}</strong> &mdash; <em>Pay at pickup or we'll contact you to arrange payment.</em>`;
+  const total = cartTotal();
+  if (totalEl) totalEl.innerHTML = total == null
+    ? `<strong>Total: TBD</strong> &mdash; <em>We'll confirm pricing when we contact you.</em>`
+    : `<strong>Total: ${fmt(total)}</strong> &mdash; <em>Pay at pickup or we'll contact you to arrange payment.</em>`;
 
   // Sync hidden order summary field
   const summary = document.getElementById("order-summary-field");
   if (summary) {
     summary.value = cart.map(({ product: p, qty }) =>
-      `${p.name} x${qty} @ ${fmt(p.price)} = ${fmt(p.price * qty)}`
-    ).join("\n") + `\n\nTotal: ${fmt(cartTotal())}`;
+      `${p.name} x${qty}${p.price != null ? ` @ ${fmt(p.price)} = ${fmt(p.price * qty)}` : " — Price TBD"}`
+    ).join("\n") + `\n\nTotal: ${total == null ? "TBD" : fmt(total)}`;
   }
 }
 
