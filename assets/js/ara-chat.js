@@ -75,13 +75,7 @@
       '#ara-nudge.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}' +
       '#ara-nudge strong{color:#d81f26;}' +
       '#ara-nudge-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:.8rem;color:#94a3b8;line-height:1;}' +
-      /* Call/text quick links in empty state */
-      '.ara-chat__contact-btns{display:flex;flex-direction:column;gap:7px;margin-top:10px;}' +
-      '.ara-chat__contact-btn{display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:10px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;text-decoration:none;transition:transform .15s,opacity .15s;}' +
-      '.ara-chat__contact-btn:hover{transform:translateY(-1px);opacity:.9;}' +
-      '.ara-chat__contact-btn--call{background:#d81f26;color:#fff;}' +
-      '.ara-chat__contact-btn--text{background:#0f1829;color:#fff;}' +
-      '.ara-chat__contact-btn span:first-child{font-size:1.1rem;}';
+      /* Contact CTA styles now live in styles.css */;
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
@@ -108,14 +102,25 @@
         '</div>' +
         '<div class="ara-chat__messages" id="ara-chat-messages" role="log" aria-live="polite" aria-label="Chat messages">' +
           '<div class="ara-chat__empty" id="ara-chat-empty">' +
-            '<p class="ara-chat__empty-title">How can I help?</p>' +
-            '<p class="ara-chat__empty-sub">Ask me anything — or reach a real person right now:</p>' +
-            '<div class="ara-chat__contact-btns">' +
-              '<a href="tel:19197997500" class="ara-chat__contact-btn ara-chat__contact-btn--call"><span>📞</span><span>(919) 799-7500 — Call Us</span></a>' +
-              '<a href="sms:19195339313" class="ara-chat__contact-btn ara-chat__contact-btn--text"><span>💬</span><span>(919) 533-9313 — Text Us</span></a>' +
+            '<div class="ara-chat__greeting">' +
+              '<div class="ara-chat__greeting-avatar">🥋</div>' +
+              '<div class="ara-chat__greeting-bubble">👋 Hey! Got a question about classes, gear, or schedules? Reach us directly or ask me anything below.</div>' +
             '</div>' +
-            '<p class="ara-chat__empty-sub" style="margin-top:12px;">Or ask me a question:</p>' +
-            '<div class="ara-chat__starters" id="ara-chat-starters"></div>' +
+            '<div class="ara-chat__contact">' +
+              '<p class="ara-chat__contact-label">Reach a real person</p>' +
+              '<a href="tel:19197997500" class="ara-chat__cta ara-chat__cta--call">' +
+                '<span class="ara-chat__cta-icon">📞</span>' +
+                '<span class="ara-chat__cta-info"><span class="ara-chat__cta-number">(919) 799-7500</span><span class="ara-chat__cta-sublabel">Call us — Main Line</span></span>' +
+              '</a>' +
+              '<a href="sms:19195339313" class="ara-chat__cta ara-chat__cta--text">' +
+                '<span class="ara-chat__cta-icon">💬</span>' +
+                '<span class="ara-chat__cta-info"><span class="ara-chat__cta-number">(919) 533-9313</span><span class="ara-chat__cta-sublabel">Text us — Google Voice</span></span>' +
+              '</a>' +
+            '</div>' +
+            '<div class="ara-chat__starters-wrap">' +
+              '<p class="ara-chat__starters-label">Or ask Ara Bot</p>' +
+              '<div class="ara-chat__starters" id="ara-chat-starters"></div>' +
+            '</div>' +
           '</div>' +
         '</div>' +
         '<form class="ara-chat__form" id="ara-chat-form" autocomplete="off">' +
