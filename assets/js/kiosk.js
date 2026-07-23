@@ -570,12 +570,28 @@ function getFocusForDate(date) {
   return null;
 }
 
+const KIOSK_BUILD = "20260723";
+
 function scheduleNightlyReload() {
   const now = new Date();
   const next3am = new Date(now);
   next3am.setHours(3, 0, 0, 0);
   if (next3am <= now) next3am.setDate(next3am.getDate() + 1);
-  setTimeout(() => window.location.reload(), next3am - now);
+  setTimeout(() => window.location.reload(true), next3am - now);
+}
+
+// Check every 5 minutes if a new version has been deployed; reload if so
+function startVersionPoller() {
+  if (isLocalFile) return;
+  setInterval(async () => {
+    try {
+      const res = await fetch(`kiosk.html?_=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const html = await res.text();
+      const m = html.match(/kiosk\.js\?v=([\w-]+)/);
+      if (m && m[1] !== KIOSK_BUILD) window.location.reload(true);
+    } catch (_) { /* ignore network errors */ }
+  }, 5 * 60 * 1000);
 }
 
 async function initKiosk() {
@@ -594,6 +610,9 @@ async function initKiosk() {
 
   // Reload the page nightly at 3 AM to pick up any new code deployments
   scheduleNightlyReload();
+
+  // Poll for new deployments every 5 minutes and auto-reload when one lands
+  startVersionPoller();
 
   if (!getKioskRuntimeKey()) {
     setStatus("Kiosk not configured on this device. Tap the logo 5× for staff setup.", "error");
