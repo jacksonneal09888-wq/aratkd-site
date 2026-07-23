@@ -69,7 +69,19 @@
       '#ara-chat-btn .ara-chat-btn__label{font-size:9.5px;font-weight:800;letter-spacing:0.9px;line-height:1;font-family:system-ui,sans-serif;text-transform:uppercase;opacity:.95;white-space:nowrap;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__icon{display:none;}' +
-      '#ara-chat-btn.is-open{padding:16px;min-width:unset;border-radius:50%;}';
+      '#ara-chat-btn.is-open{padding:16px;min-width:unset;border-radius:50%;}' +
+      /* Nudge bubble */
+      '#ara-nudge{position:fixed;bottom:110px;right:28px;z-index:8999;background:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px;box-shadow:0 8px 32px rgba(0,0,0,.18);font-family:system-ui,sans-serif;font-size:.88rem;color:#0f172a;line-height:1.45;max-width:220px;opacity:0;transform:translateY(10px) scale(.95);transition:opacity .3s,transform .3s;pointer-events:none;}' +
+      '#ara-nudge.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}' +
+      '#ara-nudge strong{color:#d81f26;}' +
+      '#ara-nudge-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:.8rem;color:#94a3b8;line-height:1;}' +
+      /* Call/text quick links in empty state */
+      '.ara-chat__contact-btns{display:flex;flex-direction:column;gap:7px;margin-top:10px;}' +
+      '.ara-chat__contact-btn{display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:10px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;text-decoration:none;transition:transform .15s,opacity .15s;}' +
+      '.ara-chat__contact-btn:hover{transform:translateY(-1px);opacity:.9;}' +
+      '.ara-chat__contact-btn--call{background:#d81f26;color:#fff;}' +
+      '.ara-chat__contact-btn--text{background:#0f1829;color:#fff;}' +
+      '.ara-chat__contact-btn span:first-child{font-size:1.1rem;}';
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
@@ -97,7 +109,12 @@
         '<div class="ara-chat__messages" id="ara-chat-messages" role="log" aria-live="polite" aria-label="Chat messages">' +
           '<div class="ara-chat__empty" id="ara-chat-empty">' +
             '<p class="ara-chat__empty-title">How can I help?</p>' +
-            '<p class="ara-chat__empty-sub">Ask about programs, belts, schedule, or student portal.</p>' +
+            '<p class="ara-chat__empty-sub">Ask me anything — or reach a real person right now:</p>' +
+            '<div class="ara-chat__contact-btns">' +
+              '<a href="tel:19197997500" class="ara-chat__contact-btn ara-chat__contact-btn--call"><span>📞</span><span>(919) 799-7500 — Call Us</span></a>' +
+              '<a href="sms:19195339313" class="ara-chat__contact-btn ara-chat__contact-btn--text"><span>💬</span><span>(919) 533-9313 — Text Us</span></a>' +
+            '</div>' +
+            '<p class="ara-chat__empty-sub" style="margin-top:12px;">Or ask me a question:</p>' +
             '<div class="ara-chat__starters" id="ara-chat-starters"></div>' +
           '</div>' +
         '</div>' +
@@ -123,6 +140,26 @@
       btn.textContent = s.label;
       btn.addEventListener('click', function () { sendMessage(s.text); });
       startersEl.appendChild(btn);
+    });
+
+    /* Proactive nudge bubble */
+    var nudge = document.createElement('div');
+    nudge.id = 'ara-nudge';
+    nudge.innerHTML =
+      '<button id="ara-nudge-close" aria-label="Dismiss">✕</button>' +
+      '👋 <strong>Got questions?</strong><br>Call or text us — or ask Ara Bot!';
+    document.body.appendChild(nudge);
+    var nudgeTimer = setTimeout(function () { nudge.classList.add('show'); }, 4000);
+    var dismissTimer = setTimeout(function () { nudge.classList.remove('show'); }, 12000);
+    document.getElementById('ara-nudge-close').addEventListener('click', function () {
+      nudge.classList.remove('show');
+      clearTimeout(nudgeTimer);
+      clearTimeout(dismissTimer);
+    });
+    nudge.addEventListener('click', function (e) {
+      if (e.target.id === 'ara-nudge-close') return;
+      nudge.classList.remove('show');
+      openChat();
     });
 
     /* Wire events */
