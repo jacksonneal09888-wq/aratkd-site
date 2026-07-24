@@ -3,6 +3,30 @@ const kioskId = document.body.dataset.kioskId || "front-desk";
 const isLocalFile = window.location.protocol === "file:";
 const ALLOWED_DAYS = [1, 3, 5]; // Monday=1 ... Sunday=0
 const themeState = { override: null, rotation: null };
+
+const BELT_DATA = {
+  "White Belt":       { color: "#e8e8e8", glow: "rgba(232,232,232,0.4)", meaning: "Purity & innocence — the beginning of your journey." },
+  "High White Belt":  { color: "#e8e8e8", glow: "rgba(232,232,232,0.4)", meaning: "First seeds of discipline taking root." },
+  "Yellow Belt":      { color: "#f5c518", glow: "rgba(245,197,24,0.5)",  meaning: "Earth where seeds are planted — growth begins." },
+  "High Yellow Belt": { color: "#f5c518", glow: "rgba(245,197,24,0.5)",  meaning: "Roots deepening into the foundation of your training." },
+  "Green Belt":       { color: "#22c55e", glow: "rgba(34,197,94,0.5)",   meaning: "Growth — your skills are branching out." },
+  "High Green Belt":  { color: "#16a34a", glow: "rgba(22,163,74,0.5)",   meaning: "Branching out — expanding your reach and power." },
+  "Blue Belt":        { color: "#3b82f6", glow: "rgba(59,130,246,0.5)",  meaning: "Sky & heaven — reaching upward toward mastery." },
+  "High Blue Belt":   { color: "#1d4ed8", glow: "rgba(29,78,216,0.5)",   meaning: "Above the clouds — your skills soar higher." },
+  "Red Belt":         { color: "#d81f26", glow: "rgba(216,31,38,0.55)",  meaning: "Danger & passion — power demands control." },
+  "High Red Belt":    { color: "#9b1c1c", glow: "rgba(155,28,28,0.55)",  meaning: "Summit within reach — prepare for your greatest test." },
+  "Black Belt":       { color: "#1a1a1a", glow: "rgba(200,200,200,0.3)", meaning: "Mastery — the beginning of true leadership and deeper learning." },
+};
+
+function getBeltData(rank) {
+  if (!rank) return null;
+  // Exact match first, then case-insensitive
+  const key = Object.keys(BELT_DATA).find(k =>
+    k.toLowerCase() === rank.toLowerCase() ||
+    rank.toLowerCase().includes(k.toLowerCase().replace(" belt",""))
+  );
+  return key ? BELT_DATA[key] : null;
+}
 const CALENDAR_SPREADSHEET_ID = "14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4";
 const CALENDAR_GID_MAP = {
   "2026-01": "1930105653",
@@ -344,19 +368,43 @@ function addFeedItem(name, belt) {
   setTimeout(() => li.classList.remove("ki-feed__item--new"), 600);
 }
 
-// Show full-screen success overlay with student stats
+// Show full-screen success overlay with student stats and belt color display
 function showSuccessOverlay(name, belt, stats) {
   const overlay = document.getElementById("ki-success-overlay");
   if (!overlay) return;
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? "—"; };
-  set("ki-success-name", name);
-  set("ki-success-belt", belt);
-  set("ki-success-completed", stats.completed);
-  set("ki-success-required", stats.required);
-  set("ki-success-remaining", stats.remaining);
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? "—"; };
+
+  const bd = getBeltData(belt);
+  const beltColor = bd?.color || "#d81f26";
+  const beltGlow  = bd?.glow  || "rgba(216,31,38,0.5)";
+  const meaning   = bd?.meaning || "";
+
+  const card = overlay.querySelector(".ki-success-card");
+  if (card) {
+    card.style.setProperty("--belt-color", beltColor);
+    card.style.setProperty("--belt-glow", beltGlow);
+    card.style.borderColor = beltColor;
+    card.style.boxShadow = `0 0 80px ${beltGlow}, 0 24px 48px rgba(0,0,0,0.8)`;
+  }
+
+  ["ki-belt-swatch", "ki-belt-banner"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.background = beltColor;
+      el.style.boxShadow  = `0 0 16px ${beltGlow}`;
+    }
+  });
+
+  setText("ki-success-name", name);
+  setText("ki-belt-name", belt);
+  setText("ki-belt-meaning", meaning);
+  setText("ki-success-completed", stats.completed);
+  setText("ki-success-required", stats.required);
+  setText("ki-success-remaining", stats.remaining);
+
   overlay.classList.add("visible");
   if (successDismissTimer) clearTimeout(successDismissTimer);
-  successDismissTimer = setTimeout(() => overlay.classList.remove("visible"), 4200);
+  successDismissTimer = setTimeout(() => overlay.classList.remove("visible"), 5500);
 }
 
 // Live clock in topbar
@@ -570,7 +618,7 @@ function getFocusForDate(date) {
   return null;
 }
 
-const KIOSK_BUILD = "20260723";
+const KIOSK_BUILD = "20260723b";
 
 function scheduleNightlyReload() {
   const now = new Date();
