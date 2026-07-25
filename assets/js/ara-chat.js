@@ -74,8 +74,7 @@
       '#ara-nudge{position:fixed;bottom:110px;right:28px;z-index:8999;background:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px;box-shadow:0 8px 32px rgba(0,0,0,.18);font-family:system-ui,sans-serif;font-size:.88rem;color:#0f172a;line-height:1.45;max-width:220px;opacity:0;transform:translateY(10px) scale(.95);transition:opacity .3s,transform .3s;pointer-events:none;}' +
       '#ara-nudge.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}' +
       '#ara-nudge strong{color:#d81f26;}' +
-      '#ara-nudge-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:.8rem;color:#94a3b8;line-height:1;}' +
-      /* Contact CTA styles now live in styles.css */;
+      '#ara-nudge-close{position:absolute;top:6px;right:8px;background:none;border:none;cursor:pointer;font-size:.8rem;color:#94a3b8;line-height:1;}';
     document.head.appendChild(style);
 
     var wrapper = document.createElement('div');
