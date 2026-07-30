@@ -237,8 +237,8 @@ function handleOrderSubmit(e) {
   const summary = document.getElementById("order-summary-field");
   if (summary) {
     summary.value = cart.map(({ product: p, qty }) =>
-      `${p.name} x${qty} @ ${fmt(p.price)} = ${fmt(p.price * qty)}`
-    ).join("\n") + `\n\nTotal: ${fmt(cartTotal())}`;
+      `${p.name} x${qty} @ ${p.price == null ? "Price TBD" : fmt(p.price)} = ${p.price == null ? "TBD" : fmt(p.price * qty)}`
+    ).join("\n") + `\n\nTotal: ${cartTotal() == null ? "TBD" : fmt(cartTotal())}`;
   }
 
   if (statusEl) statusEl.textContent = "Sending your order...";

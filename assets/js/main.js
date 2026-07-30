@@ -29,7 +29,8 @@ const GOOGLE_CALENDAR_GID_MAP = {
     "2026-04": "1307375074",
     "2026-05": "1924086127",
     "2026-06": "1157707621",
-    "2026-07": "1428272169"
+    "2026-07": "1428272169",
+    // "2026-08": "<gid>",  ← add when Aug sheet tab is created
 };
 
 function getCurrentCalendarGid() {
@@ -87,7 +88,7 @@ const DOJO_CALENDAR_WEEKLY = {
 
 
 const CALENDAR_RANGE_START = parseIsoDate("2025-09-01");
-const CALENDAR_RANGE_END = parseIsoDate("2026-12-31");
+const CALENDAR_RANGE_END = parseIsoDate("2027-12-31");
 
 const CALENDAR_FOCUS_TEMPLATE = [
     {
@@ -116,113 +117,8 @@ const BASE_CALENDAR_RANGES = [];
 const GENERATED_CALENDAR_RANGES = generateFocusRanges(CALENDAR_RANGE_START, CALENDAR_RANGE_END, CALENDAR_FOCUS_TEMPLATE);
 const DOJO_CALENDAR_RANGES = [...BASE_CALENDAR_RANGES, ...GENERATED_CALENDAR_RANGES];
 
-const BASE_CALENDAR_DAY_OVERRIDES = {
-    "2024-11-16": {
-        events: [
-            createEvent(
-                "Board Break Workshop",
-                "11:00 AM",
-                "testing",
-                "Dial in foot positioning, power generation, and confidence ahead of testing."
-            )
-        ]
-    },
-    "2024-11-25": {
-        events: [
-            createEvent(
-                "Winter Games Registration Closes",
-                "All Day",
-                "event",
-                "Last call to join Ara's team roster. Email aratkdsports@gmail.com to secure your spot."
-            )
-        ]
-    },
-    "2024-11-28": {
-        replace: true,
-        events: [
-            createEvent(
-                "Dojang Closed · Thanksgiving",
-                "All Day",
-                "closure",
-                "Rest, refuel, and enjoy the holiday. Classes resume on Friday."
-            )
-        ]
-    },
-    "2024-12-06": {
-        events: [
-            createEvent(
-                "Taekwondo Winter Games 2025",
-                "7:00 AM - 4:00 PM",
-                "event",
-                "Sparring, poomsae, and board breaking showdown hosted at Ara's Sportsplex."
-            )
-        ]
-    },
-    "2024-12-14": {
-        replace: true,
-        events: [
-            createEvent(
-                "Color Belt Testing Saturday",
-                "10:00 AM",
-                "testing",
-                "Stripe checks and advancement evaluations for Little Ninjas through brown belts."
-            )
-        ]
-    },
-    "2024-12-20": {
-        events: [
-            createEvent(
-                "Holiday Parent Night Out",
-                "6:00 PM",
-                "event",
-                "Games, pizza, and martial arts fun so parents can finish their holiday checklist."
-            )
-        ]
-    },
-    "2025-01-06": {
-        events: [
-            createEvent(
-                "Winter Session Kickoff",
-                "4:00 PM",
-                "event",
-                "Welcome back mat talk, goal setting for the new year, and schedule updates."
-            )
-        ]
-    },
-    "2025-01-18": {
-        replace: true,
-        events: [
-            createEvent(
-                "Sparring Round Robin",
-                "1:00 PM",
-                "event",
-                "Controlled rounds for color belts - gear required, partners assigned on arrival."
-            )
-        ]
-    },
-    "2025-02-01": {
-        replace: true,
-        events: [
-            createEvent(
-                "Open House & Buddy Class",
-                "10:30 AM",
-                "event",
-                "Bring a friend for intro drills, pad work, and membership Q&A with Master Ara."
-            )
-        ]
-    },
-    "2025-09-01": {
-        replace: true,
-        events: [
-            createEvent(
-                "No Classes · Labor Day",
-                "All Day",
-                "closure",
-                "Dojang closed for the holiday. Enjoy the long weekend!"
-            )
-        ]
-    }
-};
+// Add upcoming special events and closures here (past events removed to keep this lean).
+const BASE_CALENDAR_DAY_OVERRIDES = {};
 
 const GENERATED_CALENDAR_DAY_OVERRIDES = generateMonthlyOverrides(CALENDAR_RANGE_START, CALENDAR_RANGE_END, EVENT_BOARD_BREAK);
 const DOJO_CALENDAR_DAY_OVERRIDES = mergeOverrides(BASE_CALENDAR_DAY_OVERRIDES, GENERATED_CALENDAR_DAY_OVERRIDES);

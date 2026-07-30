@@ -35,7 +35,9 @@ const CALENDAR_GID_MAP = {
   "2026-04": "1307375074",
   "2026-05": "1924086127",
   "2026-06": "1157707621",
-  "2026-07": "1428272169"
+  "2026-07": "1428272169",
+  // Add new month GIDs here as each Google Sheet tab is created:
+  // "2026-08": "<gid>",
 };
 function getCurrentCalendarGid() {
   const n = new Date();
@@ -86,7 +88,7 @@ const FOCUS_TEMPLATE = [
   { title: "Focus Week: Poomsae Spotlight & Testing Prep", description: "Dial in patterns, kihaps, and testing etiquette ahead of evaluations." }
 ];
 const FOCUS_RANGE_START = new Date(2025, 8, 1);
-const FOCUS_RANGE_END = new Date(2026, 11, 31);
+const FOCUS_RANGE_END = new Date(2027, 11, 31);
 const FALLBACK_FOCUS = {
   sparring: {
     allRanks: "Sparring basics: footwork, timing, and distance control.",
@@ -102,10 +104,10 @@ const FALLBACK_FOCUS = {
   }
 };
 const FALLBACK_SCHEDULES = {
-  allRanks:     ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"],
-  littleNinjas: ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"],
-  colorBelts:   ["Mon 5:45 PM", "Wed 5:45 PM", "Fri 5:45 PM"],
-  blackBelt:    ["Mon 6:30 PM", "Wed 6:30 PM", "Fri 6:30 PM"]
+  littleNinjas: ["Mon 4:30 PM", "Wed 4:30 PM", "Fri 4:30 PM"],
+  allRanks:     ["Mon 5:00 PM", "Wed 5:00 PM", "Fri 5:00 PM"],
+  colorBelts:   ["Mon 6:00 PM", "Wed 6:00 PM", "Fri 6:00 PM"],
+  blackBelt:    ["Mon 6:00 PM", "Wed 6:00 PM", "Fri 6:00 PM"]
 };
 const BELT_LESSON_TARGETS = {
   default: 25, white: 25, "high-white": 25, yellow: 25, "high-yellow": 25,
@@ -244,8 +246,8 @@ function buildFallbackClasses(theme) {
   const focus = FALLBACK_FOCUS[getThemeKey(theme?.label || "")] || FALLBACK_FOCUS.poomsae;
   return [
     { id: "little-ninjas", name: "Little Ninjas", focus: focus.littleNinjas, schedule: FALLBACK_SCHEDULES.littleNinjas },
-    { id: "beginning",     name: "Beginning",      focus: focus.allRanks,    schedule: FALLBACK_SCHEDULES.allRanks },
-    { id: "intermediate",  name: "Intermediate",   focus: focus.colorBelts,  schedule: FALLBACK_SCHEDULES.colorBelts }
+    { id: "basic",         name: "Beginners",     focus: focus.allRanks,    schedule: FALLBACK_SCHEDULES.allRanks },
+    { id: "advanced",      name: "Intermediate",  focus: focus.colorBelts,  schedule: FALLBACK_SCHEDULES.colorBelts }
   ];
 }
 
@@ -481,8 +483,7 @@ async function submitAttendance() {
 }
 
 function isAllowedDay(date = new Date()) {
-  const day = date.getDay();
-  return ALLOWED_DAYS.includes(day === 0 ? 7 : day);
+  return ALLOWED_DAYS.includes(date.getDay());
 }
 
 async function loadClasses() {
@@ -594,7 +595,7 @@ async function fetchWeekTheme() {
     } catch (e) { console.warn("Calendar theme fetch failed:", e); }
   }
   try {
-    const res = await fetch(`assets/data/week-theme.json?v=${Date.now()}`);
+    const res = await fetch(`/assets/data/week-theme.json?v=${Date.now()}`);
     if (!res.ok) return;
     const data = await res.json();
     themeState.rotation = normalizeRotation(data?.rotation);
@@ -618,7 +619,7 @@ function getFocusForDate(date) {
   return null;
 }
 
-const KIOSK_BUILD = "20260723b";
+const KIOSK_BUILD = "20260724c";
 
 function scheduleNightlyReload() {
   const now = new Date();

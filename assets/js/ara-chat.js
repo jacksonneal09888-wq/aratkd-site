@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  var API_URL = 'https://portal-api.jacksonneal09888.workers.dev/api/chat';
+  var API_URL = ((document.body && document.body.dataset.apiBase) || 'https://portal-api.jacksonneal09888.workers.dev') + '/api/chat';
   var messages = [];
   var isOpen = false;
   var isTyping = false;
@@ -70,6 +70,8 @@
       '#ara-chat-btn.is-open .ara-chat-btn__label{display:none;}' +
       '#ara-chat-btn.is-open .ara-chat-btn__icon{display:none;}' +
       '#ara-chat-btn.is-open{padding:16px;min-width:unset;border-radius:50%;}' +
+      '#ara-chat-btn .ara-chat-btn__close{display:none;}' +
+      '#ara-chat-btn.is-open .ara-chat-btn__close{display:flex;}' +
       /* Nudge bubble */
       '#ara-nudge{position:fixed;bottom:110px;right:28px;z-index:8999;background:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px;box-shadow:0 8px 32px rgba(0,0,0,.18);font-family:system-ui,sans-serif;font-size:.88rem;color:#0f172a;line-height:1.45;max-width:220px;opacity:0;transform:translateY(10px) scale(.95);transition:opacity .3s,transform .3s;pointer-events:none;}' +
       '#ara-nudge.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}' +

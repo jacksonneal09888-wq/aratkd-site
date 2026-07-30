@@ -107,6 +107,22 @@ const TRUSTED_WEB_ORIGINS = new Set(['https://aratkd.com', 'https://www.aratkd.c
 const STUDENT_TOKEN_TTL_SECONDS = 60 * 60 * 8;
 const ADMIN_TOKEN_TTL_SECONDS = 60 * 60 * 2;
 const ARCHIVE_RETENTION_DAYS = 30;
+// Simple in-memory rate limiter for /api/chat: max 20 requests per IP per minute.
+// Resets when the isolate is recycled (typically every few hours).
+const chatRateMap = new Map<string, { count: number; resetAt: number }>();
+const CHAT_RATE_LIMIT = 20;
+const CHAT_RATE_WINDOW_MS = 60_000;
+function checkChatRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = chatRateMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    chatRateMap.set(ip, { count: 1, resetAt: now + CHAT_RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= CHAT_RATE_LIMIT) return false;
+  entry.count += 1;
+  return true;
+}
 const ACTIVE_STUDENT_FILTER = '(is_archived IS NULL OR is_archived = 0)';
 let archiveColumnChecked = false;
 let archiveColumnSupported = false;
@@ -223,8 +239,23 @@ const resolveArchiveFilter = async (db: D1Database, alias?: string) => {
 };
 
 const CALENDAR_SPREADSHEET_ID = '14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4';
-const CALENDAR_GID = '1157707621';
-const CALENDAR_CSV_URL = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${CALENDAR_GID}`;
+const CALENDAR_GID_MAP: Record<string, string> = {
+  '2026-01': '1930105653',
+  '2026-02': '2000494508',
+  '2026-03': '299259377',
+  '2026-04': '1307375074',
+  '2026-05': '1924086127',
+  '2026-06': '1157707621',
+  '2026-07': '1428272169',
+  // '2026-08': '<gid>',  ← add when Aug sheet tab is created
+};
+function getCurrentCalendarGid(): string {
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const entries = Object.entries(CALENDAR_GID_MAP);
+  return CALENDAR_GID_MAP[key] || entries[entries.length - 1]?.[1] || '1428272169';
+}
+const CALENDAR_CSV_URL = `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${getCurrentCalendarGid()}`;
 
 const kioskClassCatalog = [
   {
@@ -624,7 +655,7 @@ const fetchEmailRecipients = async (
        FROM students
        WHERE email IS NOT NULL AND email != ''
          AND ${activeFilter}
-         ${isActiveFilter ? "AND (is_suspended IS NULL OR is_suspended = 0) AND (LOWER(status) IS NULL OR LOWER(status) != 'suspended')" : ''}
+         ${isActiveFilter ? "AND (is_suspended IS NULL OR is_suspended = 0) AND (status IS NULL OR LOWER(status) NOT IN ('suspended','inactive','frozen','archived'))" : ''}
        ORDER BY name ASC
        LIMIT ?1`
     )
@@ -1452,16 +1483,6 @@ app.post('/kiosk/check-in', async (c) => {
       403
     );
   }
-  if (student.is_suspended) {
-    return c.json(
-      {
-        error: 'Account deactivated',
-        reason: student.suspended_reason || 'See the front desk to reactivate.'
-      },
-      403
-    );
-  }
-
   const canonicalId = student.id;
   let resolvedClassType = classType || 'event';
   let resolvedClassLevel = classLevel || null;
@@ -2099,7 +2120,6 @@ app.post('/portal/admin/students/membership', async (c) => {
 app.post('/portal/admin/students/:studentId/archive', async (c) => {
   const authError = await authenticateAdminRequest(c);
   if (authError) return authError;
-  await purgeArchivedStudents(c.env.PORTAL_DB);
   const archiveSupported = await ensureArchiveColumn(c.env.PORTAL_DB);
   if (!archiveSupported) {
     return c.json({ error: 'Archive support not enabled. Run migrations.' }, 500);
@@ -2146,6 +2166,9 @@ app.post('/portal/admin/students/:studentId/archive', async (c) => {
   const updated = await fetchStudentById(c.env.PORTAL_DB, student.id, {
     includeArchived: true
   });
+
+  // Purge old archived records after this operation, not before (avoids race with current lookup)
+  await purgeArchivedStudents(c.env.PORTAL_DB);
 
   return c.json({
     ok: true,
@@ -2703,7 +2726,7 @@ app.post('/portal/admin/email/send', async (c) => {
     await sendBrevoEmail(c.env, {
       to: recipients,
       subject,
-      htmlContent: `<p>${message}</p>`
+      htmlContent: `<p>${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`
     });
     return c.json({
       ok: true,
@@ -2718,6 +2741,10 @@ app.post('/portal/admin/email/send', async (c) => {
 });
 
 app.post('/api/chat', async (c) => {
+  const clientIp = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+  if (!checkChatRateLimit(clientIp)) {
+    return c.json({ error: 'rate_limited', detail: 'Too many requests. Please wait a moment.' }, 429);
+  }
   const body = await c.req.json().catch(() => ({}));
   const rawMessages = Array.isArray(body.messages) ? body.messages : [];
 
