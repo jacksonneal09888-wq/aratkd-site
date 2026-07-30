@@ -1,19 +1,33 @@
+(function injectTranslateHideStyles() {
+  const style = document.createElement('style');
+  style.textContent =
+    '.goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame, ' +
+    '.goog-tooltip, .goog-tooltip-content, .VIpgJd-ZVi9od-aZ2wEe-wOHMyf, ' +
+    '.VIpgJd-ZVi9od-aZ2wEe-OiiCO, .skiptranslate > iframe, ' +
+    '.goog-te-menu-frame { display: none !important; visibility: hidden !important; }' +
+    'body { top: 0 !important; position: static !important; }' +
+    '.goog-te-spinner-pos { display: none !important; }';
+  document.head.appendChild(style);
+})();
+
 function hideGoogleBanner() {
   document.body.style.top = '0px';
-  const frame = document.querySelector('iframe.goog-te-banner-frame');
-  if (frame) {
-    frame.style.display = 'none';
-    const parent = frame.parentElement;
-    if (parent) parent.style.display = 'none';
-  }
-  const tooltip = document.getElementById('goog-gt-tt');
-  if (tooltip) tooltip.style.display = 'none';
+  document.body.style.removeProperty('padding-top');
+  const frames = document.querySelectorAll('iframe.goog-te-banner-frame, iframe[src*="translate.google"]');
+  frames.forEach(function(f) {
+    f.style.setProperty('display', 'none', 'important');
+    if (f.parentElement) f.parentElement.style.setProperty('display', 'none', 'important');
+  });
+  const tt = document.getElementById('goog-gt-tt');
+  if (tt) tt.style.setProperty('display', 'none', 'important');
+  const spinner = document.querySelector('.goog-te-spinner-pos');
+  if (spinner) spinner.style.setProperty('display', 'none', 'important');
 }
 
 function observeTranslateArtifacts() {
   hideGoogleBanner();
   const observer = new MutationObserver(hideGoogleBanner);
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
   window.addEventListener('resize', hideGoogleBanner);
   document.addEventListener('click', hideGoogleBanner);
 }
@@ -32,6 +46,8 @@ function switchLanguage(lang) {
     const evt = document.createEvent('HTMLEvents');
     evt.initEvent('change', false, true);
     sel.dispatchEvent(evt);
+    setTimeout(hideGoogleBanner, 400);
+    setTimeout(hideGoogleBanner, 1200);
   }
 }
 
@@ -39,18 +55,18 @@ function initLangToggle() {
   const buttons = document.querySelectorAll('.lang-toggle__btn');
   if (!buttons.length) return;
 
-  const cookie = document.cookie.split(';').find(c => c.trim().startsWith('googtrans=')) || '';
+  const cookie = document.cookie.split(';').find(function(c) { return c.trim().startsWith('googtrans='); }) || '';
   if (cookie.includes('/es')) {
-    buttons.forEach(btn => {
+    buttons.forEach(function(btn) {
       const isEs = btn.dataset.lang === 'es';
       btn.classList.toggle('is-active', isEs);
       btn.setAttribute('aria-pressed', isEs ? 'true' : 'false');
     });
   }
 
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      buttons.forEach(b => {
+  buttons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      buttons.forEach(function(b) {
         b.classList.remove('is-active');
         b.setAttribute('aria-pressed', 'false');
       });
@@ -74,4 +90,7 @@ window.initAraTranslate = function () {
   );
   observeTranslateArtifacts();
   setTimeout(initLangToggle, 900);
+  setTimeout(hideGoogleBanner, 300);
+  setTimeout(hideGoogleBanner, 800);
+  setTimeout(hideGoogleBanner, 2000);
 };
