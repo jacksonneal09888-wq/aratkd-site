@@ -344,6 +344,43 @@ body.js-enabled [data-reveal].is-visible {
     .tkd-medallion { display: none; }
 }
 
+/* ── Kukkiwon fixed top-left seal ── */
+.kukkiwon-seal {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 9999;
+    pointer-events: none;
+    width: 78px;
+    height: 78px;
+}
+
+.kukkiwon-seal img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+    border: 2px solid rgba(201,162,39,0.55);
+    box-shadow:
+        0 0 0 4px rgba(201,162,39,0.12),
+        0 0 18px rgba(201,162,39,0.4),
+        0 4px 24px rgba(0,0,0,0.6);
+    background: rgba(5, 5, 15, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: kukkiwon-glow 4s ease-in-out infinite;
+}
+
+@keyframes kukkiwon-glow {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(201,162,39,0.12), 0 0 18px rgba(201,162,39,0.4), 0 4px 24px rgba(0,0,0,0.6); }
+    50%       { box-shadow: 0 0 0 6px rgba(201,162,39,0.2),  0 0 32px rgba(201,162,39,0.7), 0 4px 28px rgba(0,0,0,0.7); }
+}
+
+@media (max-width: 768px) {
+    .kukkiwon-seal { width: 54px; height: 54px; top: 10px; left: 10px; }
+}
+
 .header-actions {
     display: flex;
     align-items: center;
