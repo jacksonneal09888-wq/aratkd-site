@@ -344,21 +344,24 @@ body.js-enabled [data-reveal].is-visible {
     .tkd-medallion { display: none; }
 }
 
-/* ── Fixed top-left corner badges (Kukkiwon + Taegeuk) ── */
-.tkd-corner-badges {
+/* ── Fixed corner badges ── */
+.kukkiwon-badge,
+.taegeuk-badge {
     position: fixed;
     top: 12px;
-    left: 12px;
     z-index: 9999;
     pointer-events: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.tkd-corner-badges img {
     width: 72px;
     height: 72px;
+}
+
+.kukkiwon-badge { left: 12px; }
+.taegeuk-badge  { right: 12px; }
+
+.kukkiwon-badge img,
+.taegeuk-badge img {
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     display: block;
     border-radius: 50%;
@@ -373,9 +376,7 @@ body.js-enabled [data-reveal].is-visible {
     animation: badge-glow 4s ease-in-out infinite;
 }
 
-.tkd-corner-badges img:nth-child(2) {
-    animation-delay: 2s;
-}
+.taegeuk-badge img { animation-delay: 2s; }
 
 @keyframes badge-glow {
     0%, 100% { box-shadow: 0 0 0 4px rgba(201,162,39,0.12), 0 0 20px rgba(201,162,39,0.45), 0 4px 20px rgba(0,0,0,0.65); }
@@ -383,8 +384,9 @@ body.js-enabled [data-reveal].is-visible {
 }
 
 @media (max-width: 768px) {
-    .tkd-corner-badges { top: 8px; left: 8px; gap: 7px; }
-    .tkd-corner-badges img { width: 48px; height: 48px; }
+    .kukkiwon-badge, .taegeuk-badge { width: 48px; height: 48px; top: 8px; }
+    .kukkiwon-badge { left: 8px; }
+    .taegeuk-badge  { right: 8px; }
 }
 
 .header-actions {
