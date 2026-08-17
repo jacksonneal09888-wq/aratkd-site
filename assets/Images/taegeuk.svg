@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Taekwondo Taegeuk symbol">
+  <!-- Gold outer border ring -->
+  <circle cx="50" cy="50" r="50" fill="#c9a227"/>
+  <!-- Yin (blue) full circle background -->
+  <circle cx="50" cy="50" r="45" fill="#003478"/>
+  <!-- Yang (red) top region with S-curve division -->
+  <!-- Path: top arc of outer circle, then reverse S back (bottom of right small circle, top of left small circle) -->
+  <path d="M 5 50 A 45 45 0 0 0 95 50 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 5 50 Z" fill="#d81f26"/>
+  <!-- Gold inner accent ring -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+  <!-- Subtle gold S-curve divider line -->
+  <path d="M 5 50 A 22.5 22.5 0 0 1 50 50 A 22.5 22.5 0 0 0 95 50" fill="none" stroke="#c9a227" stroke-width="0.8" opacity="0.7"/>
+</svg>
