@@ -265,35 +265,37 @@ body.js-enabled [data-reveal].is-visible {
     flex-wrap: wrap;
 }
 
-/* ── Left-side Taegeuk symbol (fixed, all pages) ── */
+/* ── Left-side Taegeuk symbol — lives in the gutter outside the 1140px container ── */
 .tkd-left-symbol {
+    display: none; /* hidden by default; shown only when gutter is wide enough */
     position: fixed;
-    left: 14px;
+    /* sit in the left gutter: gutter = (100vw - 1140px) / 2. Place symbol 20px from content edge */
+    left: calc((100vw - 1140px) / 2 - 110px);
     top: 50%;
     transform: translateY(-50%);
-    z-index: 900;
+    z-index: 100;
     pointer-events: none;
-    opacity: 0.88;
-    transition: opacity 0.3s;
 }
 
 .tkd-left-symbol img {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     display: block;
+    opacity: 0.9;
     filter:
-        drop-shadow(0 0 18px rgba(201,162,39,0.55))
-        drop-shadow(0 0 40px rgba(201,162,39,0.25));
-    animation: tkd-float 6s ease-in-out infinite;
+        drop-shadow(0 0 14px rgba(201,162,39,0.6))
+        drop-shadow(0 0 36px rgba(201,162,39,0.2));
+    animation: tkd-float 7s ease-in-out infinite;
 }
 
 @keyframes tkd-float {
     0%, 100% { transform: translateY(0);    }
-    50%       { transform: translateY(-8px); }
+    50%       { transform: translateY(-10px); }
 }
 
-@media (max-width: 1100px) {
-    .tkd-left-symbol { display: none; }
+/* Only show when viewport is wide enough that the left gutter fits the symbol */
+@media (min-width: 1380px) {
+    .tkd-left-symbol { display: block; }
 }
 
 .brand-link {
