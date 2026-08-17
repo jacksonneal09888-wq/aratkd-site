@@ -291,58 +291,6 @@ body.js-enabled [data-reveal].is-visible {
     font-weight: 600;
 }
 
-/* ── Left-edge belt stripe + Taegeuk medallion ── */
-.tkd-belt-stripe {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 5px;
-    background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        #d81f26 12%,
-        #d81f26 88%,
-        transparent 100%
-    );
-    z-index: 500;
-    pointer-events: none;
-}
-
-.tkd-belt-stripe::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    background: rgba(255,255,255,0.08);
-}
-
-.tkd-medallion {
-    position: fixed;
-    left: -44px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 92px;
-    height: 92px;
-    z-index: 501;
-    pointer-events: none;
-    filter:
-        drop-shadow(2px 0 10px rgba(201,162,39,0.6))
-        drop-shadow(4px 0 28px rgba(0,0,0,0.5));
-    animation: tkd-pulse 5s ease-in-out infinite;
-}
-
-@keyframes tkd-pulse {
-    0%, 100% { filter: drop-shadow(2px 0 10px rgba(201,162,39,0.6)) drop-shadow(4px 0 28px rgba(0,0,0,0.5)); }
-    50%       { filter: drop-shadow(2px 0 18px rgba(201,162,39,0.9)) drop-shadow(4px 0 36px rgba(0,0,0,0.6)); }
-}
-
-@media (max-width: 768px) {
-    .tkd-belt-stripe,
-    .tkd-medallion { display: none; }
-}
 
 /* ── Fixed corner badges ── */
 .kukkiwon-badge,
