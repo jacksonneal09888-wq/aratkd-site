@@ -265,56 +265,55 @@ body.js-enabled [data-reveal].is-visible {
     flex-wrap: wrap;
 }
 
-/* ── Left-side Taegeuk symbol — lives in the gutter outside the 1140px container ── */
-.tkd-left-symbol {
-    display: none; /* hidden by default; shown only when gutter is wide enough */
-    position: fixed;
-    /* sit in the left gutter: gutter = (100vw - 1140px) / 2. Place symbol 20px from content edge */
-    left: calc((100vw - 1140px) / 2 - 110px);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    pointer-events: none;
-}
-
-.tkd-left-symbol img {
-    width: 90px;
-    height: 90px;
-    display: block;
-    opacity: 0.9;
-    filter:
-        drop-shadow(0 0 14px rgba(201,162,39,0.6))
-        drop-shadow(0 0 36px rgba(201,162,39,0.2));
-    animation: tkd-float 7s ease-in-out infinite;
-}
-
-@keyframes tkd-float {
-    0%, 100% { transform: translateY(0);    }
-    50%       { transform: translateY(-10px); }
-}
-
-/* Only show when viewport is wide enough that the left gutter fits the symbol */
-@media (min-width: 1380px) {
-    .tkd-left-symbol { display: block; }
-}
-
+/* ── Brand logo lockup with Taegeuk ── */
 .brand-link {
     display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
+    align-items: center;
+    gap: 0.75rem;
     font-family: var(--font-heading);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+}
+
+.brand-taegeuk {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    display: block;
+    filter: drop-shadow(0 2px 8px rgba(201,162,39,0.5));
+    transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.brand-link:hover .brand-taegeuk {
+    transform: rotate(20deg) scale(1.08);
+    filter: drop-shadow(0 3px 14px rgba(201,162,39,0.8));
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
 }
 
 .brand-mark {
-    padding: 0.35rem 0.65rem;
-    background-color: var(--color-primary);
-    border-radius: 0.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    font-size: 1rem;
+    color: var(--color-primary);
+    letter-spacing: 0.12em;
 }
 
 .brand-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+}
+
+/* Remove unused fixed-position element */
+.tkd-left-symbol { display: none !important; }
+
+.brand-name-old {
     font-size: 1rem;
     font-weight: 600;
 }
