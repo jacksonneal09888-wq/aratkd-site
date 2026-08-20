@@ -296,15 +296,16 @@ body.js-enabled [data-reveal].is-visible {
 .kukkiwon-badge,
 .taegeuk-badge {
     position: fixed;
-    top: 12px;
-    z-index: 9999;
+    top: 14px;
+    z-index: 2147483647; /* max z-index — always on top */
     pointer-events: none;
-    width: 72px;
-    height: 72px;
+    width: 70px;
+    height: 70px;
+    isolation: isolate;
 }
 
-.kukkiwon-badge { left: 12px; }
-.taegeuk-badge  { right: 12px; }
+.kukkiwon-badge { left: 14px; }
+.taegeuk-badge  { right: 14px; }
 
 .kukkiwon-badge img,
 .taegeuk-badge img {
@@ -313,12 +314,12 @@ body.js-enabled [data-reveal].is-visible {
     object-fit: contain;
     display: block;
     border-radius: 50%;
-    border: 2px solid rgba(201,162,39,0.6);
+    border: 2px solid rgba(201,162,39,0.65);
     box-shadow:
-        0 0 0 4px rgba(201,162,39,0.12),
-        0 0 20px rgba(201,162,39,0.45),
-        0 4px 20px rgba(0,0,0,0.65);
-    background: rgba(5,5,15,0.6);
+        0 0 0 4px rgba(201,162,39,0.14),
+        0 0 22px rgba(201,162,39,0.5),
+        0 4px 20px rgba(0,0,0,0.7);
+    background: rgba(5,5,15,0.65);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     animation: badge-glow 4s ease-in-out infinite;
@@ -327,14 +328,15 @@ body.js-enabled [data-reveal].is-visible {
 .taegeuk-badge img { animation-delay: 2s; }
 
 @keyframes badge-glow {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(201,162,39,0.12), 0 0 20px rgba(201,162,39,0.45), 0 4px 20px rgba(0,0,0,0.65); }
-    50%       { box-shadow: 0 0 0 6px rgba(201,162,39,0.22), 0 0 34px rgba(201,162,39,0.75), 0 4px 28px rgba(0,0,0,0.75); }
+    0%, 100% { box-shadow: 0 0 0 4px rgba(201,162,39,0.14), 0 0 22px rgba(201,162,39,0.5),  0 4px 20px rgba(0,0,0,0.7); }
+    50%       { box-shadow: 0 0 0 6px rgba(201,162,39,0.24), 0 0 36px rgba(201,162,39,0.78), 0 4px 28px rgba(0,0,0,0.8); }
 }
 
+/* Mobile — drop below header, shrink slightly */
 @media (max-width: 768px) {
-    .kukkiwon-badge, .taegeuk-badge { width: 48px; height: 48px; top: 8px; }
-    .kukkiwon-badge { left: 8px; }
-    .taegeuk-badge  { right: 8px; }
+    .kukkiwon-badge, .taegeuk-badge { width: 48px; height: 48px; top: 72px; }
+    .kukkiwon-badge { left: 10px; }
+    .taegeuk-badge  { right: 10px; }
 }
 
 .header-actions {
