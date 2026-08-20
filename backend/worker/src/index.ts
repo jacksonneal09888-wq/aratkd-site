@@ -1448,6 +1448,28 @@ app.get('/kiosk/classes', async (c) => {
   });
 });
 
+// Proxy the Google Sheets calendar CSV so the kiosk avoids cross-origin browser restrictions
+app.get('/kiosk/calendar-csv', async (c) => {
+  try {
+    const upstream = await fetch(`${CALENDAR_CSV_URL}&t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-store' }
+    });
+    if (!upstream.ok) {
+      return c.text('', 502);
+    }
+    const csv = await upstream.text();
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch {
+    return c.text('', 502);
+  }
+});
+
 app.post('/kiosk/check-in', async (c) => {
   const authError = requireKioskAuth(c);
   if (authError) {
@@ -2786,6 +2808,78 @@ app.post('/api/chat', async (c) => {
   } catch (err: any) {
     console.error('Workers AI error:', err?.message || err);
     return c.json({ error: 'ai_unavailable', detail: err?.message || 'Workers AI failed' }, 503);
+  }
+});
+
+// ── SMS-optimised chat endpoint ───────────────────────────────────────────────
+// Used by the Google Apps Script (Google Voice auto-reply).
+// Shorter, fact-dense system prompt the small Llama model can follow reliably.
+
+const SMS_SYSTEM_PROMPT = `You are the ARA TKD bot — a friendly assistant for Ara's Martial Arts Sportsplex in Siler City, NC. You answer SMS texts from people asking about classes, schedules, enrollment, and the school.
+
+KEY FACTS — use ONLY these, never make up anything:
+• Address: 420 E 3rd St, Siler City, NC 27344
+• Main phone: (919) 799-7500  |  Text line: (919) 533-9313
+• Email: aratkdsports@gmail.com  |  Website: aratkd.com
+• Classes run Monday, Wednesday, and Friday ONLY
+  – 4:30 PM: Little Ninjas (ages 3–6)
+  – 5:00 PM: Beginners (White Belt through High Yellow Belt)
+  – 6:00 PM: Intermediate / Advanced (High Yellow through Black Belt)
+• After School Program: Mon–Fri, school pickup, homework help + daily TKD
+• Hapkido & Self-Defense: teens and adults, ask studio for schedule
+• Yoga / Zumba: Coach Fatima, contact studio for times
+• Free trial class: yes — tell them to reply with their name and preferred class time
+• No experience required. All ages welcome from 3 and up.
+• Bilingual: English and Spanish
+• Instructors: Master Ara (founder), Coach Fatima, Instructor Elide, Jr. Instructor Fisher, Jr. Instructor Cane, Coach Jackson
+
+RULES:
+- Keep every reply under 3 short sentences — this is SMS, not email
+- Be warm and direct — answer the actual question asked
+- Never say "it looks like you're trying to..." or "I'm here to help!" without answering
+- If they want to book a trial, say: "Reply with your name and which class time works — 4:30, 5:00, or 6:00 PM — and we'll confirm your spot!"
+- For pricing/rates: "Contact us at (919) 799-7500 for current rates — we have flexible options."
+- Never invent facts, prices, or events not listed above`;
+
+app.post('/api/sms-chat', async (c) => {
+  const clientIp = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+  if (!checkChatRateLimit(clientIp)) {
+    return c.json({ error: 'rate_limited' }, 429);
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const rawMessages = Array.isArray(body.messages) ? body.messages : [];
+
+  const messages = rawMessages
+    .filter((m: any) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant'))
+    .slice(-10) // keep last 10 turns for context
+    .map((m: any) => ({
+      role: m.role as 'user' | 'assistant',
+      content: String(m.content).slice(0, 1000)
+    }));
+
+  if (!messages.length || messages[messages.length - 1].role !== 'user') {
+    return c.json({ error: 'Last message must be from user' }, 400);
+  }
+
+  try {
+    const result = await c.env.AI.run('@cf/meta/llama-3.2-3b-instruct' as any, {
+      messages: [
+        { role: 'system', content: SMS_SYSTEM_PROMPT },
+        ...messages
+      ],
+      max_tokens: 250
+    }) as any;
+
+    const content = (result?.response || '').trim()
+      .replace(/\[ACTION:[^\]]+\]/g, '') // strip any action tags
+      .trim();
+
+    if (!content) return c.json({ error: 'Empty response' }, 502);
+    return c.json({ content });
+  } catch (err: any) {
+    console.error('SMS AI error:', err?.message || err);
+    return c.json({ error: 'ai_unavailable' }, 503);
   }
 });
 

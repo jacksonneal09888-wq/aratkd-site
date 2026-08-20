@@ -583,15 +583,19 @@ function themeFromCalendarFocus(focus) {
 }
 
 async function fetchWeekTheme() {
-  if (kioskCalendarCsvUrl) {
+  // Try Worker proxy first (avoids cross-origin browser restrictions on Google Sheets)
+  const proxyUrl = apiBase ? `${apiBase}/kiosk/calendar-csv` : null;
+  const csvUrls = proxyUrl ? [proxyUrl, kioskCalendarCsvUrl] : [kioskCalendarCsvUrl];
+  for (const url of csvUrls) {
+    if (!url) continue;
     try {
-      const res = await fetch(`${kioskCalendarCsvUrl}&t=${Date.now()}`, { cache: "no-store" });
+      const res = await fetch(`${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const csv = await res.text();
         const focus = parseWeekFocusFromCsv(csv);
         if (focus) { themeState.override = themeFromCalendarFocus(focus); themeState.rotation = null; return; }
       }
-    } catch (e) { console.warn("Calendar theme fetch failed:", e); }
+    } catch (e) { console.warn("Calendar theme fetch failed:", url, e); }
   }
   try {
     const res = await fetch(`/assets/data/week-theme.json?v=${Date.now()}`);
@@ -618,7 +622,7 @@ function getFocusForDate(date) {
   return null;
 }
 
-const KIOSK_BUILD = "20260819a";
+const KIOSK_BUILD = "20260820a";
 
 function scheduleNightlyReload() {
   const now = new Date();
