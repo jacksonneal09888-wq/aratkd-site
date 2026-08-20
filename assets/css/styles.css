@@ -7244,6 +7244,12 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
     color: #fff;
 }
 
+.ara-chat__cta--book {
+    background: #c9a227;
+    color: #fff;
+    text-decoration: none;
+}
+
 .ara-chat__cta-icon {
     font-size: 1.4rem;
     line-height: 1;
@@ -10623,23 +10629,42 @@ body.admin-active .ara-success-box { background: rgba(52,211,153,0.08) !importan
 
 .booking-form__status.error { color: #d81f26; }
 
+/* Booking section — always light so text and cards are clean and readable */
+.booking-section {
+    background: #ffffff;
+    border-top: 3px solid rgba(216,31,38,0.15);
+    border-bottom: 3px solid rgba(216,31,38,0.10);
+}
+.booking-section .section-header h2 { color: #0a0a0f; }
+.booking-section .section-header p   { color: #555; }
+.booking-slot { background: #f8f9fb; }
+.booking-form-wrap { background: #ffffff; }
+
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .booking-section { background: #0d0e14; }
-    :root:not([data-theme="light"]) .booking-slot,
-    :root:not([data-theme="light"]) .booking-form-wrap { background: #14151e; border-color: rgba(255,255,255,0.08); }
-    :root:not([data-theme="light"]) .booking-slot__name { color: rgba(255,255,255,0.9); }
+    :root:not([data-theme="light"]) .booking-section { background: #ffffff; }
+    :root:not([data-theme="light"]) .booking-section .section-header h2 { color: #0a0a0f; }
+    :root:not([data-theme="light"]) .booking-section .section-header p   { color: #555; }
+    :root:not([data-theme="light"]) .booking-slot { background: #f8f9fb; border-color: rgba(0,0,0,0.08); }
+    :root:not([data-theme="light"]) .booking-slot__name { color: #0a0a0f; }
+    :root:not([data-theme="light"]) .booking-slot__day  { color: #888; }
+    :root:not([data-theme="light"]) .booking-form-wrap { background: #ffffff; border-color: rgba(0,0,0,0.1); }
     :root:not([data-theme="light"]) .booking-schedule__title,
-    :root:not([data-theme="light"]) .booking-form__title { color: rgba(255,255,255,0.9); }
+    :root:not([data-theme="light"]) .booking-form__title { color: #0a0a0f; }
+    :root:not([data-theme="light"]) .booking-form__field label { color: #555; }
     :root:not([data-theme="light"]) .booking-form__field input,
     :root:not([data-theme="light"]) .booking-form__field select,
-    :root:not([data-theme="light"]) .booking-form__field textarea { background: #1a1b26; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+    :root:not([data-theme="light"]) .booking-form__field textarea { background: #f8f9fb; border-color: rgba(0,0,0,0.12); color: #0a0a0f; }
 }
-:root[data-theme="dark"] .booking-section { background: #0d0e14; }
-:root[data-theme="dark"] .booking-slot,
-:root[data-theme="dark"] .booking-form-wrap { background: #14151e; border-color: rgba(255,255,255,0.08); }
-:root[data-theme="dark"] .booking-slot__name { color: rgba(255,255,255,0.9); }
+:root[data-theme="dark"] .booking-section { background: #ffffff; }
+:root[data-theme="dark"] .booking-section .section-header h2 { color: #0a0a0f; }
+:root[data-theme="dark"] .booking-section .section-header p   { color: #555; }
+:root[data-theme="dark"] .booking-slot { background: #f8f9fb; border-color: rgba(0,0,0,0.08); }
+:root[data-theme="dark"] .booking-slot__name { color: #0a0a0f; }
+:root[data-theme="dark"] .booking-slot__day  { color: #888; }
+:root[data-theme="dark"] .booking-form-wrap { background: #ffffff; border-color: rgba(0,0,0,0.1); }
 :root[data-theme="dark"] .booking-schedule__title,
-:root[data-theme="dark"] .booking-form__title { color: rgba(255,255,255,0.9); }
+:root[data-theme="dark"] .booking-form__title { color: #0a0a0f; }
+:root[data-theme="dark"] .booking-form__field label { color: #555; }
 :root[data-theme="dark"] .booking-form__field input,
 :root[data-theme="dark"] .booking-form__field select,
-:root[data-theme="dark"] .booking-form__field textarea { background: #1a1b26; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+:root[data-theme="dark"] .booking-form__field textarea { background: #f8f9fb; border-color: rgba(0,0,0,0.12); color: #0a0a0f; }

@@ -14,7 +14,8 @@
     { label: 'What programs do you offer?', text: 'What programs do you offer?' },
     { label: 'How does the belt system work?', text: 'How does the belt system work?' },
     { label: 'How do I sign into the Student Portal?', text: 'How do I sign into the Student Portal?' },
-    { label: 'When are classes held?', text: 'When are classes held?' }
+    { label: 'When are classes held?', text: 'When are classes held?' },
+    { label: 'I want to book a free trial class', text: 'I want to book a free trial class' }
   ];
 
   /* ---------- Parse [ACTION:type:target] from bot response ---------- */
@@ -117,6 +118,10 @@
                 '<span class="ara-chat__cta-icon">💬</span>' +
                 '<span class="ara-chat__cta-info"><span class="ara-chat__cta-number">(919) 533-9313</span><span class="ara-chat__cta-sublabel">Text us — Google Voice</span></span>' +
               '</a>' +
+              '<a href="#book" class="ara-chat__cta ara-chat__cta--book" id="ara-book-cta">' +
+                '<span class="ara-chat__cta-icon">📅</span>' +
+                '<span class="ara-chat__cta-info"><span class="ara-chat__cta-number">Book a Free Trial</span><span class="ara-chat__cta-sublabel">Pick your class &amp; time</span></span>' +
+              '</a>' +
             '</div>' +
             '<div class="ara-chat__starters-wrap">' +
               '<p class="ara-chat__starters-label">Or ask Ara Bot</p>' +
@@ -167,6 +172,18 @@
       nudge.classList.remove('show');
       openChat();
     });
+
+    /* Book CTA — close chat and scroll to booking section */
+    var bookCta = document.getElementById('ara-book-cta');
+    if (bookCta) {
+      bookCta.addEventListener('click', function (e) {
+        e.preventDefault();
+        closeChat();
+        var bookEl = document.getElementById('book');
+        if (bookEl) { bookEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        else { window.location.href = '/#book'; }
+      });
+    }
 
     /* Wire events */
     document.getElementById('ara-chat-btn').addEventListener('click', toggleChat);
