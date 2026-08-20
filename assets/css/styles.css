@@ -10450,3 +10450,196 @@ body.admin-active .admin-component-loading { background: #1f2747 !important; pad
 
 /* ── Admin enroll result box ── */
 body.admin-active .ara-success-box { background: rgba(52,211,153,0.08) !important; border-color: rgba(52,211,153,0.25) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   Booking / Trial Schedule Section
+   ══════════════════════════════════════════════════════════════════ */
+.booking-section { background: var(--bg-alt, #f8f9fa); }
+
+.booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+@media (max-width: 860px) {
+    .booking-grid { grid-template-columns: 1fr; }
+}
+
+/* Schedule cards */
+.booking-schedule__title,
+.booking-form__title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.25rem;
+    color: var(--text-primary, #0a0a0f);
+}
+
+.booking-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.booking-slot {
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 1rem;
+    padding: 1.1rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: 0.15rem 1rem;
+    align-items: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.booking-slot:hover {
+    border-color: rgba(216,31,38,0.35);
+    box-shadow: 0 4px 16px rgba(216,31,38,0.1);
+}
+
+.booking-slot--asap { border-color: rgba(201,162,39,0.3); }
+
+.booking-slot__day {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.booking-slot__time {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #d81f26;
+    grid-column: 1;
+    grid-row: 2;
+    line-height: 1;
+}
+
+.booking-slot__name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary, #0a0a0f);
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.booking-slot__meta {
+    font-size: 0.78rem;
+    color: #888;
+    grid-column: 1;
+    grid-row: 4;
+}
+
+.booking-slot__btn {
+    grid-column: 2;
+    grid-row: 1 / 5;
+    background: #d81f26;
+    color: #fff;
+    border: none;
+    border-radius: 0.6rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    align-self: center;
+}
+
+.booking-slot__btn:hover { background: #b01a20; }
+
+@media (max-width: 480px) {
+    .booking-slot { grid-template-columns: 1fr; }
+    .booking-slot__btn { grid-column: 1; grid-row: auto; margin-top: 0.5rem; width: 100%; }
+}
+
+/* Booking form */
+.booking-form-wrap {
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 1.25rem;
+    padding: 2rem;
+}
+
+.booking-form { display: flex; flex-direction: column; gap: 0.85rem; }
+
+.booking-form__field { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.booking-form__field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary, #555);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.booking-form__field input,
+.booking-form__field select,
+.booking-form__field textarea {
+    border: 1.5px solid rgba(0,0,0,0.12);
+    border-radius: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-primary, #0a0a0f);
+    background: #fafafa;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+
+.booking-form__field input:focus,
+.booking-form__field select:focus,
+.booking-form__field textarea:focus {
+    outline: none;
+    border-color: #d81f26;
+    background: #fff;
+}
+
+.booking-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.booking-form__submit { margin-top: 0.5rem; }
+
+.booking-form__status {
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 1.4em;
+    color: #22c55e;
+    text-align: center;
+}
+
+.booking-form__status.error { color: #d81f26; }
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .booking-section { background: #0d0e14; }
+    :root:not([data-theme="light"]) .booking-slot,
+    :root:not([data-theme="light"]) .booking-form-wrap { background: #14151e; border-color: rgba(255,255,255,0.08); }
+    :root:not([data-theme="light"]) .booking-slot__name { color: rgba(255,255,255,0.9); }
+    :root:not([data-theme="light"]) .booking-schedule__title,
+    :root:not([data-theme="light"]) .booking-form__title { color: rgba(255,255,255,0.9); }
+    :root:not([data-theme="light"]) .booking-form__field input,
+    :root:not([data-theme="light"]) .booking-form__field select,
+    :root:not([data-theme="light"]) .booking-form__field textarea { background: #1a1b26; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+}
+:root[data-theme="dark"] .booking-section { background: #0d0e14; }
+:root[data-theme="dark"] .booking-slot,
+:root[data-theme="dark"] .booking-form-wrap { background: #14151e; border-color: rgba(255,255,255,0.08); }
+:root[data-theme="dark"] .booking-slot__name { color: rgba(255,255,255,0.9); }
+:root[data-theme="dark"] .booking-schedule__title,
+:root[data-theme="dark"] .booking-form__title { color: rgba(255,255,255,0.9); }
+:root[data-theme="dark"] .booking-form__field input,
+:root[data-theme="dark"] .booking-form__field select,
+:root[data-theme="dark"] .booking-form__field textarea { background: #1a1b26; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }

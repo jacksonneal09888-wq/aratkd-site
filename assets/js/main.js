@@ -30,7 +30,7 @@ const GOOGLE_CALENDAR_GID_MAP = {
     "2026-05": "1924086127",
     "2026-06": "1157707621",
     "2026-07": "1428272169",
-    // "2026-08": "<gid>",  ← add when Aug sheet tab is created
+    "2026-08": "1420787922",
 };
 
 function getCurrentCalendarGid() {

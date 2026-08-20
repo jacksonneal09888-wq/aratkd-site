@@ -13,6 +13,9 @@ interface Env {
   BREVO_API_KEY?: string;
   BREVO_SENDER_EMAIL?: string;
   BREVO_SENDER_NAME?: string;
+  TWILIO_ACCOUNT_SID?: string;
+  TWILIO_AUTH_TOKEN?: string;
+  TWILIO_PHONE_NUMBER?: string;
 }
 
 const MASTER_ARA_SYSTEM_PROMPT = `You are the Master Ara Bot — the friendly, knowledgeable AI guide for Ara's Martial Arts Sportsplex in Siler City, NC. You help students, parents, and visitors navigate the website, answer questions about programs, belts, and training, and guide them to take action.
@@ -66,19 +69,25 @@ Progress requires attendance (lessons completed) and skill demonstration:
 - Shows: current belt, attendance progress, lessons remaining, study guides, belt test application
 - Contact the studio to get a Student ID: (919) 799-7500 or aratkdsports@gmail.com
 
+## Booking a Trial Class
+- There is a **Book a Trial** section directly on the website at aratkd.com/#book
+- Students can pick their class (Little Ninjas 4:30 PM, Beginners 5:00 PM, Intermediate 6:00 PM), fill out a short form, and the studio confirms within 24 hours
+- Also available by texting (919) 533-9313
+
 ## Website Navigation
 When someone asks how to find something, guide them using these action tags that will appear as clickable buttons:
 - Programs: [ACTION:scroll:#programs]
 - Instructors: [ACTION:scroll:#instructors]
 - Belt Journey: [ACTION:scroll:#belt-journey]
 - Schedule/Calendar: [ACTION:scroll:#schedule]
+- Book a Trial: [ACTION:scroll:#book]
 - Contact: [ACTION:scroll:#contact]
 - Parents Group: [ACTION:scroll:#parents-group]
 - Student Portal: [ACTION:open:student-portal.html]
 - FAQ: [ACTION:scroll:#faq]
 
 ## Common Questions
-- **Trial class?** Yes! Text (919) 533-9313 or use the contact form to set up a free trial class.
+- **Trial class?** Yes! Use the Book a Trial form at aratkd.com/#book, or text (919) 533-9313. [ACTION:scroll:#book]
 - **No experience needed.** Every student starts from white belt regardless of age.
 - **Ages:** Little Ninjas from age 3; no upper age limit.
 - **Uniform:** Comfortable athletic clothes for first visit; doboks provided after enrollment.
@@ -247,7 +256,7 @@ const CALENDAR_GID_MAP: Record<string, string> = {
   '2026-05': '1924086127',
   '2026-06': '1157707621',
   '2026-07': '1428272169',
-  // '2026-08': '<gid>',  ← add when Aug sheet tab is created
+  '2026-08': '1420787922',
 };
 function getCurrentCalendarGid(): string {
   const now = new Date();
@@ -2779,5 +2788,150 @@ app.post('/api/chat', async (c) => {
     return c.json({ error: 'ai_unavailable', detail: err?.message || 'Workers AI failed' }, 503);
   }
 });
+
+// ── Trial Booking ────────────────────────────────────────────────────────────
+
+app.post('/api/book', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const name = (body.name || '').toString().trim();
+  const phone = (body.phone || '').toString().trim();
+  const email = (body.email || '').toString().trim();
+  const program = (body.program || '').toString().trim();
+  const preferredDay = (body.preferredDay || '').toString().trim();
+  const preferredTime = (body.preferredTime || '').toString().trim();
+  const message = (body.message || '').toString().trim();
+
+  if (!name) return c.json({ error: 'Name is required' }, 400);
+  if (!phone && !email) return c.json({ error: 'Phone or email is required' }, 400);
+
+  const now = new Date().toISOString();
+  const id = crypto.randomUUID();
+
+  await c.env.PORTAL_DB.prepare(
+    `INSERT INTO trial_bookings
+       (id, name, phone, email, program, preferred_day, preferred_time, message, status, created_at, updated_at)
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'pending',?9,?9)`
+  ).bind(id, name, phone || null, email || null, program || null, preferredDay || null, preferredTime || null, message || null, now).run();
+
+  // Send notification email to the studio if Brevo is configured
+  if (c.env.BREVO_API_KEY && c.env.BREVO_SENDER_EMAIL) {
+    const lines = [
+      `Name: ${name}`,
+      phone ? `Phone: ${phone}` : '',
+      email ? `Email: ${email}` : '',
+      program ? `Program: ${program}` : '',
+      preferredDay ? `Preferred Day: ${preferredDay}` : '',
+      preferredTime ? `Preferred Time: ${preferredTime}` : '',
+      message ? `Message: ${message}` : '',
+    ].filter(Boolean).join('<br>');
+    await sendBrevoEmail(c.env, {
+      to: [{ email: 'aratkdsports@gmail.com', name: "ARA TKD" }],
+      subject: `New Trial Booking — ${name}`,
+      htmlContent: `<h2>New Trial Class Request</h2><p>${lines}</p><p><em>Submitted ${now}</em></p>`
+    }).catch(() => { /* don't fail the booking if email fails */ });
+  }
+
+  return c.json({ ok: true, bookingId: id });
+});
+
+app.get('/portal/admin/bookings', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const { results } = await c.env.PORTAL_DB.prepare(
+    `SELECT id, name, phone, email, program, preferred_day, preferred_time, message, status, created_at, updated_at
+     FROM trial_bookings
+     ORDER BY datetime(created_at) DESC
+     LIMIT 500`
+  ).all();
+
+  return c.json({ bookings: results || [], generatedAt: new Date().toISOString() });
+});
+
+app.patch('/portal/admin/bookings/:id', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const id = c.req.param('id').trim();
+  const body = await c.req.json().catch(() => ({}));
+  const status = (body.status || '').toString().trim();
+  if (!['pending', 'contacted', 'confirmed', 'cancelled'].includes(status)) {
+    return c.json({ error: 'Invalid status' }, 400);
+  }
+  const now = new Date().toISOString();
+  await c.env.PORTAL_DB.prepare(
+    `UPDATE trial_bookings SET status = ?1, updated_at = ?2 WHERE id = ?3`
+  ).bind(status, now, id).run();
+
+  return c.json({ ok: true });
+});
+
+// ── SMS via Twilio ────────────────────────────────────────────────────────────
+// Twilio sends incoming SMS as POST with URL-encoded body.
+// Set this URL as your Twilio webhook: https://portal-api.aratkd.workers.dev/sms/incoming
+
+const smsRateMap = new Map<string, { count: number; resetAt: number }>();
+function checkSmsRateLimit(from: string): boolean {
+  const now = Date.now();
+  const entry = smsRateMap.get(from);
+  if (!entry || now > entry.resetAt) {
+    smsRateMap.set(from, { count: 1, resetAt: now + 60_000 });
+    return true;
+  }
+  if (entry.count >= 5) return false;
+  entry.count += 1;
+  return true;
+}
+
+app.post('/sms/incoming', async (c) => {
+  const sid = c.env.TWILIO_ACCOUNT_SID;
+  const authToken = c.env.TWILIO_AUTH_TOKEN;
+  const twilioFrom = c.env.TWILIO_PHONE_NUMBER;
+
+  if (!sid || !authToken || !twilioFrom) {
+    return c.text('SMS not configured', 503);
+  }
+
+  const formText = await c.req.text();
+  const params = new URLSearchParams(formText);
+  const from = params.get('From') || '';
+  const body = (params.get('Body') || '').trim();
+
+  if (!from || !body) return c.text('', 200);
+
+  if (!checkSmsRateLimit(from)) {
+    await sendSms(sid, authToken, twilioFrom, from, "You're sending messages too fast. Please wait a minute and try again.");
+    return c.text('', 200);
+  }
+
+  let aiReply = `Hi! This is the ARA TKD bot. We're located at 420 E 3rd St, Siler City, NC. Classes run Mon/Wed/Fri. Call (919) 799-7500 or visit aratkd.com for more info!`;
+
+  try {
+    const result = await c.env.AI.run('@cf/meta/llama-3.2-3b-instruct' as any, {
+      messages: [
+        { role: 'system', content: MASTER_ARA_SYSTEM_PROMPT + '\n\nIMPORTANT: This is an SMS reply. Keep your answer under 160 characters when possible. No markdown, no action tags, plain text only.' },
+        { role: 'user', content: body.slice(0, 500) }
+      ],
+      max_tokens: 200
+    }) as any;
+    const generated = (result?.response || '').trim().replace(/\[ACTION:[^\]]+\]/g, '');
+    if (generated) aiReply = generated;
+  } catch (_) { /* fall through to default reply */ }
+
+  await sendSms(sid, authToken, twilioFrom, from, aiReply);
+  return c.text('', 200);
+});
+
+async function sendSms(accountSid: string, authToken: string, from: string, to: string, body: string) {
+  const credentials = btoa(`${accountSid}:${authToken}`);
+  await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${credentials}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({ From: from, To: to, Body: body.slice(0, 1600) }).toString()
+  });
+}
 
 export default app;

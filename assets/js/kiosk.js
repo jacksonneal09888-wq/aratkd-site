@@ -36,8 +36,7 @@ const CALENDAR_GID_MAP = {
   "2026-05": "1924086127",
   "2026-06": "1157707621",
   "2026-07": "1428272169",
-  // Add new month GIDs here as each Google Sheet tab is created:
-  // "2026-08": "<gid>",
+  "2026-08": "1420787922",
 };
 function getCurrentCalendarGid() {
   const n = new Date();
@@ -619,7 +618,7 @@ function getFocusForDate(date) {
   return null;
 }
 
-const KIOSK_BUILD = "20260724c";
+const KIOSK_BUILD = "20260819a";
 
 function scheduleNightlyReload() {
   const now = new Date();

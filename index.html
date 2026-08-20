@@ -120,7 +120,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260816f">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260819a">
 </head>
 <body data-api-base="https://portal-api.jacksonneal09888.workers.dev">
     <div class="kukkiwon-badge" aria-hidden="true"><img src="assets/Images/Kukkiwon.webp" alt="Kukkiwon"></div><div class="taegeuk-badge" aria-hidden="true"><img src="assets/Images/taegeuk.svg" alt="Taegeuk"></div>
@@ -143,6 +143,7 @@
                     <li><a href="student-portal.html">Student Portal</a></li>
                     <li><a href="shop.html">Shop</a></li>
                     <li><a href="coach-fatima.html">Yoga &amp; Zumba</a></li>
+                    <li><a href="#book">Book a Trial</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -413,11 +414,11 @@
                 </header>
                 <div class="portal-calendar">
                     <div class="portal-calendar__actions">
-                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1428272169" target="_blank" rel="noopener" download>Download Latest Calendar</a>
+                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1420787922" target="_blank" rel="noopener" download>Download Latest Calendar</a>
                         <a class="text-link-btn" href="student-portal.html#portal-calendar-title">Open Student Portal</a>
                     </div>
                     <div class="portal-calendar__header">
-                        <p class="eyebrow" data-calendar-month>July 2026</p>
+                        <p class="eyebrow" data-calendar-month>August 2026</p>
                         <p class="portal-calendar__note" data-calendar-note>Every class includes basics, poomsae, sparring, breaking drills, and conditioning. Progress is tracked through stripes and attendance.</p>
                     </div>
                     <div class="portal-calendar__table-wrap">
@@ -584,6 +585,108 @@
             </div>
         </section>
 
+
+        <!-- ── Booking / Schedule a Trial ─────────────────────────── -->
+        <section class="section booking-section" id="book">
+            <div class="container">
+                <header class="section-header">
+                    <h2>Schedule a Free Trial Class</h2>
+                    <p>Pick the class and time that works for your family. We'll reach out within 24 hours to confirm your spot.</p>
+                </header>
+                <div class="booking-grid">
+                    <!-- Weekly schedule cards -->
+                    <div class="booking-schedule">
+                        <h3 class="booking-schedule__title">Class Schedule</h3>
+                        <div class="booking-slots">
+                            <div class="booking-slot">
+                                <div class="booking-slot__day">Mon · Wed · Fri</div>
+                                <div class="booking-slot__time">4:30 PM</div>
+                                <div class="booking-slot__name">Little Ninjas</div>
+                                <div class="booking-slot__meta">Ages 3–6 · Play-based TKD</div>
+                                <button class="booking-slot__btn" data-program="Little Ninjas" data-time="4:30 PM">Book This Class</button>
+                            </div>
+                            <div class="booking-slot">
+                                <div class="booking-slot__day">Mon · Wed · Fri</div>
+                                <div class="booking-slot__time">5:00 PM</div>
+                                <div class="booking-slot__name">Beginners</div>
+                                <div class="booking-slot__meta">White – High Yellow Belt</div>
+                                <button class="booking-slot__btn" data-program="Beginners" data-time="5:00 PM">Book This Class</button>
+                            </div>
+                            <div class="booking-slot">
+                                <div class="booking-slot__day">Mon · Wed · Fri</div>
+                                <div class="booking-slot__time">6:00 PM</div>
+                                <div class="booking-slot__name">Intermediate / Advanced</div>
+                                <div class="booking-slot__meta">High Yellow – Black Belt</div>
+                                <button class="booking-slot__btn" data-program="Intermediate/Advanced" data-time="6:00 PM">Book This Class</button>
+                            </div>
+                            <div class="booking-slot booking-slot--asap">
+                                <div class="booking-slot__day">Mon – Fri</div>
+                                <div class="booking-slot__time">After School</div>
+                                <div class="booking-slot__name">After School Program</div>
+                                <div class="booking-slot__meta">Pickup from local schools</div>
+                                <button class="booking-slot__btn" data-program="After School Program" data-time="After School">Book This Class</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking form -->
+                    <div class="booking-form-wrap">
+                        <h3 class="booking-form__title">Reserve Your Spot</h3>
+                        <form class="booking-form" id="booking-form" novalidate>
+                            <div class="booking-form__field">
+                                <label for="book-name">Your Name *</label>
+                                <input type="text" id="book-name" name="name" required placeholder="Full name">
+                            </div>
+                            <div class="booking-form__field">
+                                <label for="book-phone">Phone Number *</label>
+                                <input type="tel" id="book-phone" name="phone" required placeholder="(919) 533-9313">
+                            </div>
+                            <div class="booking-form__field">
+                                <label for="book-email">Email (optional)</label>
+                                <input type="email" id="book-email" name="email" placeholder="you@example.com">
+                            </div>
+                            <div class="booking-form__field">
+                                <label for="book-program">Program</label>
+                                <select id="book-program" name="program">
+                                    <option value="">— Select a program —</option>
+                                    <option value="Little Ninjas">Little Ninjas (Ages 3–6)</option>
+                                    <option value="Beginners">Beginners (White–High Yellow)</option>
+                                    <option value="Intermediate/Advanced">Intermediate / Advanced</option>
+                                    <option value="After School Program">After School Program</option>
+                                    <option value="Hapkido & Self-Defense">Hapkido &amp; Self-Defense</option>
+                                </select>
+                            </div>
+                            <div class="booking-form__row">
+                                <div class="booking-form__field">
+                                    <label for="book-day">Preferred Day</label>
+                                    <select id="book-day" name="preferredDay">
+                                        <option value="">Any</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Friday">Friday</option>
+                                    </select>
+                                </div>
+                                <div class="booking-form__field">
+                                    <label for="book-time">Preferred Time</label>
+                                    <select id="book-time" name="preferredTime">
+                                        <option value="">Any</option>
+                                        <option value="4:30 PM">4:30 PM</option>
+                                        <option value="5:00 PM">5:00 PM</option>
+                                        <option value="6:00 PM">6:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="booking-form__field">
+                                <label for="book-message">Any questions or notes?</label>
+                                <textarea id="book-message" name="message" rows="3" placeholder="e.g. My child is 5 and has never done martial arts"></textarea>
+                            </div>
+                            <button type="submit" class="cta-btn booking-form__submit" id="booking-submit">Request Free Trial</button>
+                            <p class="booking-form__status" id="booking-status" aria-live="polite"></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section class="section contact-section" id="contact">
             <div class="container contact-grid">
@@ -758,5 +861,72 @@
     }
     </script>
     <script src="assets/js/ara-chat.js?v=20260724c" defer></script>
+    <script>
+    (function() {
+        const API = document.body.dataset.apiBase || 'https://portal-api.aratkd.workers.dev';
+        const form = document.getElementById('booking-form');
+        const status = document.getElementById('booking-status');
+        const programSel = document.getElementById('book-program');
+        const timeSel = document.getElementById('book-time');
+
+        // Wire slot buttons to pre-fill form and scroll
+        document.querySelectorAll('.booking-slot__btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const p = btn.dataset.program || '';
+                const t = btn.dataset.time || '';
+                if (programSel && p) programSel.value = p;
+                if (timeSel && t) timeSel.value = t;
+                document.getElementById('book-name')?.focus();
+                document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        if (!form) return;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (status) { status.textContent = ''; status.className = 'booking-form__status'; }
+            const btn = document.getElementById('booking-submit');
+            if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+            const data = {
+                name: form.querySelector('[name=name]')?.value?.trim() || '',
+                phone: form.querySelector('[name=phone]')?.value?.trim() || '',
+                email: form.querySelector('[name=email]')?.value?.trim() || '',
+                program: form.querySelector('[name=program]')?.value?.trim() || '',
+                preferredDay: form.querySelector('[name=preferredDay]')?.value?.trim() || '',
+                preferredTime: form.querySelector('[name=preferredTime]')?.value?.trim() || '',
+                message: form.querySelector('[name=message]')?.value?.trim() || ''
+            };
+
+            if (!data.name) { showErr('Please enter your name.'); return; }
+            if (!data.phone && !data.email) { showErr('Please enter a phone number or email.'); return; }
+
+            try {
+                const res = await fetch(API + '/api/book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    if (status) { status.textContent = '✓ Request sent! We\'ll confirm your trial class within 24 hours.'; status.className = 'booking-form__status'; }
+                    form.reset();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showErr(err.error || 'Something went wrong. Please call (919) 799-7500.');
+                }
+            } catch (_) {
+                showErr('Unable to reach the server. Please call (919) 799-7500 or text (919) 533-9313.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Request Free Trial'; }
+            }
+
+            function showErr(msg) {
+                if (status) { status.textContent = msg; status.className = 'booking-form__status error'; }
+                if (btn) { btn.disabled = false; btn.textContent = 'Request Free Trial'; }
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
