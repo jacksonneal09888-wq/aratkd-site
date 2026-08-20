@@ -332,11 +332,9 @@ body.js-enabled [data-reveal].is-visible {
     50%       { box-shadow: 0 0 0 6px rgba(201,162,39,0.24), 0 0 36px rgba(201,162,39,0.78), 0 4px 28px rgba(0,0,0,0.8); }
 }
 
-/* Mobile — drop below header, shrink slightly */
+/* Mobile — hide badges entirely to reduce clutter */
 @media (max-width: 768px) {
-    .kukkiwon-badge, .taegeuk-badge { width: 48px; height: 48px; top: 72px; }
-    .kukkiwon-badge { left: 10px; }
-    .taegeuk-badge  { right: 10px; }
+    .kukkiwon-badge, .taegeuk-badge { display: none; }
 }
 
 .header-actions {
@@ -526,11 +524,11 @@ body {
         align-self: flex-end;
     }
 
-    .hero-aside {
+    .hero-copy {
         grid-row: 1;
     }
 
-    .hero-copy {
+    .hero-aside {
         grid-row: 2;
     }
 }
@@ -6987,8 +6985,8 @@ body[data-portal-mode="admin"] .class-drawer .admin-drawer__panel {
         min-width: 130px;
         padding: 1.25rem 0.85rem 1.5rem;
     }
-    .belt-step__name { font-size: 0.88rem; }
-    .belt-step__focus { font-size: 0.74rem; }
+    .belt-step__name { font-size: 0.875rem; }
+    .belt-step__focus { font-size: 0.875rem; }
 }
 
 /* Belt step meaning line */
