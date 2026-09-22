@@ -918,9 +918,28 @@ function renderSheetCalendar(root, calendar) {
         return;
     }
 
+    const now = new Date();
+    const isCurrentMonth =
+        Number.isFinite(calendar.year) &&
+        Number.isFinite(calendar.month) &&
+        calendar.year === now.getFullYear() &&
+        calendar.month === now.getMonth();
+
     const monthTargets = root.querySelectorAll("[data-calendar-month]");
     monthTargets.forEach((element) => {
         element.textContent = calendar.monthLabel;
+        element.classList.toggle("is-stale-month", !isCurrentMonth);
+        const existingBadge = element.querySelector(".calendar-stale-badge");
+        if (!isCurrentMonth) {
+            const badge = existingBadge || document.createElement("span");
+            badge.className = "calendar-stale-badge";
+            badge.textContent = "latest available";
+            if (!existingBadge) {
+                element.appendChild(badge);
+            }
+        } else if (existingBadge) {
+            existingBadge.remove();
+        }
     });
 
     const noteElement = root.querySelector("[data-calendar-note]");

@@ -2606,6 +2606,26 @@ body {
     font-weight: 700;
 }
 
+.calendar-stale-badge {
+    display: inline-block;
+    margin-left: 0.55rem;
+    font-size: 0.55em;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #8a6d1a;
+    background: rgba(201, 162, 39, 0.16);
+    border: 1px solid rgba(201, 162, 39, 0.45);
+    border-radius: 999px;
+    padding: 0.18rem 0.65rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.is-stale-month {
+    font-size: 0.85em;
+}
+
 .week-focus {
     display: block;
     font-size: 0.8rem;
