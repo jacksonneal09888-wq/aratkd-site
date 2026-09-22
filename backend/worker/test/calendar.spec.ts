@@ -45,27 +45,46 @@ interface FakeState {
 }
 
 function fakeDb(state: FakeState) {
+  const prep = (handlers: {
+    first?: () => Promise<unknown>;
+    all?: () => Promise<unknown>;
+    run?: (args: unknown[]) => Promise<void>;
+  }) => {
+    let bound: unknown[] = [];
+    const stmt: any = {
+      bind: (...args: unknown[]) => {
+        bound = args;
+        return stmt;
+      },
+      run: async () => handlers.run ? handlers.run(bound) : undefined,
+      first: handlers.first || (async () => null),
+      all: handlers.all || (async () => ({ results: [] })),
+    };
+    return stmt;
+  };
   return {
     prepare(sql: string) {
       if (sql.includes('FROM calendar_resolution')) {
-        return { first: async () => state.resolution };
+        return prep({ first: async () => state.resolution });
       }
       if (sql.includes('FROM calendar_tab_cache')) {
-        return { all: async () => ({ results: Array.from(state.tabs.values()) }) };
+        return prep({ all: async () => ({ results: Array.from(state.tabs.values()) }) });
       }
       if (sql.includes('INSERT INTO calendar_tab_cache')) {
-        return {
-          run: async (gid: string, _name: string, year: number, month: number) => {
+        return prep({
+          run: async (args: unknown[]) => {
+            const [gid, _name, year, month] = args as [string, string, number, number];
             state.tabs.set(gid, { gid, header_year: year, header_month: month });
           },
-        };
+        });
       }
       if (sql.includes('INSERT INTO calendar_resolution')) {
-        return {
-          run: async (_id: number, gid: string, label: string, resolvedAt: string) => {
+        return prep({
+          run: async (args: unknown[]) => {
+            const [gid, label, resolvedAt] = args as [string, string, string];
             state.resolution = { gid, label, resolved_at: resolvedAt };
           },
-        };
+        });
       }
       throw new Error(`unexpected SQL: ${sql}`);
     },

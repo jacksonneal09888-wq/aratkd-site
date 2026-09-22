@@ -15,3 +15,4 @@ assets/materials/new\ students*.jpg
 assets/materials/*roster*
 docs/*.csv
 docs/*.xlsx
+.agents/
