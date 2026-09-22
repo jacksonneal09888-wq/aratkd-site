@@ -188,7 +188,8 @@ export async function resolveCalendarGid(
                  header_month = excluded.header_month,
                  checked_at = excluded.checked_at`
             )
-            .run(tab.gid, tab.name, header.year, header.month, now.toISOString());
+            .bind(tab.gid, tab.name, header.year, header.month, now.toISOString())
+            .run();
         }
       }
     }
@@ -221,7 +222,8 @@ export async function resolveCalendarGid(
            label = excluded.label,
            resolved_at = excluded.resolved_at`
       )
-      .run(best.gid, label, now.toISOString());
+      .bind(best.gid, label, now.toISOString())
+      .run();
 
     return { gid: best.gid, label, resolvedAt: now.toISOString() };
   } catch (error) {
