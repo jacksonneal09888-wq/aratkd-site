@@ -18,6 +18,11 @@ const SITE_API_BASE = (() => {
 })();
 const CALENDAR_MONTH_OPTIONS = { month: "long", year: "numeric" };
 const CALENDAR_DATE_OPTIONS = { weekday: "long", month: "long", day: "numeric" };
+// The Worker watches the spreadsheet and serves whichever tab matches the
+// current month, so a newly posted school calendar is picked up automatically.
+const PORTAL_API_BASE = "https://portal-api.jacksonneal09888.workers.dev";
+
+// Legacy direct-to-Google URLs — kept as a fallback if the Worker is unreachable.
 const GOOGLE_CALENDAR_BASE =
     "https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export";
 
@@ -41,13 +46,16 @@ function getCurrentCalendarGid() {
 }
 
 function getCalendarCsvUrl() {
-    const gid = getCurrentCalendarGid();
-    return `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${gid}&t=${Date.now()}`;
+    return `${PORTAL_API_BASE}/api/calendar/csv`;
 }
 
 function getCalendarDownloadUrl() {
+    return `${PORTAL_API_BASE}/api/calendar/download`;
+}
+
+function getGoogleCalendarCsvUrl() {
     const gid = getCurrentCalendarGid();
-    return `${GOOGLE_CALENDAR_BASE}?format=pdf&gid=${gid}`;
+    return `${GOOGLE_CALENDAR_BASE}?format=csv&gid=${gid}&t=${Date.now()}`;
 }
 const EVENT_AFTER_SCHOOL = createEvent("After School Success Program", "3:00 PM", "after-school", "Homework lab, healthy snack, and martial arts coaching.");
 const EVENT_LITTLE_NINJAS = createEvent("Little Ninjas (Ages 3-5)", "4:30 - 5:00 PM", "class", "Play-based drills that build balance, focus, and courtesy.");
@@ -712,12 +720,18 @@ function initSheetCalendar() {
         });
     });
 
-    fetchFresh(getCalendarCsvUrl(), { redirect: "follow" })
-        .then((response) => {
+    const loadCalendarText = (url) =>
+        fetchFresh(url, { redirect: "follow" }).then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to load calendar CSV: ${response.status}`);
             }
             return response.text();
+        });
+
+    loadCalendarText(getCalendarCsvUrl())
+        .catch(() => {
+            // Worker unavailable — fall back to reading Google Sheets directly.
+            return loadCalendarText(getGoogleCalendarCsvUrl());
         })
         .then((text) => {
             const calendar = parseSheetCalendar(text);

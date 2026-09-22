@@ -8,6 +8,7 @@ import {
   isSuspiciousUA, HONEYPOT_PATHS,
   runDataPurge,
 } from './security';
+import { resolveCalendarGid } from './calendar';
 
 interface Env {
   PORTAL_DB: D1Database;
@@ -1533,12 +1534,32 @@ app.get('/portal/profile', async (c) => {
   return c.json({ student: sanitizeStudentRecord(student) });
 });
 
+// Resolve the spreadsheet tab for the current month via the watcher cache,
+// falling back to the static month→gid map if the watcher is unavailable.
+async function getCalendarTarget(db: D1Database): Promise<{ gid: string; label: string | null }> {
+  try {
+    const resolution = await resolveCalendarGid(db, CALENDAR_SPREADSHEET_ID);
+    if (resolution) {
+      return { gid: resolution.gid, label: resolution.label };
+    }
+  } catch (error) {
+    console.error('Calendar resolution failed, using static gid map', error);
+  }
+  return { gid: getCurrentCalendarGid(), label: null };
+}
+
+function calendarCsvUrlForGid(gid: string): string {
+  return `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
+}
+
 app.get('/kiosk/classes', async (c) => {
   const events = await fetchActiveEvents(c.env.PORTAL_DB);
+  const calendar = await getCalendarTarget(c.env.PORTAL_DB);
   return c.json({
     classes: kioskClassCatalog,
     events,
-    calendarCsvUrl: CALENDAR_CSV_URL,
+    calendarCsvUrl: calendarCsvUrlForGid(calendar.gid),
+    calendarLabel: calendar.label,
     generatedAt: new Date().toISOString()
   });
 });
@@ -1546,7 +1567,8 @@ app.get('/kiosk/classes', async (c) => {
 // Proxy the Google Sheets calendar CSV so the kiosk avoids cross-origin browser restrictions
 app.get('/kiosk/calendar-csv', async (c) => {
   try {
-    const upstream = await fetch(`${CALENDAR_CSV_URL}&t=${Date.now()}`, {
+    const calendar = await getCalendarTarget(c.env.PORTAL_DB);
+    const upstream = await fetch(`${calendarCsvUrlForGid(calendar.gid)}&t=${Date.now()}`, {
       headers: { 'Cache-Control': 'no-store' }
     });
     if (!upstream.ok) {
@@ -1563,6 +1585,50 @@ app.get('/kiosk/calendar-csv', async (c) => {
   } catch {
     return c.text('', 502);
   }
+});
+
+// Public calendar API — the website reads the current month through these
+// endpoints so a newly posted school tab is picked up without code changes.
+app.get('/api/calendar/csv', async (c) => {
+  try {
+    const calendar = await getCalendarTarget(c.env.PORTAL_DB);
+    const upstream = await fetch(`${calendarCsvUrlForGid(calendar.gid)}&t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-store' }
+    });
+    if (!upstream.ok) {
+      return c.text('', 502);
+    }
+    const csv = await upstream.text();
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Cache-Control': 'public, max-age=300',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch {
+    return c.text('', 502);
+  }
+});
+
+app.get('/api/calendar/download', async (c) => {
+  try {
+    const calendar = await getCalendarTarget(c.env.PORTAL_DB);
+    return c.redirect(
+      `https://docs.google.com/spreadsheets/d/${CALENDAR_SPREADSHEET_ID}/export?format=pdf&gid=${calendar.gid}`
+    );
+  } catch {
+    return c.text('', 502);
+  }
+});
+
+app.get('/api/calendar/status', async (c) => {
+  const calendar = await getCalendarTarget(c.env.PORTAL_DB);
+  return c.json({
+    label: calendar.label,
+    gid: calendar.gid,
+    generatedAt: new Date().toISOString()
+  });
 });
 
 app.post('/kiosk/check-in', async (c) => {
@@ -3286,6 +3352,19 @@ export default {
       console.log('[cron] Data purge complete', JSON.stringify(result));
     } catch (err) {
       console.error('[cron] Data purge failed', err);
+    }
+
+    // Sweep the school spreadsheet for newly posted month tabs so the site
+    // switches over without waiting for an on-demand request. `force`
+    // re-checks whenever the cached month is not the current month; tab
+    // headers are cached in D1, so repeat sweeps cost one lightweight fetch.
+    try {
+      const resolution = await resolveCalendarGid(env.PORTAL_DB, CALENDAR_SPREADSHEET_ID, {
+        force: true
+      });
+      console.log('[cron] Calendar resolution', resolution ? resolution.label : 'unavailable');
+    } catch (err) {
+      console.error('[cron] Calendar resolution failed', err);
     }
   },
 };
