@@ -643,7 +643,7 @@ body {
 
 .hero-flyer-grid--single {
     grid-template-columns: 1fr;
-    max-width: 400px;
+    max-width: 560px;
     margin: 0 auto;
 }
 

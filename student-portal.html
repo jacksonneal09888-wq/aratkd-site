@@ -10,16 +10,1183 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css?v=20260819b">
+    <style>
+/* ── Portal design tokens ── */
+:root {
+    --sp-bg:       #07090f;
+    --sp-surface:  #0d1121;
+    --sp-surface2: #141828;
+    --sp-red:      #d81f26;
+    --sp-gold:     #c9a227;
+    --sp-border:   rgba(255,255,255,0.08);
+    --sp-text:     #e8eaed;
+    --sp-muted:    rgba(255,255,255,0.42);
+    --sp-radius:   0.9rem;
+    --sp-font-h:   'Rajdhani', sans-serif;
+    --sp-font-b:   'Roboto', sans-serif;
+}
+
+/* ── When portal-app is visible, transform the page into a full dashboard ── */
+body:has(#portal-app:not([hidden])) {
+    background: var(--sp-bg);
+    overflow-x: hidden;
+}
+body:has(#portal-app:not([hidden])) .site-header,
+body:has(#portal-app:not([hidden])) .site-footer,
+body:has(#portal-app:not([hidden])) #sp-login-view,
+body:has(#portal-app:not([hidden])) #ara-chat-widget,
+body:has(#portal-app:not([hidden])) #ara-nudge,
+body:has(#portal-app:not([hidden])) .kukkiwon-badge,
+body:has(#portal-app:not([hidden])) .taegeuk-badge {
+    display: none !important;
+}
+
+/* ══════════════════════════════════════
+   LOGIN VIEW
+══════════════════════════════════════ */
+#sp-login-view {
+    min-height: 100vh;
+    background: var(--sp-bg);
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+}
+
+/* Left: brand panel */
+.sp-login__brand {
+    background:
+        radial-gradient(ellipse 70% 60% at 30% 40%, rgba(216,31,38,0.18) 0%, transparent 70%),
+        linear-gradient(160deg, #0c0005 0%, #07090f 60%, #040608 100%);
+    border-right: 1px solid var(--sp-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 3rem;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+.sp-login__brand::before {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(201,162,39,0.07) 0%, transparent 70%);
+    pointer-events: none;
+}
+.sp-login__mark {
+    font-family: var(--sp-font-h);
+    font-size: 5rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--sp-red);
+    line-height: 1;
+    text-shadow: 0 0 48px rgba(216,31,38,0.4);
+}
+.sp-login__school {
+    text-align: center;
+}
+.sp-login__school h1 {
+    font-family: var(--sp-font-h);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--sp-text);
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    margin: 0 0 0.4rem;
+}
+.sp-login__school p {
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+}
+.sp-belt-strip {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 1rem;
+}
+.sp-belt-strip__swatch {
+    width: 28px; height: 10px;
+    border-radius: 3px;
+    opacity: 0.75;
+}
+.sp-login__perks {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-self: stretch;
+}
+.sp-login__perks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    color: var(--sp-muted);
+    line-height: 1.45;
+}
+.sp-login__perks li::before {
+    content: '✓';
+    color: var(--sp-gold);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Right: form panel */
+.sp-login__panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 3rem;
+    background: var(--sp-bg);
+}
+.sp-login__panel-inner {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.sp-login__back {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sp-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    transition: color 0.15s;
+    margin-bottom: 0.5rem;
+}
+.sp-login__back:hover { color: var(--sp-text); }
+.sp-login__heading {
+    font-family: var(--sp-font-h);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sp-text);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    margin: 0;
+}
+.sp-login__sub {
+    font-size: 0.88rem;
+    color: var(--sp-muted);
+    margin: 0;
+}
+.sp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+.sp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.sp-field label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sp-muted);
+}
+.sp-field input {
+    background: var(--sp-surface);
+    border: 1.5px solid var(--sp-border);
+    border-radius: 0.65rem;
+    color: var(--sp-text);
+    font-family: var(--sp-font-b);
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+    outline: none;
+    transition: border-color 0.15s;
+    color-scheme: dark;
+}
+.sp-field input:focus {
+    border-color: var(--sp-red);
+    box-shadow: 0 0 0 3px rgba(216,31,38,0.15);
+}
+.sp-hint {
+    font-size: 0.78rem;
+    color: var(--sp-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+.sp-submit {
+    background: var(--sp-red);
+    color: #fff;
+    border: none;
+    border-radius: 0.65rem;
+    font-family: var(--sp-font-h);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(216,31,38,0.35);
+}
+.sp-submit:hover { background: #c01919; }
+.sp-submit:active { background: #a01515; }
+.sp-error {
+    font-size: 0.85rem;
+    color: #f87171;
+    background: rgba(248,113,113,0.09);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: 0.55rem;
+    padding: 0.65rem 0.9rem;
+    min-height: 0;
+    display: none;
+}
+.sp-error:not(:empty) { display: block; }
+.sp-help-link {
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    text-align: center;
+}
+.sp-help-link a {
+    color: var(--sp-gold);
+    text-decoration: none;
+}
+.sp-help-link a:hover { text-decoration: underline; }
+
+/* ── Login mobile ── */
+@media (max-width: 700px) {
+    #sp-login-view { grid-template-columns: 1fr; }
+    .sp-login__brand {
+        padding: 2.5rem 2rem 2rem;
+        border-right: none;
+        border-bottom: 1px solid var(--sp-border);
+    }
+    .sp-login__mark { font-size: 3.5rem; }
+    .sp-login__perks { display: none; }
+    .sp-login__panel { padding: 2.5rem 1.5rem; }
+}
+
+/* ══════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════ */
+#portal-app {
+    min-height: 100vh;
+    background: var(--sp-bg);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--sp-font-b);
+    color: var(--sp-text);
+}
+
+/* ── Topbar ── */
+.sp-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(7,9,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--sp-border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.75rem;
+    height: 64px;
+    flex-shrink: 0;
+}
+.sp-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+}
+.sp-topbar__mark {
+    font-family: var(--sp-font-h);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--sp-red);
+    line-height: 1;
+}
+.sp-topbar__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sp-muted);
+}
+.sp-topbar__spacer { flex: 1; }
+.sp-topbar__student {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.sp-topbar__avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(216,31,38,0.15);
+    border: 1.5px solid rgba(216,31,38,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sp-font-h);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--sp-red);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+}
+.sp-topbar__name {
+    font-family: var(--sp-font-h);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--sp-text);
+    white-space: nowrap;
+}
+.sp-topbar__meta {
+    font-size: 0.68rem;
+    color: var(--sp-muted);
+    white-space: nowrap;
+}
+.sp-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+}
+.sp-ghost-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--sp-border);
+    border-radius: 0.5rem;
+    color: rgba(255,255,255,0.65);
+    font-family: var(--sp-font-b);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.sp-ghost-btn:hover { background: rgba(255,255,255,0.1); color: var(--sp-text); }
+.sp-ghost-btn--danger:hover { background: rgba(216,31,38,0.12); color: #f87171; border-color: rgba(216,31,38,0.25); }
+
+@media (max-width: 600px) {
+    .sp-topbar { padding: 0 1rem; }
+    .sp-topbar__meta { display: none; }
+    .sp-topbar__label { display: none; }
+}
+
+/* ── Dashboard body ── */
+.sp-dashboard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 2rem 4rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    gap: 2.5rem;
+}
+
+/* ── Belt badge in topbar ── */
+.sp-belt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--sp-border);
+    border-radius: 2rem;
+    padding: 0.25rem 0.7rem 0.25rem 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.04em;
+}
+.sp-belt-badge__dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--sp-red);
+    flex-shrink: 0;
+}
+
+/* ── Stats row ── */
+.sp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.sp-stat-card {
+    background: var(--sp-surface);
+    border: 1px solid var(--sp-border);
+    border-radius: var(--sp-radius);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+.sp-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--sp-red);
+    opacity: 0.6;
+}
+.sp-stat-card--done::before  { background: #34d399; }
+.sp-stat-card--goal::before  { background: #60a5fa; }
+.sp-stat-card--left::before  { background: var(--sp-gold); }
+.sp-stat-card--next::before  { background: var(--sp-red); }
+
+.sp-stat-card__num {
+    font-family: var(--sp-font-h);
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--sp-text);
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+.sp-stat-card--done .sp-stat-card__num  { color: #34d399; }
+.sp-stat-card--goal .sp-stat-card__num  { color: #60a5fa; }
+.sp-stat-card--left .sp-stat-card__num  { color: var(--sp-gold); }
+.sp-stat-card--next .sp-stat-card__num {
+    font-size: 1.2rem;
+    color: var(--sp-text);
+    margin-top: 0.2rem;
+}
+.sp-stat-card__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sp-muted);
+}
+.sp-stat-card__sub {
+    font-size: 0.75rem;
+    color: var(--sp-muted);
+    margin-top: 0.1rem;
+}
+
+/* Hidden source element — JS writes here, MutationObserver reads it */
+#portal-class-summary { display: none !important; }
+
+@media (max-width: 900px) {
+    .sp-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+    .sp-dashboard { padding: 1.25rem 1rem 3rem; gap: 1.75rem; }
+    .sp-stats { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+    .sp-stat-card { padding: 1rem; }
+    .sp-stat-card__num { font-size: 1.8rem; }
+}
+
+/* ── Section header ── */
+.sp-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+.sp-section-head h2 {
+    font-family: var(--sp-font-h);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--sp-text);
+    margin: 0;
+}
+.sp-section-head__eyebrow {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sp-red);
+    margin: 0 0 0.25rem;
+}
+
+/* ── Belt grid (overrides main styles.css) ── */
+.belt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+.belt-card {
+    background: var(--sp-surface);
+    border: 1.5px solid var(--sp-border);
+    border-radius: var(--sp-radius);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+}
+.belt-card:not(.locked):hover {
+    border-color: rgba(216,31,38,0.35);
+    box-shadow: 0 4px 24px rgba(216,31,38,0.08);
+}
+.belt-card.locked {
+    opacity: 0.45;
+}
+.belt-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.belt-card__head h4 {
+    font-family: var(--sp-font-h);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--sp-text);
+    margin: 0;
+    line-height: 1.1;
+}
+.badge {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
+    flex-shrink: 0;
+}
+.badge-unlocked {
+    background: rgba(52,211,153,0.12);
+    color: #34d399;
+    border: 1px solid rgba(52,211,153,0.25);
+}
+.badge-awaiting {
+    background: rgba(201,162,39,0.12);
+    color: var(--sp-gold);
+    border: 1px solid rgba(201,162,39,0.3);
+}
+.badge-locked {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.3);
+    border: 1px solid var(--sp-border);
+}
+.belt-card__image {
+    width: 100%;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 0.5rem;
+    background: var(--sp-surface2);
+}
+.resource-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.resource-links a {
+    font-size: 0.75rem;
+    color: #60a5fa;
+    text-decoration: none;
+    background: rgba(96,165,250,0.08);
+    border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 0.4rem;
+    padding: 0.28rem 0.6rem;
+    transition: background 0.12s;
+}
+.resource-links a:hover { background: rgba(96,165,250,0.16); }
+.resource-links a[aria-disabled="true"] {
+    color: var(--sp-muted);
+    background: rgba(255,255,255,0.04);
+    border-color: var(--sp-border);
+    pointer-events: none;
+    cursor: default;
+}
+.certificate-status {
+    font-size: 0.75rem;
+    color: var(--sp-muted);
+    line-height: 1.4;
+    margin: 0;
+}
+.certificate-action {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+.certificate-action .secondary-btn,
+.certificate-action .text-link-btn {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+}
+
+/* Awaiting belt card highlight */
+.belt-card:has(.badge-awaiting) {
+    border-color: rgba(201,162,39,0.3);
+    background: linear-gradient(135deg, var(--sp-surface) 0%, rgba(201,162,39,0.04) 100%);
+}
+
+/* ── Readiness section ── */
+.portal-readiness-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+@media (max-width: 760px) {
+    .portal-readiness-grid { grid-template-columns: 1fr; }
+}
+.readiness-card,
+.belt-test-card {
+    background: var(--sp-surface);
+    border: 1.5px solid var(--sp-border);
+    border-radius: var(--sp-radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.readiness-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.readiness-head h3 {
+    font-family: var(--sp-font-h);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--sp-text);
+    margin: 0;
+}
+.readiness-target {
+    font-size: 0.78rem;
+    color: var(--sp-muted);
+    margin: 0.25rem 0 0;
+}
+.readiness-pill {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2rem;
+    background: rgba(255,255,255,0.06);
+    color: var(--sp-muted);
+    border: 1px solid var(--sp-border);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.readiness-pill.ready {
+    background: rgba(52,211,153,0.12);
+    color: #34d399;
+    border-color: rgba(52,211,153,0.25);
+}
+.readiness-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.readiness-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--sp-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+.readiness-form input[type="number"] {
+    background: var(--sp-surface2);
+    border: 1.5px solid var(--sp-border);
+    border-radius: 0.55rem;
+    color: var(--sp-text);
+    font-size: 1rem;
+    padding: 0.65rem 0.85rem;
+    outline: none;
+    width: 100%;
+    color-scheme: dark;
+}
+.readiness-form input[type="number"]:focus { border-color: var(--sp-red); }
+.stripe-checklist {
+    border: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.stripe-checklist legend {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sp-muted);
+    margin-bottom: 0.4rem;
+    padding: 0;
+}
+.stripe-checklist label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--sp-text);
+    cursor: pointer;
+}
+.stripe-checklist input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--sp-red);
+    cursor: pointer;
+}
+.readiness-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.readiness-metrics p {
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    margin: 0.2rem 0;
+}
+.readiness-metrics strong { color: var(--sp-text); }
+.readiness-checklist {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.readiness-checklist li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--sp-border);
+}
+.readiness-checklist li:last-child { border-bottom: none; }
+.readiness-note {
+    font-size: 0.75rem;
+    color: var(--sp-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+.readiness-note a { color: var(--sp-gold); text-decoration: none; }
+.readiness-note a:hover { text-decoration: underline; }
+.readiness-download { font-weight: 600; }
+
+/* Belt test card */
+.belt-test-card h3 {
+    font-family: var(--sp-font-h);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--sp-text);
+    margin: 0;
+}
+.belt-test-hint {
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    margin: 0;
+}
+.belt-test-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.belt-test-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--sp-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+.belt-test-form input:not([type=checkbox]),
+.belt-test-form textarea {
+    background: var(--sp-surface2);
+    border: 1.5px solid var(--sp-border);
+    border-radius: 0.55rem;
+    color: var(--sp-text);
+    font-family: var(--sp-font-b);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem;
+    outline: none;
+    width: 100%;
+    color-scheme: dark;
+    resize: vertical;
+}
+.belt-test-form input:focus,
+.belt-test-form textarea:focus { border-color: var(--sp-red); }
+.belt-test-form input[readonly] {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* ── Certificate log ── */
+.certificate-log {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+/* ── Shared button overrides inside portal-app ── */
+#portal-app .cta-btn,
+#portal-app .secondary-btn {
+    font-family: var(--sp-font-h);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-radius: 0.6rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+}
+#portal-app .cta-btn {
+    background: var(--sp-red);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(216,31,38,0.3);
+}
+#portal-app .cta-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+#portal-app .secondary-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--sp-border);
+    color: var(--sp-text);
+    cursor: pointer;
+}
+#portal-app .secondary-btn:hover { background: rgba(255,255,255,0.1); }
+#portal-app .text-link-btn {
+    background: none;
+    border: none;
+    color: #60a5fa;
+    cursor: pointer;
+    font-size: 0.82rem;
+    padding: 0.3rem 0;
+    text-decoration: underline;
+}
+#portal-app .form-status {
+    font-size: 0.8rem;
+    color: var(--sp-muted);
+    min-height: 1.2rem;
+}
+
+/* ── Calendar embed in portal ── */
+.sp-calendar-wrap {
+    background: var(--sp-surface);
+    border: 1px solid var(--sp-border);
+    border-radius: var(--sp-radius);
+    padding: 1.5rem;
+}
+.sp-calendar-wrap[data-calendar-root] {}
+.portal-calendar__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.portal-calendar__note {
+    font-size: 0.8rem;
+    color: var(--sp-muted);
+    line-height: 1.5;
+    margin: 0 0 1rem;
+}
+.portal-calendar__table-wrap {
+    overflow-x: auto;
+}
+.portal-calendar__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.portal-calendar__table th,
+.portal-calendar__table td {
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    border-bottom: 1px solid var(--sp-border);
+    color: var(--sp-text);
+}
+.portal-calendar__table th {
+    color: var(--sp-muted);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.portal-calendar__footnotes {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    color: var(--sp-muted);
+}
+
+/* ── Dashboard entrance ── */
+#portal-app:not([hidden]) {
+    animation: sp-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes sp-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Login entrance ── */
+.sp-login__panel-inner {
+    animation: sp-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+.sp-login__brand > * {
+    animation: sp-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.sp-login__brand > *:nth-child(1) { animation-delay: 0.05s; }
+.sp-login__brand > *:nth-child(2) { animation-delay: 0.12s; }
+.sp-login__brand > *:nth-child(3) { animation-delay: 0.18s; }
+.sp-login__brand > *:nth-child(4) { animation-delay: 0.24s; }
+.sp-login__brand > *:nth-child(5) { animation-delay: 0.30s; }
+
+/* ── Login button spinner ── */
+.sp-submit[aria-busy="true"] {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+.sp-submit[aria-busy="true"]::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 20px; height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: sp-spin 0.65s linear infinite;
+}
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+
+/* ── Progress bar ── */
+.sp-progress-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: -1rem;
+}
+.sp-progress-track {
+    background: var(--sp-surface);
+    border: 1px solid var(--sp-border);
+    border-radius: 100px;
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.sp-progress-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: linear-gradient(90deg, #34d399 0%, var(--sp-gold) 100%);
+    border-radius: 100px;
+    width: 0%;
+    transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sp-progress-label {
+    font-size: 0.72rem;
+    color: var(--sp-muted);
+    display: flex;
+    justify-content: space-between;
+    letter-spacing: 0.04em;
+}
+.sp-progress-label strong { color: var(--sp-gold); }
+
+/* ── Belt card left accent by state ── */
+.belt-card { border-left: 3px solid transparent; }
+.belt-card:has(.badge-unlocked) { border-left-color: #34d399; }
+.belt-card:has(.badge-awaiting) {
+    border-left-color: var(--sp-gold);
+    box-shadow: 0 0 0 1px rgba(201,162,39,0.12), 0 4px 24px rgba(201,162,39,0.07);
+}
+.belt-card:has(.badge-awaiting)::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at top right, rgba(201,162,39,0.15), transparent 70%);
+    pointer-events: none;
+}
+.belt-card:has(.badge-locked) { border-left-color: rgba(255,255,255,0.06); }
+
+/* ── Dashboard section stagger ── */
+#portal-app .sp-stats       { animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both; }
+#portal-app .sp-progress-row{ animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.12s both; }
+#portal-app section:nth-of-type(1) { animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both; }
+#portal-app section:nth-of-type(2) { animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.24s both; }
+#portal-app section:nth-of-type(3) { animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.30s both; }
+#portal-app section:nth-of-type(4) { animation: sp-rise 0.5s cubic-bezier(0.16,1,0.3,1) 0.36s both; }
+
+/* ── Empty states ── */
+#belt-grid:empty::before,
+.certificate-log:empty::before {
+    content: 'Loading your progress…';
+    display: block;
+    padding: 3rem;
+    text-align: center;
+    color: var(--sp-muted);
+    font-size: 0.9rem;
+    border: 1px dashed var(--sp-border);
+    border-radius: var(--sp-radius);
+    width: 100%;
+}
+
+/* ── Topbar stagger ── */
+.sp-topbar__brand   { animation: sp-rise 0.4s ease 0s both; }
+.sp-topbar__student { animation: sp-rise 0.4s ease 0.08s both; }
+.sp-topbar__actions { animation: sp-rise 0.4s ease 0.14s both; }
+
+/* ── reduce motion ── */
+@media (prefers-reduced-motion: reduce) {
+    #portal-app:not([hidden]),
+    .sp-login__panel-inner,
+    .sp-login__brand > *,
+    #portal-app .sp-stats,
+    #portal-app .sp-progress-row,
+    #portal-app section,
+    .sp-topbar__brand,
+    .sp-topbar__student,
+    .sp-topbar__actions { animation: none; }
+}
+
+/* ══════════════════════════════════════
+   SECURE PAYMENT & SHOP CARDS
+══════════════════════════════════════ */
+.sp-secure-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 640px) {
+    .sp-secure-cards { grid-template-columns: 1fr; }
+}
+.sp-secure-card {
+    background: var(--sp-surface);
+    border: 1.5px solid var(--sp-border);
+    border-radius: var(--sp-radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+.sp-secure-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sp-red), var(--sp-gold));
+    opacity: 0.7;
+}
+.sp-secure-card:hover { border-color: rgba(201,162,39,0.3); }
+.sp-secure-card__icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+.sp-secure-card__body h3 {
+    font-family: var(--sp-font-h);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--sp-text);
+    margin: 0 0 0.4rem;
+}
+.sp-secure-card__body p {
+    font-size: 0.82rem;
+    color: var(--sp-muted);
+    line-height: 1.55;
+    margin: 0 0 0.65rem;
+}
+.sp-secure-card__lock {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+.sp-lock-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.6rem;
+    border-radius: 2rem;
+    background: rgba(52,211,153,0.1);
+    color: #34d399;
+    border: 1px solid rgba(52,211,153,0.22);
+}
+.sp-lock-sub {
+    font-size: 0.7rem;
+    color: var(--sp-muted);
+}
+.sp-secure-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--sp-red) 0%, #a01519 100%);
+    color: #fff;
+    border: none;
+    border-radius: 0.65rem;
+    font-family: var(--sp-font-h);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.25rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(216,31,38,0.3);
+    transition: box-shadow 0.15s, opacity 0.15s;
+    position: relative;
+}
+.sp-secure-btn:hover { box-shadow: 0 6px 24px rgba(216,31,38,0.42); }
+.sp-secure-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.sp-secure-btn[aria-busy="true"] .sp-secure-btn__label { opacity: 0; }
+.sp-secure-btn__spinner {
+    position: absolute;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: none;
+}
+.sp-secure-btn[aria-busy="true"] .sp-secure-btn__spinner {
+    display: block;
+    animation: sp-spin 0.65s linear infinite;
+}
+.sp-secure-card__status {
+    font-size: 0.75rem;
+    color: #f87171;
+    min-height: 1rem;
+    margin: 0;
+}
+.sp-secure-card__status:empty { display: none; }
+    </style>
 </head>
 <body data-portal-mode="student" data-api-base="https://portal-api.jacksonneal09888.workers.dev">
-    <div class="kukkiwon-badge" aria-hidden="true"><img src="assets/Images/Kukkiwon.webp" alt="Kukkiwon"></div><div class="taegeuk-badge" aria-hidden="true"><img src="assets/Images/taegeuk.svg" alt="Taegeuk"></div>
+    <div class="kukkiwon-badge" aria-hidden="true"><img src="assets/Images/Kukkiwon.webp" alt="Kukkiwon"></div>
+    <div class="taegeuk-badge" aria-hidden="true"><img src="assets/Images/taegeuk.svg" alt="Taegeuk"></div>
     <a class="skip-link" href="#main-content">Skip to main content</a>
+
     <header class="site-header">
         <div class="container">
             <div class="brand">
                 <a href="/" class="brand-link">
                     <span class="brand-mark">ARA</span>
-                        <span class="brand-name">Martial Arts</span>
+                    <span class="brand-name">Martial Arts</span>
                 </a>
             </div>
             <nav class="main-nav" aria-label="Main Navigation">
@@ -44,238 +1211,259 @@
         </div>
     </header>
 
-    <main id="main-content">
-        <section class="hero" style="padding: 4rem 0 3rem;">
-            <div class="container hero-content" style="grid-template-columns: 1fr;">
-                <div class="hero-copy">
-                    <p class="hero-badge" style="align-self:flex-start;">Private Access</p>
-                    <h1>Active Student Portal</h1>
-                    <p>Log in with your Ara TKD Student ID to review belt study guides, testing checklists, and upload certificates to unlock the next rank.</p>
-                    <div class="hero-actions">
-                        <a class="secondary-btn" href="mailto:aratkdsports@gmail.com?subject=Ara%20TKD%20Portal%20Help&body=Student%20Name:%0AStudent%20ID:%0APhone:%0AQuestion:%0A">Need Help? Email Us</a>
-                    </div>
-                </div>
+    <!-- ══ PRE-LOGIN SCREEN ══ -->
+    <div id="sp-login-view">
+        <!-- Left: Branding -->
+        <div class="sp-login__brand">
+            <div class="sp-login__mark">ARA</div>
+            <div class="sp-login__school">
+                <h1>Student Portal</h1>
+                <p>Ara's Martial Arts Sportsplex · Siler City, NC</p>
             </div>
-        </section>
-
-        <section class="section portal-highlights" aria-label="Portal Benefits">
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow">Why Students Love It</p>
-                    <h2>Everything you need to level up with confidence</h2>
-                    <p>From quick wins to big milestones, the portal keeps your training organized, motivating, and fun.</p>
-                </div>
-                <div class="highlight-grid">
-                    <article class="highlight-card">
-                        <h3>Progress Roadmap</h3>
-                        <p>See where you are, what is unlocked, and the skills required to crush your next belt test.</p>
-                        <ul class="highlight-list">
-                            <li>Color-coded belt tracker</li>
-                            <li>Study guides matched to your rank</li>
-                            <li>Testing checklist templates</li>
-                        </ul>
-                    </article>
-                    <article class="highlight-card">
-                        <h3>Weekly Focus</h3>
-                        <p>Laser in on the drills and habits instructors are emphasizing so you get more out of each class.</p>
-                        <ul class="highlight-list">
-                            <li>Featured techniques and drills</li>
-                            <li>At-home practice prompts</li>
-                            <li>Challenge missions for bonus stripes</li>
-                        </ul>
-                    </article>
-                    <article class="highlight-card">
-                        <h3>Testing Ready Tools</h3>
-                        <p>Upload certificates to auto-unlock belts, request upcoming belt tests, and stay in sync with the school calendar.</p>
-                        <ul class="highlight-list">
-                            <li>Certificate locker with status updates</li>
-                            <li>Belt test application walkthrough</li>
-                            <li>Coaching tips from Ara instructors</li>
-                        </ul>
-                    </article>
-                </div>
+            <div class="sp-belt-strip" aria-hidden="true">
+                <div class="sp-belt-strip__swatch" style="background:#e8e8e8"></div>
+                <div class="sp-belt-strip__swatch" style="background:#f5c518"></div>
+                <div class="sp-belt-strip__swatch" style="background:#22c55e"></div>
+                <div class="sp-belt-strip__swatch" style="background:#3b82f6"></div>
+                <div class="sp-belt-strip__swatch" style="background:#d81f26"></div>
+                <div class="sp-belt-strip__swatch" style="background:#1a1a1a"></div>
             </div>
-        </section>
+            <ul class="sp-login__perks">
+                <li>Color-coded belt progress road map matched to your rank</li>
+                <li>Downloadable study guides and testing checklists</li>
+                <li>Upload certificates to instantly unlock the next belt</li>
+                <li>Track class attendance and testing readiness in real time</li>
+            </ul>
+        </div>
+        <!-- Right: Login form -->
+        <div class="sp-login__panel">
+            <div class="sp-login__panel-inner">
+                <a href="/" class="sp-login__back">← Back to site</a>
+                <h2 class="sp-login__heading">Welcome back</h2>
+                <p class="sp-login__sub">Sign in with your Student ID and date of birth to access your training dashboard.</p>
 
-        <section class="section student-portal" id="students">
-            <div class="container">
-                <div class="portal-grid">
-                    <form class="portal-card login-card" id="student-login-form" novalidate>
-                        <h3>Student Login</h3>
+                <form class="sp-form" id="student-login-form" novalidate>
+                    <div class="sp-field">
                         <label for="student-id">Student ID</label>
-                        <input type="text" id="student-id" name="studentId" placeholder="ARA001" autocomplete="off" required>
-
+                        <input type="text" id="student-id" name="studentId" placeholder="e.g. ARA016" autocomplete="off" autocapitalize="characters" required>
+                    </div>
+                    <div class="sp-field">
                         <label for="student-dob">Date of Birth</label>
                         <input type="date" id="student-dob" name="studentDob" required>
-
-                        <p class="portal-hint">You'll receive your confidential ID directly from the office. We use your birthdate to double-check access.</p>
-                        <button type="submit" class="cta-btn">Access Portal</button>
-                        <p class="form-status" id="portal-error" aria-live="polite"></p>
-                    </form>
-                    <div class="portal-card help-card">
-                        <h3>Portal Checklist</h3>
-                        <ul>
-                            <li>Each student has a unique ID + birthdate login.</li>
-                            <li>Unlocked belts show the matching study guide &amp; testing checklist.</li>
-                            <li>Upload a certificate to instantly unlock the next belt.</li>
-                            <li>Email <a href="mailto:aratkdsports@gmail.com?subject=Portal%20Login%20Reset&body=Student%20Name:%0AStudent%20ID:%0AParent%20Email:%0APhone:%0A">aratkdsports@gmail.com</a> if you need a reset.</li>
-                        </ul>
-                        <p class="portal-note">Uploaded certificates stay on your device until we add staff review or cloud storage.</p>
                     </div>
-                </div>
-                <div class="portal-placeholder" id="portal-placeholder">
-                    <p>Log in above to see your personalized belt roadmap, training materials, and certificate log.</p>
-                </div>
-                <div class="portal-app" id="portal-app" hidden>
-                    <div class="portal-toolbar">
-                        <div>
-                            <p class="portal-student-name" id="portal-student-name"></p>
-                            <p class="portal-student-meta">
-                                ID: <span id="portal-student-id"></span> · Current Belt:
-                                <span id="portal-current-belt"></span> · Next Goal:
-                                <span id="portal-next-belt"></span>
-                            </p>
-                            <p class="portal-student-meta" id="portal-class-summary">
-                                Lessons Completed: — · Lessons Required: — · Lessons Remaining: —
-                            </p>
-                        </div>
-                        <div class="toolbar-actions">
-                            <button type="button" class="secondary-btn" id="portal-refresh">Refresh</button>
-                            <button type="button" class="text-link-btn" id="portal-logout">Sign out</button>
-                        </div>
-                    </div>
-                    <div class="belt-grid" id="belt-grid" aria-live="polite"></div>
-                    <div class="certificate-log" id="certificate-log" aria-live="polite"></div>
-                    <div class="portal-readiness-grid" id="portal-readiness" hidden>
-                        <article class="portal-card readiness-card" id="readiness-card">
-                            <div class="readiness-head">
-                                <div>
-                                    <h3>Testing Readiness Tracker</h3>
-                                    <p id="readiness-target-label" class="readiness-target">Next goal: —</p>
-                                </div>
-                                <span class="readiness-pill" id="readiness-ready-pill">Locked</span>
-                            </div>
-                            <form id="readiness-form" class="readiness-form" novalidate>
-                                <label for="readiness-classes-attended">Classes Attended</label>
-                                <input type="number" min="0" inputmode="numeric" id="readiness-classes-attended" name="classesAttended" placeholder="e.g. 31">
+                    <p class="sp-hint">Your confidential ID was assigned at enrollment. Contact the office if you need help finding it.</p>
+                    <button type="submit" class="sp-submit">Access Portal</button>
+                    <p class="sp-error" id="portal-error" aria-live="polite"></p>
+                </form>
 
-                                <fieldset class="stripe-checklist">
-                                    <legend>Stripe Sign-Offs</legend>
-                                    <label>
-                                        <input type="checkbox" id="stripe-poomsae" data-stripe-field="poomsae">
-                                        Forms / Poomsae stripe
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="stripe-self-defense" data-stripe-field="selfDefense">
-                                        Self-defense stripe
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="stripe-board-breaking" data-stripe-field="boardBreaking">
-                                        Board breaking stripe
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="stripe-sparring" data-stripe-field="sparring">
-                                        Sparring stripe
-                                    </label>
-                                </fieldset>
-                                <button type="submit" class="secondary-btn">Save Tracker</button>
-                                <p class="form-status" id="readiness-status" aria-live="polite"></p>
-                            </form>
+                <p class="sp-help-link">
+                    Need your ID or a reset?
+                    <a href="mailto:aratkdsports@gmail.com?subject=Ara%20TKD%20Portal%20Help&body=Student%20Name:%0AStudent%20ID:%0APhone:%0AQuestion:%0A">Email the office</a>
+                </p>
+            </div>
+        </div>
+    </div><!-- /sp-login-view -->
 
-                            <div class="readiness-summary">
-                                <div class="readiness-metrics">
-                                    <p><strong>Lessons Required:</strong> <span id="readiness-lessons-required-display">0</span></p>
-                                    <p><strong>Classes Logged:</strong> <span id="readiness-lesson-display">0 / 0</span></p>
-                                </div>
-                                <ul class="readiness-checklist" id="readiness-checklist">
-                                    <li>
-                                        <span>Lesson Minimum</span>
-                                        <span class="readiness-pill">—</span>
-                                    </li>
-                                    <li>
-                                        <span>Lessons Logged</span>
-                                        <span class="readiness-pill">—</span>
-                                    </li>
-                                    <li>
-                                        <span>All 4 Stripes</span>
-                                        <span class="readiness-pill">—</span>
-                                    </li>
-                                </ul>
-                                <p class="readiness-note">
-                                    <strong>Need the full policy?</strong>
-                                    <a class="readiness-download" href="assets/materials/belt-attendance-guide.html" target="_blank" rel="noopener">
-                                        Open the Parent Lesson Guide
-                                    </a>
-                                </p>
-                                <p class="readiness-note" id="readiness-auto-summary"></p>
-                                <div class="readiness-attendance" id="readiness-attendance" aria-live="polite"></div>
-                            </div>
-                        </article>
-                        <article class="portal-card belt-test-card" id="belt-test-card" hidden>
-                            <h3>Apply for Belt Test</h3>
-                            <p class="belt-test-hint" id="belt-test-hint" aria-live="polite">Log your classes to unlock test requests.</p>
-                            <button type="button" class="cta-btn" id="belt-test-application-btn" disabled>Request Test Review</button>
-                            <form class="belt-test-form" id="belt-test-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com" hidden>
-                                <label for="test-student-name">Student Name</label>
-                                <input type="text" id="test-student-name" name="studentName" required>
-
-                                <label for="test-student-id">Student ID</label>
-                                <input type="text" id="test-student-id" name="studentId" required readonly>
-
-                                <label for="current-belt">Current Belt</label>
-                                <input type="text" id="current-belt" name="currentBelt" required readonly>
-
-                                <label for="desired-belt">Desired Belt</label>
-                                <input type="text" id="desired-belt" name="desiredBelt" required readonly>
-
-                                <label for="test-date">Preferred Test Date</label>
-                                <input type="date" id="test-date" name="preferredTestDate" required>
-
-                                <label for="test-message">Message for Master Ara (optional)</label>
-                                <textarea id="test-message" name="message" rows="4" placeholder="Anything we should know before the test?"></textarea>
-
-                                <input type="hidden" name="_subject" value="Ara TKD Belt Test Request">
-                                <input type="hidden" name="_captcha" value="false">
-                                <button type="submit" class="cta-btn">Send Application</button>
-                                <p class="form-status" id="belt-test-status" aria-live="polite"></p>
-                            </form>
-                        </article>
-                    </div>
-                </div>
-                <div class="portal-support">
-                    <div class="support-card">
-                        <h4>Set Your Goal Date</h4>
-                        <p class="support-card__lead">Spot the next belt testing window and add it to your family calendar before spots fill.</p>
-                        <div class="support-actions">
-                            <a class="secondary-btn" href="index.html#schedule">View Class Schedule</a>
-                            <a class="text-link-btn" href="mailto:aratkdsports@gmail.com?subject=Belt%20Testing%20Question&body=Student%20Name:%0AStudent%20ID:%0ACurrent%20Belt:%0AQuestion:%0A">Ask about Testing</a>
-                            <a class="text-link-btn" href="kiosk.html" target="_blank" rel="noopener">Open Attendance Kiosk</a>
-                        </div>
-                    </div>
-                    <div class="support-card">
-                        <h4>Celebrate Wins</h4>
-                        <p class="support-card__lead">Upload your latest achievement to keep instructors in the loop and instantly unlock the next challenge.</p>
-                        <ul class="support-list">
-                            <li>Record tournament medals &amp; leadership badges</li>
-                            <li>Share community service hours</li>
-                            <li>Track demo team participation</li>
-                        </ul>
-                    </div>
+    <!-- ══ DASHBOARD (shown after login) ══ -->
+    <div id="portal-app" hidden>
+        <!-- Sticky topbar -->
+        <header class="sp-topbar">
+            <a href="/" class="sp-topbar__brand">
+                <span class="sp-topbar__mark">ARA</span>
+                <span class="sp-topbar__label">Student Portal</span>
+            </a>
+            <div class="sp-topbar__spacer"></div>
+            <div class="sp-topbar__student">
+                <div class="sp-topbar__avatar" id="portal-avatar">AR</div>
+                <div>
+                    <p class="sp-topbar__name" id="portal-student-name">—</p>
+                    <p class="sp-topbar__meta">
+                        ID:&nbsp;<span id="portal-student-id">—</span>&nbsp;·&nbsp;<span id="portal-current-belt">White Belt</span>
+                    </p>
                 </div>
             </div>
-        </section>
+            <div class="sp-topbar__actions">
+                <button type="button" class="sp-ghost-btn" id="portal-refresh">Refresh</button>
+                <button type="button" class="sp-ghost-btn sp-ghost-btn--danger" id="portal-logout">Sign Out</button>
+            </div>
+        </header>
 
-        <section class="section portal-calendar-section" aria-labelledby="portal-calendar-title" data-calendar-root>
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow" data-calendar-month>June 2026</p>
-                    <h2 id="portal-calendar-title">Monthly Training Calendar</h2>
-                    <p>Exactly what was shared on the parent spreadsheet—easy to read on your phone and ready for quick check-ins before class.</p>
+        <!-- Hidden source elements: JS writes here; MutationObserver reads for stat cards -->
+        <p id="portal-class-summary" aria-hidden="true"></p>
+        <div id="portal-placeholder" hidden aria-live="polite" style="display:none!important"></div>
+
+        <main class="sp-dashboard" id="main-content">
+            <!-- ── Stats row ── -->
+            <div class="sp-stats" aria-label="Training progress overview">
+                <div class="sp-stat-card sp-stat-card--done">
+                    <span class="sp-stat-card__label">Classes Done</span>
+                    <span class="sp-stat-card__num" id="sp-stat-done">—</span>
                 </div>
-                <div class="portal-calendar">
-                    <div class="portal-calendar__actions">
-                        <a class="secondary-btn" data-calendar-download href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1157707621" target="_blank" rel="noopener" download>Download Latest Calendar</a>
+                <div class="sp-stat-card sp-stat-card--goal">
+                    <span class="sp-stat-card__label">Classes Required</span>
+                    <span class="sp-stat-card__num" id="sp-stat-goal">—</span>
+                </div>
+                <div class="sp-stat-card sp-stat-card--left">
+                    <span class="sp-stat-card__label">Left to Go</span>
+                    <span class="sp-stat-card__num" id="sp-stat-left">—</span>
+                </div>
+                <div class="sp-stat-card sp-stat-card--next">
+                    <span class="sp-stat-card__label">Next Belt Goal</span>
+                    <span class="sp-stat-card__num" id="portal-next-belt">—</span>
+                </div>
+            </div>
+
+            <!-- ── Progress bar ── -->
+            <div class="sp-progress-row" id="sp-progress-row" aria-hidden="true">
+                <div class="sp-progress-track">
+                    <div class="sp-progress-fill" id="sp-progress-fill"></div>
+                </div>
+                <div class="sp-progress-label">
+                    <span id="sp-progress-text">Loading progress…</span>
+                    <strong id="sp-progress-pct">—</strong>
+                </div>
+            </div>
+
+            <!-- ── Belt journey ── -->
+            <section aria-labelledby="belt-journey-heading">
+                <div class="sp-section-head">
+                    <div>
+                        <p class="sp-section-head__eyebrow">Your Progress</p>
+                        <h2 id="belt-journey-heading">Belt Journey</h2>
                     </div>
+                </div>
+                <div class="belt-grid" id="belt-grid" aria-live="polite"></div>
+            </section>
+
+            <!-- ── Certificate log ── -->
+            <div class="certificate-log" id="certificate-log" aria-live="polite"></div>
+
+            <!-- ── Readiness tracker + Belt test ── -->
+            <section aria-labelledby="readiness-heading">
+                <div class="sp-section-head">
+                    <div>
+                        <p class="sp-section-head__eyebrow">Testing</p>
+                        <h2 id="readiness-heading">Testing Readiness</h2>
+                    </div>
+                </div>
+                <div class="portal-readiness-grid" id="portal-readiness" hidden>
+                    <article class="readiness-card" id="readiness-card">
+                        <div class="readiness-head">
+                            <div>
+                                <h3>Readiness Tracker</h3>
+                                <p id="readiness-target-label" class="readiness-target">Next goal: —</p>
+                            </div>
+                            <span class="readiness-pill" id="readiness-ready-pill">Locked</span>
+                        </div>
+                        <form id="readiness-form" class="readiness-form" novalidate>
+                            <label for="readiness-classes-attended">
+                                Classes Attended
+                                <input type="number" min="0" inputmode="numeric" id="readiness-classes-attended" name="classesAttended" placeholder="e.g. 31">
+                            </label>
+                            <fieldset class="stripe-checklist">
+                                <legend>Stripe Sign-Offs</legend>
+                                <label>
+                                    <input type="checkbox" id="stripe-poomsae" data-stripe-field="poomsae">
+                                    Forms / Poomsae stripe
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="stripe-self-defense" data-stripe-field="selfDefense">
+                                    Self-defense stripe
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="stripe-board-breaking" data-stripe-field="boardBreaking">
+                                    Board breaking stripe
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="stripe-sparring" data-stripe-field="sparring">
+                                    Sparring stripe
+                                </label>
+                            </fieldset>
+                            <button type="submit" class="secondary-btn">Save Tracker</button>
+                            <p class="form-status" id="readiness-status" aria-live="polite"></p>
+                        </form>
+                        <div class="readiness-summary">
+                            <div class="readiness-metrics">
+                                <p><strong>Lessons Required:</strong> <span id="readiness-lessons-required-display">0</span></p>
+                                <p><strong>Classes Logged:</strong> <span id="readiness-lesson-display">0 / 0</span></p>
+                            </div>
+                            <ul class="readiness-checklist" id="readiness-checklist">
+                                <li>
+                                    <span>Lesson Minimum</span>
+                                    <span class="readiness-pill">—</span>
+                                </li>
+                                <li>
+                                    <span>Lessons Logged</span>
+                                    <span class="readiness-pill">—</span>
+                                </li>
+                                <li>
+                                    <span>All 4 Stripes</span>
+                                    <span class="readiness-pill">—</span>
+                                </li>
+                            </ul>
+                            <p class="readiness-note">
+                                <strong>Need the full policy?</strong>
+                                <a class="readiness-download" href="assets/materials/belt-attendance-guide.html" target="_blank" rel="noopener">
+                                    Open the Parent Lesson Guide
+                                </a>
+                            </p>
+                            <p class="readiness-note" id="readiness-auto-summary"></p>
+                            <div class="readiness-attendance" id="readiness-attendance" aria-live="polite"></div>
+                        </div>
+                    </article>
+
+                    <article class="belt-test-card" id="belt-test-card" hidden>
+                        <h3>Apply for Belt Test</h3>
+                        <p class="belt-test-hint" id="belt-test-hint" aria-live="polite">Log your classes to unlock test requests.</p>
+                        <button type="button" class="cta-btn" id="belt-test-application-btn" disabled>Request Test Review</button>
+                        <form class="belt-test-form" id="belt-test-form" method="POST" action="https://formsubmit.co/afetkd@gmail.com" hidden>
+                            <label for="test-student-name">
+                                Student Name
+                                <input type="text" id="test-student-name" name="studentName" required>
+                            </label>
+                            <label for="test-student-id">
+                                Student ID
+                                <input type="text" id="test-student-id" name="studentId" required readonly>
+                            </label>
+                            <label for="current-belt">
+                                Current Belt
+                                <input type="text" id="current-belt" name="currentBelt" required readonly>
+                            </label>
+                            <label for="desired-belt">
+                                Desired Belt
+                                <input type="text" id="desired-belt" name="desiredBelt" required readonly>
+                            </label>
+                            <label for="test-date">
+                                Preferred Test Date
+                                <input type="date" id="test-date" name="preferredTestDate" required>
+                            </label>
+                            <label for="test-message">
+                                Message for Master Ara (optional)
+                                <textarea id="test-message" name="message" rows="3" placeholder="Anything we should know before the test?"></textarea>
+                            </label>
+                            <input type="hidden" name="_subject" value="Ara TKD Belt Test Request">
+                            <input type="hidden" name="_captcha" value="false">
+                            <button type="submit" class="cta-btn">Send Application</button>
+                            <p class="form-status" id="belt-test-status" aria-live="polite"></p>
+                        </form>
+                    </article>
+                </div>
+            </section>
+
+            <!-- ── Monthly Calendar ── -->
+            <section aria-labelledby="sp-cal-heading" data-calendar-root>
+                <div class="sp-section-head">
+                    <div>
+                        <p class="sp-section-head__eyebrow">Training Schedule</p>
+                        <h2 id="sp-cal-heading"><span data-calendar-month>August 2026</span></h2>
+                    </div>
+                    <a class="secondary-btn" data-calendar-download
+                       href="https://docs.google.com/spreadsheets/d/14cilS4LD8JAs2P7Y-_g8CaoMgLHfqjkYJcDjgpSntE4/export?format=pdf&gid=1420787922"
+                       target="_blank" rel="noopener" download style="font-size:0.78rem;padding:0.4rem 0.85rem;">
+                        Download PDF
+                    </a>
+                </div>
+                <div class="sp-calendar-wrap">
                     <p class="portal-calendar__note" data-calendar-note>Every class includes basics, poomsae, sparring, breaking drills, and conditioning. Progress is tracked through stripes and attendance.</p>
                     <div class="portal-calendar__table-wrap">
                         <table class="portal-calendar__table" aria-label="Monthly class calendar">
@@ -293,9 +1481,7 @@
                                 </tr>
                             </thead>
                             <tbody data-calendar-body>
-                                <tr>
-                                    <td colspan="9">Loading the latest calendar...</td>
-                                </tr>
+                                <tr><td colspan="9">Loading the latest calendar…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -303,69 +1489,72 @@
                         <li>Schedule is subject to change.</li>
                     </ul>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="section portal-resources" aria-labelledby="portal-resources-title">
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow">Stay Sharp Outside the Dojang</p>
-                    <h2 id="portal-resources-title">Featured Training Resources</h2>
-                    <p>Level up anywhere with quick access to instructor-approved videos, checklists, and mindset fuel.</p>
+            <!-- ── Payments & Shop ── -->
+            <section aria-labelledby="sp-payments-heading">
+                <div class="sp-section-head">
+                    <div>
+                        <p class="sp-section-head__eyebrow">Account</p>
+                        <h2 id="sp-payments-heading">Tuition &amp; Shop</h2>
+                    </div>
                 </div>
-                <div class="resource-grid">
-                    <article class="resource-card">
-                        <h3>Technique Video Library</h3>
-                        <p>Replay patterns, forms, and sparring combos led by Ara instructors whenever you need a refresher.</p>
-                        <a class="secondary-btn" href="https://www.youtube.com/playlist?list=PLw19HwTN7-tkd" target="_blank" rel="noopener">Watch Playlist</a>
-                    </article>
-                    <article class="resource-card">
-                        <h3>Goal Setting Worksheet</h3>
-                        <p>Create a simple 4-week plan that connects your home practice to the belt skills you are chasing next.</p>
-                        <a class="secondary-btn" href="mailto:aratkdsports@gmail.com?subject=Ara%20TKD%20Goal%20Worksheet%20Request&body=Student%20Name:%0AStudent%20ID:%0A">Request Worksheet</a>
-                    </article>
-                    <article class="resource-card">
-                        <h3>Leadership &amp; Service</h3>
-                        <p>Find new ways to earn stripes through mentoring, events, and community projects powered by Ara students.</p>
-                        <a class="secondary-btn" href="index.html#instructors">Meet the Team</a>
-                    </article>
-                    <article class="resource-card">
-                        <h3>Parent Coaching Tips</h3>
-                        <p>Support your martial artist with quick motivation scripts, mat-side etiquette, and recovery ideas.</p>
-                        <a class="secondary-btn" href="mailto:aratkdsports@gmail.com?subject=Parent%20Coaching%20Guide%20Request&body=Student%20Name:%0AStudent%20ID:%0A">Request Guide</a>
-                    </article>
+                <div class="sp-secure-cards">
+                    <!-- Payment card -->
+                    <div class="sp-secure-card" id="sp-payment-card">
+                        <div class="sp-secure-card__icon" aria-hidden="true">💳</div>
+                        <div class="sp-secure-card__body">
+                            <h3>Pay Tuition</h3>
+                            <p>Make a tuition payment securely through SwipeSimple. Your payment link is retrieved in real-time over an encrypted connection — it is never stored in this page.</p>
+                            <div class="sp-secure-card__lock">
+                                <span class="sp-lock-badge">🔒 AES-256 · TLS 1.3</span>
+                                <span class="sp-lock-sub">Link decrypted only for your session</span>
+                            </div>
+                        </div>
+                        <button type="button" class="sp-secure-btn" id="sp-payment-btn" data-link-type="payment">
+                            <span class="sp-secure-btn__label">Open Payment Portal</span>
+                            <span class="sp-secure-btn__spinner" aria-hidden="true"></span>
+                        </button>
+                        <p class="sp-secure-card__status" id="sp-payment-status" aria-live="polite"></p>
+                    </div>
+                    <!-- Shop card -->
+                    <div class="sp-secure-card" id="sp-shop-card">
+                        <div class="sp-secure-card__icon" aria-hidden="true">🥋</div>
+                        <div class="sp-secure-card__body">
+                            <h3>TKD Shop</h3>
+                            <p>Order uniforms, protective gear, and ARA merchandise. Your shop link is session-locked with the same 256-bit encryption as the payment portal.</p>
+                            <div class="sp-secure-card__lock">
+                                <span class="sp-lock-badge">🔒 AES-256 · TLS 1.3</span>
+                                <span class="sp-lock-sub">Link decrypted only for your session</span>
+                            </div>
+                        </div>
+                        <button type="button" class="sp-secure-btn" id="sp-shop-btn" data-link-type="shop">
+                            <span class="sp-secure-btn__label">Open TKD Shop</span>
+                            <span class="sp-secure-btn__spinner" aria-hidden="true"></span>
+                        </button>
+                        <p class="sp-secure-card__status" id="sp-shop-status" aria-live="polite"></p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="section portal-faq" aria-labelledby="portal-faq-title">
-            <div class="container">
-                <div class="section-heading">
-                    <p class="eyebrow">Need a Hand?</p>
-                    <h2 id="portal-faq-title">Student Portal FAQ</h2>
+            <!-- ── Quick Actions ── -->
+            <section>
+                <div class="sp-section-head">
+                    <div>
+                        <p class="sp-section-head__eyebrow">Quick Actions</p>
+                        <h2>Goals &amp; Support</h2>
+                    </div>
                 </div>
-                <div class="faq-grid">
-                    <details class="faq-item">
-                        <summary>How do I get my student ID?</summary>
-                        <p>New members receive their secure ID at sign-up. If you misplaced it, email <a href="mailto:aratkdsports@gmail.com?subject=Student%20ID%20Replacement&body=Student%20Name:%0AParent%20Name:%0APhone:%0APreferred%20Email:%0A">aratkdsports@gmail.com</a> and we will resend it within one business day.</p>
-                    </details>
-                    <details class="faq-item">
-                        <summary>Can families share one account?</summary>
-                        <p>Each student has a unique login so we can track rank progress accurately. Parents can store multiple IDs and login as needed.</p>
-                    </details>
-                    <details class="faq-item">
-                        <summary>What file types can I upload?</summary>
-                        <p>Upload a clear JPG or PNG photo of the official Certificate of Rank (up to 10MB). This helps the system verify authentic paperwork automatically.</p>
-                    </details>
-                    <details class="faq-item">
-                        <summary>What happens after I submit a belt test request?</summary>
-                        <p>Instructors review submissions weekly. Expect a confirmation email with prep tips and your scheduled test date.</p>
-                    </details>
+                <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+                    <a class="secondary-btn" href="index.html#schedule">View Live Schedule</a>
+                    <a class="secondary-btn" href="kiosk.html" target="_blank" rel="noopener">Open Attendance Kiosk</a>
+                    <a class="secondary-btn" href="mailto:aratkdsports@gmail.com?subject=Belt%20Testing%20Question&body=Student%20Name:%0AStudent%20ID:%0ACurrent%20Belt:%0AQuestion:%0A">Ask About Testing</a>
                 </div>
-            </div>
-        </section>
-    </main>
+            </section>
+        </main>
+    </div><!-- /portal-app -->
 
+    <!-- ══ ADMIN MODAL (unchanged) ══ -->
     <div class="admin-modal" id="admin-modal" hidden>
         <div class="admin-modal__backdrop" id="admin-modal-backdrop"></div>
         <div class="admin-modal__panel">
@@ -465,11 +1654,11 @@
                                             <p class="eyebrow">Master Ara Control Center</p>
                                             <h3 class="admin-topbar__title">ARA TKD Admin Control</h3>
                                         </div>
-                                    <div class="admin-topbar__actions">
-                                        <button type="button" class="text-link-btn" id="admin-summary-download">Download CSV</button>
-                                        <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
-                                        <a class="secondary-btn" href="admin-new-student.html" target="_blank" rel="noopener">Add New Student</a>
-                                    </div>
+                                        <div class="admin-topbar__actions">
+                                            <button type="button" class="text-link-btn" id="admin-summary-download">Download CSV</button>
+                                            <button type="button" class="secondary-btn" id="admin-refresh">Refresh Data</button>
+                                            <a class="secondary-btn" href="admin-new-student.html" target="_blank" rel="noopener">Add New Student</a>
+                                        </div>
                                     </div>
 
                                     <section class="admin-card admin-card--highlight" id="admin-summary" data-admin-panel="tab-dashboard">
@@ -482,19 +1671,17 @@
                                             <table class="admin-table" aria-label="Portal usage summary">
                                                 <thead>
                                                     <tr>
-                                                    <th scope="col">Student ID</th>
-                                                    <th scope="col">Total Events</th>
-                                                    <th scope="col">Logins</th>
-                                                    <th scope="col">Latest Belt</th>
-                                                    <th scope="col">Last Activity</th>
-                                                    <th scope="col">Status</th>
-                                                    <th scope="col">Actions</th>
+                                                        <th scope="col">Student ID</th>
+                                                        <th scope="col">Total Events</th>
+                                                        <th scope="col">Logins</th>
+                                                        <th scope="col">Latest Belt</th>
+                                                        <th scope="col">Last Activity</th>
+                                                        <th scope="col">Status</th>
+                                                        <th scope="col">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="admin-summary-body">
-                                                    <tr>
-                                                        <td colspan="7">Sign in to load analytics.</td>
-                                                    </tr>
+                                                    <tr><td colspan="7">Sign in to load analytics.</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -512,7 +1699,7 @@
 
                                     <section class="admin-card admin-card--gold" id="admin-calendar-card" data-admin-panel="tab-calendar">
                                         <div class="admin-card__header">
-                                            <h3 class="admin-card__title">Calendar & Special Occasions</h3>
+                                            <h3 class="admin-card__title">Calendar &amp; Special Occasions</h3>
                                             <p class="admin-card__meta">Active events appear on kiosk sign-in</p>
                                         </div>
                                         <div class="admin-grid" id="admin-calendar-upcoming">
@@ -540,9 +1727,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="admin-attendance-body">
-                                                    <tr>
-                                                        <td colspan="5">No attendance logs yet.</td>
-                                                    </tr>
+                                                    <tr><td colspan="5">No attendance logs yet.</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -585,9 +1770,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="admin-events-body">
-                                                    <tr>
-                                                        <td colspan="6">No events yet.</td>
-                                                    </tr>
+                                                    <tr><td colspan="6">No events yet.</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -599,14 +1782,14 @@
                                                         <span>Event Name</span>
                                                         <input type="text" id="admin-event-name" required placeholder="Tournament Sign-In">
                                                     </label>
-                                                <label>
-                                                    <span>Type</span>
-                                                    <select id="admin-event-type">
-                                                        <option value="Special Class">Special Class</option>
-                                                        <option value="Tournament">Tournament</option>
-                                                        <option value="Make-Up Class">Make-Up Class</option>
-                                                    </select>
-                                                </label>
+                                                    <label>
+                                                        <span>Type</span>
+                                                        <select id="admin-event-type">
+                                                            <option value="Special Class">Special Class</option>
+                                                            <option value="Tournament">Tournament</option>
+                                                            <option value="Make-Up Class">Make-Up Class</option>
+                                                        </select>
+                                                    </label>
                                                     <label>
                                                         <span>Start</span>
                                                         <input type="datetime-local" id="admin-event-start" required>
@@ -624,7 +1807,7 @@
                                                     <span>Description</span>
                                                     <textarea id="admin-event-description" rows="2" placeholder="Details for staff"></textarea>
                                                 </label>
-                                                <label style="display:flex;align-items:center;gap:0.5rem; margin:0.5rem 0 1rem 0;">
+                                                <label style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 1rem;">
                                                     <input type="checkbox" id="admin-event-active">
                                                     <span>Activate immediately</span>
                                                 </label>
@@ -642,30 +1825,28 @@
                                                 <button type="button" class="text-link-btn" id="admin-roster-refresh">Refresh</button>
                                             </div>
                                         </div>
-                                    <div class="admin-filter-row">
-                                        <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
-                                        <select id="admin-roster-sort" aria-label="Sort roster">
-                                            <option value="name">Name A–Z</option>
-                                            <option value="belt">Belt Order</option>
-                                            <option value="status">Status</option>
-                                        </select>
-                                    </div>
-                                    <div class="admin-table-wrap admin-table-wrap--wide">
-                                        <table class="admin-table admin-table--wide" aria-label="Student roster">
+                                        <div class="admin-filter-row">
+                                            <input type="search" id="admin-roster-search" placeholder="Search by name, belt, or status">
+                                            <select id="admin-roster-sort" aria-label="Sort roster">
+                                                <option value="name">Name A–Z</option>
+                                                <option value="belt">Belt Order</option>
+                                                <option value="status">Status</option>
+                                            </select>
+                                        </div>
+                                        <div class="admin-table-wrap admin-table-wrap--wide">
+                                            <table class="admin-table admin-table--wide" aria-label="Student roster">
                                                 <thead>
                                                     <tr>
                                                         <th scope="col">ID</th>
                                                         <th scope="col">Name</th>
-                                                    <th scope="col">Belt</th>
-                                                    <th scope="col">Status</th>
-                                                    <th scope="col">Updated</th>
-                                                    <th scope="col">Actions</th>
-                                                </tr>
+                                                        <th scope="col">Belt</th>
+                                                        <th scope="col">Status</th>
+                                                        <th scope="col">Updated</th>
+                                                        <th scope="col">Actions</th>
+                                                    </tr>
                                                 </thead>
                                                 <tbody id="admin-roster-body">
-                                                    <tr>
-                                                    <td colspan="6">Sign in to load the roster.</td>
-                                                    </tr>
+                                                    <tr><td colspan="6">Sign in to load the roster.</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -724,18 +1905,9 @@
                                                     <p class="admin-accordion__hint">Update contact, belt, and status directly.</p>
                                                     <form class="admin-roster-edit__form" id="admin-roster-edit-form" autocomplete="off">
                                                         <div class="admin-roster-edit__grid">
-                                                            <label>
-                                                                <span>Student Name</span>
-                                                                <input type="text" id="admin-roster-name" placeholder="Full name">
-                                                            </label>
-                                                            <label>
-                                                                <span>Email</span>
-                                                                <input type="email" id="admin-roster-email" placeholder="name@example.com">
-                                                            </label>
-                                                            <label>
-                                                                <span>Phone</span>
-                                                                <input type="tel" id="admin-roster-phone" placeholder="9195551234">
-                                                            </label>
+                                                            <label><span>Student Name</span><input type="text" id="admin-roster-name" placeholder="Full name"></label>
+                                                            <label><span>Email</span><input type="email" id="admin-roster-email" placeholder="name@example.com"></label>
+                                                            <label><span>Phone</span><input type="tel" id="admin-roster-phone" placeholder="9195551234"></label>
                                                             <label>
                                                                 <span>Current Belt</span>
                                                                 <select id="admin-roster-belt">
@@ -789,10 +1961,7 @@
                                                     </div>
                                                     <form class="admin-attendance-adjust__form" id="admin-attendance-adjust-form" autocomplete="off">
                                                         <div class="admin-attendance-adjust__grid">
-                                                            <label>
-                                                                <span>Lessons</span>
-                                                                <input type="number" id="admin-attendance-adjust-value" min="0" max="200" value="1" inputmode="numeric" placeholder="1">
-                                                            </label>
+                                                            <label><span>Lessons</span><input type="number" id="admin-attendance-adjust-value" min="0" max="200" value="1" inputmode="numeric" placeholder="1"></label>
                                                             <label>
                                                                 <span>Class</span>
                                                                 <select id="admin-attendance-adjust-class">
@@ -811,10 +1980,7 @@
                                                                     <option value="All Levels">All Levels</option>
                                                                 </select>
                                                             </label>
-                                                            <label>
-                                                                <span>Reason <small>(optional)</small></span>
-                                                                <input type="text" id="admin-attendance-adjust-note" placeholder="Make-up class, missed kiosk, etc.">
-                                                            </label>
+                                                            <label><span>Reason <small>(optional)</small></span><input type="text" id="admin-attendance-adjust-note" placeholder="Make-up class, missed kiosk, etc."></label>
                                                         </div>
                                                         <div class="admin-attendance-adjust__actions">
                                                             <button type="submit" class="secondary-btn" data-adjust="add">Add</button>
@@ -825,53 +1991,25 @@
                                                     </form>
                                                 </div>
                                             </div>
-                                            <div class="admin-accordion" open>
-                                                <summary>Financial Management</summary>
-                                                <p class="admin-accordion__hint">Use notes to log payments or billing conversations. SwipeSimple transactions can be noted here.</p>
-                                            </div>
-                                            <div class="admin-accordion">
-                                                <summary>Progress Tracking</summary>
-                                                <p class="admin-accordion__hint">Track readiness, test requests, and belt uploads via the report card.</p>
-                                            </div>
-                                            <div class="admin-accordion">
-                                                <summary>Workout Tracking</summary>
-                                                <p class="admin-accordion__hint">Use notes to capture class feedback or practice assignments.</p>
-                                            </div>
-                                            <div class="admin-accordion" open>
-                                                <summary>Membership Management</summary>
-                                                <p class="admin-accordion__hint">Set membership type and keep billing notes synced.</p>
-                                            </div>
-                                            <div class="admin-accordion">
-                                                <summary>Payment Profile Management</summary>
-                                                <p class="admin-accordion__hint">Record SwipeSimple payment confirmations and follow-ups.</p>
-                                            </div>
+                                            <div class="admin-accordion" open><summary>Financial Management</summary><p class="admin-accordion__hint">Use notes to log payments or billing conversations.</p></div>
+                                            <div class="admin-accordion"><summary>Progress Tracking</summary><p class="admin-accordion__hint">Track readiness, test requests, and belt uploads via the report card.</p></div>
+                                            <div class="admin-accordion"><summary>Workout Tracking</summary><p class="admin-accordion__hint">Use notes to capture class feedback or practice assignments.</p></div>
+                                            <div class="admin-accordion" open><summary>Membership Management</summary><p class="admin-accordion__hint">Set membership type and keep billing notes synced.</p></div>
+                                            <div class="admin-accordion"><summary>Payment Profile Management</summary><p class="admin-accordion__hint">Record SwipeSimple payment confirmations and follow-ups.</p></div>
                                         </div>
                                     </section>
 
-
-                                <section class="admin-card" id="admin-enroll" data-admin-panel="tab-students">
-                                    <div class="admin-summary__header">
-                                        <h3>Quick Student Enrollment</h3>
-                                        <p>Generate a new Ara ID, login credential, and optional attendance seed in one step.</p>
-                                    </div>
+                                    <section class="admin-card" id="admin-enroll" data-admin-panel="tab-students">
+                                        <div class="admin-summary__header">
+                                            <h3>Quick Student Enrollment</h3>
+                                            <p>Generate a new Ara ID, login credential, and optional attendance seed in one step.</p>
+                                        </div>
                                         <form class="admin-enroll__form" id="admin-enroll-form" autocomplete="off">
                                             <div class="admin-enroll__grid">
-                                                <label>
-                                                    <span>Student Name</span>
-                                                    <input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required>
-                                                </label>
-                                                <label>
-                                                    <span>Date of Birth</span>
-                                                    <input type="date" id="admin-enroll-dob" name="birthDate" required>
-                                                </label>
-                                                <label>
-                                                    <span>Parent Email</span>
-                                                    <input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com">
-                                                </label>
-                                                <label>
-                                                    <span>Phone</span>
-                                                    <input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234">
-                                                </label>
+                                                <label><span>Student Name</span><input type="text" id="admin-enroll-name" name="name" placeholder="First and Last" required></label>
+                                                <label><span>Date of Birth</span><input type="date" id="admin-enroll-dob" name="birthDate" required></label>
+                                                <label><span>Parent Email</span><input type="email" id="admin-enroll-email" name="email" placeholder="name@example.com"></label>
+                                                <label><span>Phone</span><input type="tel" id="admin-enroll-phone" name="phone" placeholder="9195551234"></label>
                                                 <label>
                                                     <span>Starting Belt</span>
                                                     <select id="admin-enroll-belt" name="belt">
@@ -896,10 +2034,7 @@
                                                         <option value="little-ninjas">Little Ninjas</option>
                                                     </select>
                                                 </label>
-                                                <label>
-                                                    <span>Seed Attendance Days</span>
-                                                    <input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3">
-                                                </label>
+                                                <label><span>Seed Attendance Days</span><input type="number" id="admin-enroll-attendance" name="initialAttendanceDays" min="0" max="10" value="3"></label>
                                             </div>
                                             <div class="admin-enroll__actions">
                                                 <button type="submit" class="cta-btn">Create Student</button>
@@ -908,8 +2043,8 @@
                                         </form>
                                         <div class="admin-enroll__result" id="admin-enroll-result" hidden>
                                             <p class="admin-enroll__result-title">New student ready for login.</p>
-                                        <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
-                                    </div>
+                                            <div class="admin-enroll__result-details" id="admin-enroll-details"></div>
+                                        </div>
                                     </section>
 
                                     <section class="admin-card" id="admin-archive" data-admin-panel="tab-archive">
@@ -930,9 +2065,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody id="admin-archive-body">
-                                                    <tr>
-                                                        <td colspan="5">Sign in to load archived students.</td>
-                                                    </tr>
+                                                    <tr><td colspan="5">Sign in to load archived students.</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -958,6 +2091,7 @@
             </section>
         </div>
     </div>
+
     <footer class="site-footer">
         <div class="container footer-grid">
             <div>
@@ -986,8 +2120,145 @@
 
     <button type="button" class="admin-trigger" id="admin-trigger" aria-label="Instructor Access" tabindex="0"></button>
 
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
-    <script type="module" src="assets/js/student-portal.js?v=20260527-adminpanel" defer></script>
+    <!-- Stat cards + progress bar: MutationObserver syncs from portal-class-summary text -->
+    <script>
+    (function() {
+        var src = document.getElementById('portal-class-summary');
+        if (!src) return;
+        function syncStats() {
+            var nums = (src.textContent || '').match(/\d+/g) || [];
+            if (nums.length >= 3) {
+                var done = parseInt(nums[0], 10);
+                var goal = parseInt(nums[1], 10);
+                var left = parseInt(nums[2], 10);
+                var d = document.getElementById('sp-stat-done');
+                var g = document.getElementById('sp-stat-goal');
+                var l = document.getElementById('sp-stat-left');
+                if (d) d.textContent = done;
+                if (g) g.textContent = goal;
+                if (l) l.textContent = left;
+                // Progress bar
+                var fill = document.getElementById('sp-progress-fill');
+                var pct  = document.getElementById('sp-progress-pct');
+                var txt  = document.getElementById('sp-progress-text');
+                if (fill && goal > 0) {
+                    var ratio = Math.min(1, done / goal);
+                    var pctVal = Math.round(ratio * 100);
+                    // Slight delay so CSS transition plays on first load
+                    setTimeout(function() { fill.style.width = pctVal + '%'; }, 80);
+                    if (pct) pct.textContent = pctVal + '%';
+                    if (txt) txt.textContent = pctVal >= 100
+                        ? 'Ready for testing!'
+                        : done + ' of ' + goal + ' classes completed';
+                }
+            }
+        }
+        new MutationObserver(syncStats).observe(src, { childList: true, subtree: true, characterData: true });
+        syncStats();
+        // Avatar initials from student name
+        var nameEl   = document.getElementById('portal-student-name');
+        var avatarEl = document.getElementById('portal-avatar');
+        if (nameEl && avatarEl) {
+            new MutationObserver(function() {
+                var parts = (nameEl.textContent || '').trim().split(/\s+/);
+                avatarEl.textContent = parts.length >= 2
+                    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                    : (parts[0] || 'AR').slice(0, 2).toUpperCase();
+            }).observe(nameEl, { childList: true, characterData: true, subtree: true });
+        }
+        // Login spinner: show while waiting for portal to load
+        var form = document.getElementById('student-login-form');
+        var btn  = form && form.querySelector('.sp-submit');
+        if (form && btn) {
+            form.addEventListener('submit', function() {
+                btn.setAttribute('aria-busy', 'true');
+                // Reset if portal-app becomes visible (login succeeded) or after 10 s
+                var t = setTimeout(function() { btn.removeAttribute('aria-busy'); }, 10000);
+                var obs = new MutationObserver(function() {
+                    if (!document.getElementById('portal-app').hidden) {
+                        btn.removeAttribute('aria-busy');
+                        clearTimeout(t);
+                        obs.disconnect();
+                    }
+                });
+                obs.observe(document.getElementById('portal-app'), { attributes: true, attributeFilter: ['hidden'] });
+            });
+        }
+    })();
+    </script>
+
+    <!-- Secure link fetcher: payment + shop buttons -->
+    <script>
+    (function() {
+        var API = (document.body.dataset.apiBase || '').replace(/\/$/, '');
+
+        function getToken() {
+            // student-portal.js stores the JWT in sessionStorage under 'portalToken'
+            return sessionStorage.getItem('portalToken') || localStorage.getItem('portalToken') || '';
+        }
+
+        async function fetchSecureLink(type, btn, statusEl) {
+            var endpoint = type === 'payment' ? '/api/payment-link' : '/api/shop-link';
+            var token = getToken();
+            if (!token) {
+                statusEl.textContent = 'Session not found — try signing in again.';
+                return;
+            }
+            btn.setAttribute('aria-busy', 'true');
+            btn.disabled = true;
+            statusEl.textContent = '';
+            try {
+                var res = await fetch(API + endpoint, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                var data = await res.json();
+                if (res.ok && data.url) {
+                    window.open(data.url, '_blank', 'noopener,noreferrer');
+                } else if (res.status === 503) {
+                    statusEl.textContent = 'Link not yet configured — contact the office.';
+                } else if (res.status === 401) {
+                    statusEl.textContent = 'Session expired — please sign out and sign back in.';
+                } else {
+                    statusEl.textContent = 'Unable to retrieve link. Try again in a moment.';
+                }
+            } catch {
+                statusEl.textContent = 'Network error — check your connection and try again.';
+            } finally {
+                btn.removeAttribute('aria-busy');
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-link-type]');
+            if (!btn) return;
+            var type = btn.dataset.linkType;
+            var statusEl = document.getElementById('sp-' + type + '-status');
+            if (!statusEl) return;
+            fetchSecureLink(type, btn, statusEl);
+        });
+    })();
+    </script>
+
+    <!-- Lazy-load tesseract only when certificate upload is needed -->
+    <script>
+    window._tesseractLoaded = false;
+    window._loadTesseract = function() {
+        if (window._tesseractLoaded) return Promise.resolve();
+        return new Promise(function(resolve) {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+            s.onload = function() { window._tesseractLoaded = true; resolve(); };
+            document.head.appendChild(s);
+        });
+    };
+    // Load after 5 seconds in background if user looks logged in
+    setTimeout(function() {
+        if (!document.getElementById('portal-app').hidden) window._loadTesseract();
+    }, 5000);
+    </script>
+
+    <script type="module" src="assets/js/student-portal.js?v=20260820a" defer></script>
     <script src="assets/js/main.js?v=20260214-12" defer></script>
     <script src="assets/js/translate.js?v=20260730"></script>
     <script src="https://translate.google.com/translate_a/element.js?cb=initAraTranslate"></script>

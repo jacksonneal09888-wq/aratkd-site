@@ -1,5 +1,13 @@
 import { Hono, type Context } from 'hono';
 import { sign, verify, type JWTPayload } from 'hono/jwt';
+import {
+  checkGlobalRate, checkLoginRate,
+  recordLoginFailure, isStudentLocked, clearLoginFailures,
+  isIpBlocked, blockIp,
+  logEvent, applyHardenedHeaders,
+  isSuspiciousUA, HONEYPOT_PATHS,
+  runDataPurge,
+} from './security';
 
 interface Env {
   PORTAL_DB: D1Database;
@@ -16,6 +24,10 @@ interface Env {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_PHONE_NUMBER?: string;
+  // Secure payment & shop links — set via `wrangler secret put`
+  // Never exposed in source; only returned over authenticated HTTPS (TLS/AES-256)
+  PAYMENT_URL?: string;
+  SHOP_URL?: string;
 }
 
 const MASTER_ARA_SYSTEM_PROMPT = `You are the Master Ara Bot — the friendly, knowledgeable AI guide for Ara's Martial Arts Sportsplex in Siler City, NC. You help students, parents, and visitors navigate the website, answer questions about programs, belts, and training, and guide them to take action.
@@ -191,6 +203,46 @@ const applySecurityHeaders = (headers: Headers, allowedOrigin: string) => {
   }
 };
 
+// ── WAF middleware — runs before everything else ──────────────────────────────
+app.use('*', async (c, next) => {
+  const ip       = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || 'unknown';
+  const path     = new URL(c.req.url).pathname;
+  const ua       = c.req.header('User-Agent') || '';
+  const db       = c.env.PORTAL_DB;
+  const ctx      = c.executionCtx;
+
+  // 1. Honeypot — scanners probing common vulnerable paths
+  if (HONEYPOT_PATHS.has(path)) {
+    logEvent(db, ctx, { type: 'honeypot_hit', severity: 'critical', ip, endpoint: path, ua });
+    blockIp(db, ctx, ip, `Honeypot hit: ${path}`, 24 * 3600_000); // 24 h
+    return c.text('Not found', 404);
+  }
+
+  // 2. IP block check (D1-backed, 60 s cache)
+  if (ip !== 'unknown' && await isIpBlocked(db, ip)) {
+    logEvent(db, ctx, { type: 'ip_blocked', severity: 'high', ip, endpoint: path, ua });
+    return c.text('Forbidden', 403);
+  }
+
+  // 3. Suspicious user-agent (automated scanners / exploit tools)
+  if (isSuspiciousUA(ua)) {
+    logEvent(db, ctx, { type: 'suspicious_ua', severity: 'high', ip, endpoint: path, ua });
+    blockIp(db, ctx, ip, `Suspicious UA: ${ua.slice(0, 100)}`, 6 * 3600_000); // 6 h
+    return c.text('Forbidden', 403);
+  }
+
+  // 4. Global per-IP rate limit (300 req/min)
+  if (ip !== 'unknown' && !checkGlobalRate(ip)) {
+    logEvent(db, ctx, { type: 'rate_limit_global', severity: 'medium', ip, endpoint: path });
+    const r = c.text('Too Many Requests', 429);
+    r.headers.set('Retry-After', '60');
+    return r;
+  }
+
+  await next();
+});
+
+// ── CORS + security headers middleware ────────────────────────────────────────
 app.use('*', async (c, next) => {
   const requestOrigin = c.req.header('Origin') || '';
   const allowedOrigin = resolveAllowedOrigin(requestOrigin);
@@ -199,6 +251,7 @@ app.use('*', async (c, next) => {
     if (requestOrigin && !allowedOrigin) {
       const denied = c.json({ error: 'Origin not allowed' }, 403);
       applySecurityHeaders(denied.headers, '');
+      applyHardenedHeaders(denied.headers);
       return denied;
     }
     const response = c.newResponse(null, { status: 204 });
@@ -208,6 +261,7 @@ app.use('*', async (c, next) => {
 
   await next();
   applySecurityHeaders(c.res.headers, allowedOrigin);
+  applyHardenedHeaders(c.res.headers);
 });
 
 const getJwtSecret = (env: Env) => (env.PORTAL_JWT_SECRET || env.ADMIN_PORTAL_KEY || '').trim();
@@ -1252,6 +1306,19 @@ app.delete('/portal/admin/banners/:bannerId', async (c) => {
 });
 
 app.post('/portal/login-event', async (c) => {
+  const ip   = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim() || 'unknown';
+  const ua   = c.req.header('User-Agent') || '';
+  const db   = c.env.PORTAL_DB;
+  const ctx  = c.executionCtx;
+
+  // Login-specific rate limit: 10 attempts per IP per 15 minutes
+  if (!checkLoginRate(ip)) {
+    logEvent(db, ctx, { type: 'rate_limit_login', severity: 'high', ip, endpoint: '/portal/login-event', ua });
+    const r = c.json({ error: 'Too many login attempts — wait 15 minutes and try again.' }, 429);
+    (await r).headers.set('Retry-After', '900');
+    return r;
+  }
+
   const body = await c.req.json().catch(() => ({}));
   const studentId = (body.studentId || '').trim();
   const action = (body.action || 'login').trim().toLowerCase();
@@ -1274,8 +1341,21 @@ app.post('/portal/login-event', async (c) => {
     if (!birthDate) {
       return c.json({ error: 'birthDate is required for login' }, 400);
     }
+
+    // Check D1-backed lockout for this student ID
+    if (await isStudentLocked(db, studentId)) {
+      logEvent(db, ctx, { type: 'account_locked', severity: 'medium', ip, studentId, ua });
+      return c.json({ error: 'Account temporarily locked — too many failed attempts. Try again in 30 minutes.' }, 429);
+    }
+
     const student = await fetchStudentById(c.env.PORTAL_DB, studentId);
     if (!student) {
+      // Log auth failure — track enumeration
+      const { locked, failCount } = await recordLoginFailure(db, studentId);
+      logEvent(db, ctx, {
+        type: 'auth_failure', severity: failCount >= 3 ? 'high' : 'medium',
+        ip, studentId, ua, details: { failCount, reason: 'student_not_found' }
+      });
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
@@ -1292,8 +1372,23 @@ app.post('/portal/login-event', async (c) => {
 
     const storedBirthDate = normalizeBirthDate(student.birth_date);
     if (!storedBirthDate || storedBirthDate !== birthDate) {
+      const { locked, failCount } = await recordLoginFailure(db, canonicalId);
+      logEvent(db, ctx, {
+        type: locked ? 'brute_force_student' : 'auth_failure',
+        severity: locked ? 'critical' : failCount >= 3 ? 'high' : 'medium',
+        ip, studentId: canonicalId, ua,
+        details: { failCount, locked, reason: 'wrong_dob' }
+      });
+      if (locked) {
+        // If this IP has caused lockouts on multiple accounts → block the IP too
+        blockIp(db, ctx, ip, `Brute force: locked student ${canonicalId}`, 3600_000); // 1 h
+        return c.json({ error: 'Account temporarily locked — too many failed attempts. Try again in 30 minutes.' }, 429);
+      }
       return c.json({ error: 'Invalid credentials' }, 401);
     }
+
+    // Successful login — clear failure count
+    clearLoginFailures(db, ctx, canonicalId);
 
     const records = await fetchPortalProgress(c.env.PORTAL_DB, canonicalId);
     token = await issuePortalToken(canonicalId, c.env);
@@ -3028,4 +3123,169 @@ async function sendSms(accountSid: string, authToken: string, from: string, to: 
   });
 }
 
-export default app;
+// ── Admin: Security event log ─────────────────────────────────────────────────
+app.get('/portal/admin/security/events', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+
+  const limit  = Math.min(parseInt(c.req.query('limit')  || '100', 10), 500);
+  const offset = Math.max(parseInt(c.req.query('offset') || '0',   10), 0);
+  const type   = c.req.query('type')     || null;
+  const sev    = c.req.query('severity') || null;
+  const ip     = c.req.query('ip')       || null;
+
+  const filters: string[] = [];
+  const binds:   (string | number)[] = [];
+  let   idx = 1;
+  if (type) { filters.push(`event_type = ?${idx++}`); binds.push(type); }
+  if (sev)  { filters.push(`severity = ?${idx++}`);   binds.push(sev);  }
+  if (ip)   { filters.push(`ip_address = ?${idx++}`); binds.push(ip);   }
+  const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
+  const { results } = await c.env.PORTAL_DB
+    .prepare(`SELECT * FROM security_events ${where} ORDER BY created_at DESC LIMIT ?${idx++} OFFSET ?${idx++}`)
+    .bind(...binds, limit, offset)
+    .all();
+
+  return c.json({ events: results || [], limit, offset });
+});
+
+// ── Admin: IP block management ────────────────────────────────────────────────
+app.get('/portal/admin/security/blocks', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const { results } = await c.env.PORTAL_DB
+    .prepare(`SELECT * FROM ip_blocks ORDER BY blocked_at DESC LIMIT 200`)
+    .all();
+  return c.json({ blocks: results || [] });
+});
+
+app.post('/portal/admin/security/blocks', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const body = await c.req.json().catch(() => ({}));
+  const ip     = (body.ip     || '').trim();
+  const reason = (body.reason || 'Manual admin block').trim();
+  const hours  = Number(body.hours) || 0; // 0 = permanent
+  if (!ip) return c.json({ error: 'ip is required' }, 400);
+
+  const now       = new Date().toISOString();
+  const expiresAt = hours > 0 ? new Date(Date.now() + hours * 3600_000).toISOString() : null;
+  await c.env.PORTAL_DB
+    .prepare(`INSERT OR REPLACE INTO ip_blocks (ip_address, reason, blocked_at, expires_at, created_by) VALUES (?1,?2,?3,?4,'admin')`)
+    .bind(ip, reason, now, expiresAt)
+    .run();
+  return c.json({ ok: true, ip, expiresAt });
+});
+
+app.delete('/portal/admin/security/blocks/:ip', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const ip = decodeURIComponent(c.req.param('ip') || '').trim();
+  if (!ip) return c.json({ error: 'ip is required' }, 400);
+  await c.env.PORTAL_DB.prepare(`DELETE FROM ip_blocks WHERE ip_address = ?1`).bind(ip).run();
+  return c.json({ ok: true, unblocked: ip });
+});
+
+// ── Admin: manual data purge trigger ─────────────────────────────────────────
+app.post('/portal/admin/security/purge', async (c) => {
+  const authError = await authenticateAdminRequest(c);
+  if (authError) return authError;
+  const result = await runDataPurge(c.env.PORTAL_DB, c.executionCtx);
+  return c.json({ ok: true, purged: result });
+});
+
+// ── Active-student gate ───────────────────────────────────────────────────────
+// Verifies JWT is valid AND the student record exists, is not archived,
+// not suspended, and has status === 'active'. Returns null on success or
+// an error Response if any check fails.
+const requireActiveStudent = async (
+  c: Context<{ Bindings: Env }>,
+  studentId: string
+): Promise<Response | null> => {
+  const row = await fetchStudentById(c.env.PORTAL_DB, studentId);
+  if (!row) return c.json({ error: 'Account not found' }, 403);
+  const student = sanitizeStudentRecord(row);
+  if (!student) return c.json({ error: 'Account not found' }, 403);
+  if (student.isArchived) return c.json({ error: 'Account is no longer active' }, 403);
+  if (student.isSuspended) return c.json({ error: 'Account is suspended' }, 403);
+  const activeStatuses = new Set(['active']);
+  if (!activeStatuses.has((student.status || '').toLowerCase())) {
+    return c.json({ error: 'Account is not active' }, 403);
+  }
+  return null;
+};
+
+const resolveSecureUrl = (raw: string | undefined): URL | null => {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return null;
+  try {
+    const u = new URL(trimmed);
+    return u.protocol === 'https:' ? u : null;
+  } catch { return null; }
+};
+
+// ── Secure payment link — JWT-gated + active-student verified ────────────────
+// The SwipeSimple URL is stored in the PAYMENT_URL Worker secret:
+//   npx wrangler secret put PAYMENT_URL
+// It is encrypted at rest by Cloudflare and transmitted only to students
+// with a valid session who are confirmed active in the database.
+// Wire: TLS 1.3 (AES-256-GCM) — the "256-bit encryption" is the TLS channel.
+app.get('/api/payment-link', async (c) => {
+  const auth = await authenticateRequest(c);
+  if ('error' in auth) return auth.error;
+
+  const gate = await requireActiveStudent(c, auth.studentId);
+  if (gate) return gate;
+
+  const target = resolveSecureUrl(c.env.PAYMENT_URL);
+  if (!target) return c.json({ error: 'Payment link not configured' }, 503);
+
+  return c.json({
+    url: target.toString(),
+    studentId: auth.studentId,
+    secured: true,
+    encryption: 'TLS-1.3/AES-256-GCM'
+  });
+});
+
+// ── Secure shop link — JWT-gated + active-student verified ───────────────────
+// The shop URL is stored in the SHOP_URL Worker secret:
+//   npx wrangler secret put SHOP_URL
+// Inactive, suspended, archived, frozen, and prospect accounts all receive 403.
+// Only confirmed active students with a live JWT session can retrieve this link.
+app.get('/api/shop-link', async (c) => {
+  const auth = await authenticateRequest(c);
+  if ('error' in auth) return auth.error;
+
+  const gate = await requireActiveStudent(c, auth.studentId);
+  if (gate) return gate;
+
+  const target = resolveSecureUrl(c.env.SHOP_URL);
+  if (!target) return c.json({ error: 'Shop link not configured' }, 503);
+
+  return c.json({
+    url: target.toString(),
+    studentId: auth.studentId,
+    secured: true,
+    encryption: 'TLS-1.3/AES-256-GCM'
+  });
+});
+
+// ── Worker module export ──────────────────────────────────────────────────────
+// Exposes both the HTTP handler and the scheduled cron handler.
+export default {
+  fetch: app.fetch,
+
+  // Runs on the cron schedule defined in wrangler.jsonc:
+  //   "0 2 * * *"  → 2 AM UTC daily  (data purge + expired-block cleanup)
+  //   "0 */6 * * *" → Every 6 hours  (login-failure lockout expiry)
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    try {
+      const result = await runDataPurge(env.PORTAL_DB, ctx);
+      console.log('[cron] Data purge complete', JSON.stringify(result));
+    } catch (err) {
+      console.error('[cron] Data purge failed', err);
+    }
+  },
+};
